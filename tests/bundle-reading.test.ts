@@ -362,6 +362,7 @@ test('newly loaded comments provide an actionable original-page reply link', asy
     assert.equal(link.href, 'https://www.nodeseek.com/post-1-2#comment-2');
     assert.equal(link.target, '_blank');
     assert.equal(link.rel, 'noopener noreferrer');
+    assert.equal(f.window.document.querySelector('#comment-2 button'), null, 'unbound native buttons are removed');
   } finally { await f.close(); }
 });
 
@@ -371,5 +372,40 @@ test('comment pagination rejects foreign threads before making a request', async
   try {
     assert.equal(f.window.document.querySelector('.comments + button.nspp-action')?.hasAttribute('hidden'), true);
     assert.equal(f.requests.length, 0);
+  } finally { await f.close(); }
+});
+
+test('automatic pagination stops at the configured page budget and manual load continues', async () => {
+  let intersect: (() => void) | undefined, calls = 0;
+  const f = await fixture({ 'infinite-scroll': { enabled: true, posts: true, autoMaxPages: 1 }, 'user-level': { enabled: false }, 'official-blocklist': { enabled: false } },
+    '<ul class="post-list"><li id="post-first"><div class="post-title"><a href="/post-1-1">First</a></div></li></ul><div class="nsk-pager"><a class="pager-next" href="/page-2">More</a></div>',
+    '/', undefined, window => {
+      window.IntersectionObserver = class {
+        constructor(callback: (entries: unknown[]) => void, options?: { rootMargin?: string }) {
+          if (options?.rootMargin === '150px') intersect = () => callback([{ isIntersecting: true }]);
+        }
+        observe() {} unobserve() {} disconnect() {}
+      } as unknown as typeof window.IntersectionObserver;
+      window.fetch = (async () => {
+        calls++;
+        const index = calls + 1;
+        return new window.Response(`<ul class="post-list"><li id="page-${index}"><div class="post-title"><a href="/post-${index}-1">Row ${index}</a></div></li></ul><div class="nsk-pager"><a class="pager-next" href="/page-${index + 1}">Next</a></div>`);
+      }) as typeof window.fetch;
+    });
+  try {
+    assert.ok(intersect);
+    intersect!();
+    await new Promise(resolve => setTimeout(resolve, 65));
+    assert.equal(calls, 1);
+    assert.match(f.window.document.querySelector<HTMLButtonElement>('.post-list + button.nspp-action')!.textContent!, /上限/);
+    intersect!();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(calls, 1, 'automatic observer must not grow the DOM after reaching its budget');
+    const load = f.window.document.querySelector<HTMLButtonElement>('.post-list + button.nspp-action')!;
+    load.click();
+    await new Promise(resolve => setTimeout(resolve, 65));
+    assert.equal(calls, 2, 'manual pagination always remains available');
+    assert.ok(f.window.document.querySelector('#page-3'));
+    assert.ok(f.window.document.querySelector('#page-2'));
   } finally { await f.close(); }
 });

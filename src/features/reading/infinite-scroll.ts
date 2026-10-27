@@ -22,6 +22,12 @@ function mount(ctx: Context) {
     const initial = document.querySelector<HTMLAnchorElement>('.nsk-pager a.pager-next')?.href;
     let next = initial && validNext(initial) ? initial : undefined;
     let busy = false, failed = false, paused = false;
+    // Retain all loaded content, but avoid automatically growing the DOM forever.
+    // 0 means unlimited, and manual load never counts against the automatic budget.
+    const configured = Number(ctx.get<number>('autoMaxPages'));
+    const maxAutoPages = Number.isFinite(configured) ? Math.max(0, Math.min(50, Math.floor(configured))) : 6;
+    let autoPages = 0;
+    const atAutoLimit = () => maxAutoPages > 0 && autoPages >= maxAutoPages;
     const replying = () => comments && document.documentElement.hasAttribute('data-nspp-reply-open');
     let loading: AbortController | undefined;
     const visited = new Set([location.href]);
@@ -41,10 +47,10 @@ function mount(ctx: Context) {
     pause.addEventListener('click', () => {
         paused = !paused; renderPause();
         if (paused) { observer.disconnect(); loading?.abort(); }
-        else if (next) observer.observe(button);
+        else if (next && !atAutoLimit()) observer.observe(button);
     }, { signal: ctx.signal });
     const load = async (manual = false) => {
-        if (busy || !next || visited.has(next) || ctx.signal.aborted || replying())
+        if (busy || !next || visited.has(next) || ctx.signal.aborted || replying() || (!manual && atAutoLimit()))
             return;
         const url = new URL(next, location.href);
         if (url.origin !== location.origin)
@@ -63,8 +69,17 @@ function mount(ctx: Context) {
             if (!source || !source.children.length)
                 throw new Error('页面内容不可用');
             source.querySelectorAll('script, iframe, object, embed, base, link, style').forEach(el => el.remove());
+            if (comments) {
+                // Fetched comment controls have no original JavaScript listeners.
+                // Remove dead reply/quote forms and provide the working original-page link instead.
+                source.querySelectorAll('button, form, input, select, textarea').forEach(el => el.remove());
+            }
             source.querySelectorAll('*').forEach(el => {
                 for (const attr of Array.from(el.attributes)) {
+                    if (attr.name === 'target' && attr.value === '_blank' && el.tagName === 'A') {
+                        const current = el.getAttribute('rel') || '';
+                        el.setAttribute('rel', [...new Set([...current.split(/\s+/).filter(Boolean), 'noopener', 'noreferrer'])].join(' '));
+                    }
                     if (/^on/i.test(attr.name) || attr.name === 'srcdoc') {
                         el.removeAttribute(attr.name);
                     } else if (/^(href|src|action|formaction|xlink:href)$/i.test(attr.name)) {
@@ -108,14 +123,16 @@ function mount(ctx: Context) {
                 list.append(imported);
             }
             visited.add(url.href);
+            if (!manual) autoPages++;
             failed = false;
             const href = page.querySelector<HTMLAnchorElement>('.nsk-pager a.pager-next')?.getAttribute('href');
             const candidate = href ? new URL(href, url).href : undefined;
             next = candidate && validNext(candidate) ? candidate : undefined;
             if (next && visited.has(next))
                 next = undefined;
-            button.textContent = next ? '加载下一页' : '已加载全部内容';
-            pause.hidden = !next;
+            button.textContent = !next ? '已加载全部内容' : atAutoLimit() ? '自动加载已达上限，点击继续' : '加载下一页';
+            pause.hidden = !next || atAutoLimit();
+            if (atAutoLimit()) observer.unobserve(button);
         }
         catch {
             if (loading.signal.aborted) return;
@@ -127,16 +144,16 @@ function mount(ctx: Context) {
             button.disabled = !next;
             button.removeAttribute('aria-busy');
             if (paused && next) button.textContent = '已暂停，点击加载下一页';
-            if (loading.signal.aborted && next) button.textContent = paused ? '已暂停，点击加载下一页' : '加载下一页';
-            if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next) { observer.unobserve(button); observer.observe(button); }
+            if (loading.signal.aborted && next) button.textContent = paused ? '已暂停，点击加载下一页' : atAutoLimit() ? '自动加载已达上限，点击继续' : '加载下一页';
+            if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next && !atAutoLimit()) { observer.unobserve(button); observer.observe(button); }
         }
     };
     button.addEventListener('click', () => { void load(true); }, { signal: ctx.signal });
-    const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting) && !failed && !paused && !replying() && !document.hidden)
+    const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting) && !failed && !paused && !atAutoLimit() && !replying() && !document.hidden)
         void load(); }, { rootMargin: '150px' });
     document.addEventListener('nspp:reply-state', () => {
         if (replying()) { observer.disconnect(); loading?.abort(); }
-        else if (next && !paused) observer.observe(button);
+        else if (next && !paused && !atAutoLimit()) observer.observe(button);
     }, { signal: ctx.signal });
     if (next)
         observer.observe(button);
@@ -144,4 +161,4 @@ function mount(ctx: Context) {
         button.hidden = true;
     return () => { observer.disconnect(); loading?.abort(); button.remove(); pause.remove(); };
 }
-export const infiniteScroll: Feature = { id: 'infinite-scroll', title: '自动翻页', description: '合并下一页帖子或评论；失败时手动重试。自动加载评论附有原页回复入口，避免无效的引用/回复按钮。', group: '阅读', defaults: { enabled: true, posts: true, comments: false }, fields: { posts: { label: '帖子自动翻页', type: 'text' }, comments: { label: '评论自动翻页（仅阅读）', type: 'text' } }, mount };
+export const infiniteScroll: Feature = { id: 'infinite-scroll', title: '自动翻页', description: '合并下一页帖子或评论；自动加载页数可限制，达到上限仍可手动继续。自动加载评论附有原页回复入口。', group: '阅读', defaults: { enabled: true, posts: true, comments: false, autoMaxPages: 6 }, fields: { posts: { label: '帖子自动翻页', type: 'text' }, comments: { label: '评论自动翻页（仅阅读）', type: 'text' }, autoMaxPages: { label: '最多自动加载页数（0 不限制，默认 6）', type: 'number' } }, mount };

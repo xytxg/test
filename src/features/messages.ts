@@ -109,6 +109,9 @@ function mountChat(ctx: Context, account: number) {
   let category: 'atMe' | 'reply' | 'message' | undefined;
   let countsBusy = false;
   let listPageSignature = '';
+  // Polling the same server page should not re-read and rewrite every archived message.
+  // Only cache after IndexedDB commits successfully; failures remain retryable.
+  const archivedPages = new Map<number, string>();
   let threadKey = '', threadBusy = false;
   let routeController = new AbortController(), threadController = new AbortController();
   const owner = () => (unsafeWindow as Window & { __config__?: { user?: { member_id?: number } } }).__config__?.user?.member_id;
@@ -228,8 +231,16 @@ function mountChat(ctx: Context, account: number) {
       if (next || page === 1) { more.hidden = messages.length === 0 || (next && signature === listPageSignature); listPageSignature = signature; }
       listStatus.textContent = ''; renderList();
       try {
-        const contacts = await archive.mergeList(messages);
-        if (panelValid() && !requestSignal.aborted) restoreContacts(contacts);
+        // Include mutable fields such as viewed/content in the fingerprint, not
+        // just message IDs. An unchanged poll can avoid full IndexedDB merges.
+        const archiveSignature = JSON.stringify(messages);
+        if (archivedPages.get(targetPage) !== archiveSignature) {
+          const contacts = await archive.mergeList(messages);
+          if (panelValid() && !requestSignal.aborted) {
+            archivedPages.set(targetPage, archiveSignature);
+            restoreContacts(contacts);
+          }
+        }
       } catch (error) { if (panelValid() && !requestSignal.aborted) listStatus.textContent = error instanceof Error ? error.message : '本地存档保存失败'; }
     } catch (error) { if (panelValid() && !requestSignal.aborted) { autoPaused = true; listStatus.textContent = error instanceof Error ? error.message : '会话读取失败'; } }
     finally { if (!requestSignal.aborted) { listBusy = false; listStatus.classList.remove('nspp-sweep-shine'); listStatus.removeAttribute('aria-busy'); refresh.disabled = false; more.disabled = false; renderList(); } }
@@ -436,7 +447,7 @@ function mountChat(ctx: Context, account: number) {
     try {
       await archive.clearAccount();
       if (!panelValid()) return;
-      peers.clear(); histories.clear(); visibleHistory.clear();
+      peers.clear(); histories.clear(); visibleHistory.clear(); archivedPages.clear();
       listReady = false; page = 1; listPageSignature = ''; threadKey = '';
       renderList();
       ctx.notify('当前账号的本地私信存档已清理，服务器消息仍然保留');

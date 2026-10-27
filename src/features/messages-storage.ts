@@ -27,6 +27,14 @@ export function mergeMessages(previous: Message[], incoming: Message[]): Message
     }
     const fields = Object.fromEntries(Object.entries(message).filter(([, value]) => value !== undefined));
     result.set(key, { ...result.get(key), ...fields } as Message);
+    // The optimistic local echo and server acknowledgement can arrive in the
+    // same batch; register the new echo immediately for reconciliation.
+    if (message.local_id && id === undefined) {
+      const group = signature(message);
+      const entries = echoIndex.get(group) || [];
+      entries.push([key, message]);
+      echoIndex.set(group, entries);
+    }
   }
   return [...result.values()].sort((a, b) => timestamp(a) - timestamp(b) || (serverId(a) || 0) - (serverId(b) || 0));
 }
