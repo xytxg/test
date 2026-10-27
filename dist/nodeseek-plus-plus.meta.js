@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NodeSeek++ XY Test
 // @namespace    nodeseek-plus-plus-xy-test
-// @version      26.1027.1730
+// @version      26.1027.1731
 // @description  模块化论坛增强：阅读、过滤、回复、签到、交易与关键词监控，一个功能一套实现。
 // @license      GPL-3.0-only
 // @homepageURL  https://github.com/xytxg/test
