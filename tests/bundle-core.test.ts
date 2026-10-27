@@ -72,7 +72,7 @@ test('automatic update checks use shared cache while manual checks still force a
       GM_notification: (details: typeof notifications[number]) => notifications.push(details),
       GM_xmlhttpRequest: (options: { url: string; onload(response: { status: number; responseText: string }): void }) => {
         requests.push(options.url);
-        queueMicrotask(() => options.onload({ status: 200, responseText: `// ==UserScript==\\n// @namespace nodeseek-plus-plus-xy-test\\n// @version ${version}\\n// ==/UserScript==` }));
+        queueMicrotask(() => options.onload({ status: 200, responseText: `// ==UserScript==\n// @namespace nodeseek-plus-plus-xy-test\n// @version ${version}\n// ==/UserScript==` }));
         return { abort() {} };
       },
     });
@@ -110,7 +110,7 @@ test('automatic update checks use shared cache while manual checks still force a
     assert.equal(requests.length, 2, 'manual check bypasses shared cache');
     assert.equal(new Set(requests).size, 2, 'requests that are sent still bypass HTTP caches');
     assert.equal(notifications.length, 2, 'manual refresh detects a new version');
-    assert.match(notifications[1].text, /99\\.999\\.9999\\.1/);
+    assert.match(notifications[1].text, /99\.999\.9999\.1/);
   } finally { await first.close(); await second?.close(); }
 });
 
