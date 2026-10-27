@@ -1,0 +1,96 @@
+import { GM_getValue, GM_setValue, gmRequest, hasRequest, hasStorage, systemNotify } from './userscript';
+import { withTabLock } from './tab-lock';
+import { isNewerVersion, readUpdateVersion, UPDATE_META_URL, UPDATE_URL } from './update-version';
+import { updateNotice } from '../views/update-notice';
+
+const CHECK_INTERVAL = 6 * 60 * 60 * 1000;
+const REMINDER_INTERVAL = 24 * 60 * 60 * 1000;
+const STATE_KEY = 'nspp:script-update';
+type UpdateState = { version?: string; promptedVersion?: string; promptedAt?: number; notifiedVersion?: string; notifiedAt?: number };
+
+function requestVersion(signal: AbortSignal): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) { reject(new Error('已取消')); return; }
+    if (!hasRequest()) { reject(new Error('更新检查不可用，请确认油猴脚本已正常安装')); return; }
+    const cleanup = () => signal.removeEventListener('abort', cancel);
+    const request = gmRequest({
+      method: 'GET', url: `${UPDATE_META_URL}?_=${crypto.randomUUID()}`, anonymous: true, timeout: 20000,
+      nocache: true,
+      headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', Pragma: 'no-cache' },
+      onload: response => {
+        cleanup();
+        if (response.status !== 200) { reject(new Error(`检查更新失败（HTTP ${response.status}）`)); return; }
+        try { resolve(readUpdateVersion(response.responseText)); } catch (error) { reject(error); }
+      },
+      onerror: () => { cleanup(); reject(new Error('无法连接更新源，请稍后重试')); },
+      ontimeout: () => { cleanup(); reject(new Error('检查更新超时，请稍后重试')); },
+      onabort: () => { cleanup(); reject(new Error('已取消')); },
+    });
+    function cancel() { request.abort(); }
+    signal.addEventListener('abort', cancel, { once: true });
+  });
+}
+
+export function createUpdateChecker(notify: (message: string) => void, canPrompt: () => boolean) {
+  const controller = new AbortController();
+  const { signal } = controller;
+  const state = () => GM_getValue<UpdateState>(STATE_KEY, {});
+  let pending: Promise<void> | undefined;
+  let prompting = false;
+
+  async function notifyUpdate() {
+    await withTabLock('script-update-notification', 0, async () => {
+      const latest = state();
+      if (signal.aborted || !latest.version || !isNewerVersion(latest.version, __APP_VERSION__)) return;
+      if (latest.notifiedVersion === latest.version && Date.now() - (latest.notifiedAt || 0) < REMINDER_INTERVAL) return;
+      if (systemNotify(`发现新版本 v${latest.version}，当前 v${__APP_VERSION__}。点击从 GitHub 安装更新。`, UPDATE_URL, 'nspp:script-update', '发现新版本')) {
+        GM_setValue(STATE_KEY, { ...state(), notifiedVersion: latest.version, notifiedAt: Date.now() });
+      }
+    });
+  }
+
+  async function prompt(manual: boolean) {
+    const latest = state();
+    if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, __APP_VERSION__)) return;
+    if (!manual && (!canPrompt() || (latest.promptedVersion === latest.version && Date.now() - (latest.promptedAt || 0) < REMINDER_INTERVAL))) return;
+    prompting = true;
+    GM_setValue(STATE_KEY, { ...latest, promptedVersion: latest.version, promptedAt: Date.now() });
+    try {
+      await updateNotice(latest.version, manual, signal);
+    } finally { prompting = false; }
+  }
+
+  async function run(manual: boolean) {
+    try {
+      const version = await requestVersion(signal);
+      if (signal.aborted) return;
+      GM_setValue(STATE_KEY, { ...state(), version });
+      if (version && isNewerVersion(version, __APP_VERSION__)) {
+        await notifyUpdate();
+        if (manual) await prompt(true);
+        else void prompt(false).catch(() => {});
+      }
+      else if (manual) notify(`当前已是最新版本（v${__APP_VERSION__}）`);
+    } catch (error) {
+      if (manual && !signal.aborted) notify(error instanceof Error ? error.message : '检查更新失败，请稍后重试');
+    }
+  }
+
+  const check = (manual = true): Promise<void> => {
+    if (signal.aborted) return Promise.resolve();
+    if (pending) return manual ? pending.then(() => check(true)) : pending;
+    pending = run(manual).finally(() => { pending = undefined; });
+    return pending;
+  };
+  const background = () => {
+    if (__APP_ENV__ === 'prod' && hasStorage() && !document.hidden) void check(false);
+  };
+  const enterPage = () => {
+    if (__APP_ENV__ === 'prod' && hasStorage()) void check(false);
+  };
+  const startup = setTimeout(enterPage, 0);
+  const timer = setInterval(background, CHECK_INTERVAL);
+  document.addEventListener('visibilitychange', background, { signal });
+  window.addEventListener('pageshow', event => { if (event.persisted) enterPage(); }, { signal });
+  return { check, stop: () => { clearTimeout(startup); clearInterval(timer); controller.abort(); } };
+}
