@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NodeSeek++ XY Test
 // @namespace    nodeseek-plus-plus-xy-test
-// @version      26.1027.1734
+// @version      26.1027.1735
 // @description  模块化论坛增强：阅读、过滤、回复、签到、交易与关键词监控，一个功能一套实现。
 // @license      GPL-3.0-only
 // @homepageURL  https://github.com/xytxg/test
@@ -536,10 +536,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 	}
 	function startFeatures(features, settings, notify) {
-		const callbacks = new Set();
+		const callbacks = new Map();
+		const pending = new Set();
 		const cleanups = [];
 		let timer;
-		let dirty = false;
 		const run = (callback) => {
 			try {
 				callback();
@@ -550,12 +550,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		const flush = () => {
 			timer = void 0;
 			if (document.hidden) return;
-			dirty = false;
-			callbacks.forEach(run);
+			const ready = [...pending];
+			pending.clear();
+			ready.forEach((callback) => {
+				if (callbacks.has(callback)) run(callback);
+			});
 		};
 		const visibility = () => {
 			document.documentElement.toggleAttribute("data-nspp-background", document.hidden);
-			if (!document.hidden && dirty && !timer) timer = setTimeout(flush, 100);
+			if (!document.hidden && pending.size && !timer) timer = setTimeout(flush, 100);
 		};
 		document.addEventListener("visibilitychange", visibility);
 		visibility();
@@ -564,13 +567,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			return !!(node instanceof Element ? node : node.parentElement)?.closest(ownedSelector);
 		};
 		const observer = new MutationObserver((records) => {
-			if (!records.some((record) => {
-				const nodes = [...record.addedNodes, ...record.removedNodes];
-				return nodes.length > 0 && !owned(record.target) && nodes.some((node) => !owned(node));
-			})) return;
-			dirty = true;
-			if (timer || document.hidden) return;
-			timer = setTimeout(flush, 100);
+			const changes = records.flatMap((record) => {
+				if (owned(record.target)) return [];
+				const nodes = [...record.addedNodes, ...record.removedNodes].filter((node) => !owned(node));
+				return nodes.length ? [{
+					target: record.target,
+					nodes
+				}] : [];
+			});
+			if (!changes.length) return;
+			for (const [callback, selector] of callbacks) if (!selector || changes.some(({ target, nodes }) => {
+				const relevant = (node) => {
+					if (!(node instanceof Element)) return false;
+					return node.matches(selector) || !!node.querySelector(selector) || !!node.closest(selector);
+				};
+				return target instanceof Element && (target.matches(selector) || !!target.closest(selector)) || nodes.some(relevant);
+			})) pending.add(callback);
+			if (pending.size && !timer && !document.hidden) timer = setTimeout(flush, 100);
 		});
 		observer.observe(document.body, {
 			childList: true,
@@ -603,11 +616,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 						GM_setValue$1(cacheKey, state);
 					}
 				},
-				watch: (callback) => {
-					callbacks.add(callback);
+				watch: (callback, selector) => {
+					callbacks.set(callback, selector);
 					run(callback);
 					const stop = () => {
 						callbacks.delete(callback);
+						pending.delete(callback);
 					};
 					cleanups.push(stop);
 					return stop;
@@ -637,6 +651,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				} catch {}
 			});
 			callbacks.clear();
+			pending.clear();
 		};
 	}
 	function toolIcon(name) {
@@ -728,7 +743,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			title.append(Object.assign(document.createElement("strong"), { textContent: "新版本已发布" }));
 			const message = document.createElement("p");
 			message.className = "nspp-update-message";
-			message.textContent = `当前版本：26.1027.1734　最新版本：${latest}\n点击更新，在脚本管理器中确认后刷新页面。`;
+			message.textContent = `当前版本：26.1027.1735　最新版本：${latest}\n点击更新，在脚本管理器中确认后刷新页面。`;
 			const actions = document.createElement("div");
 			actions.className = "nspp-update-actions";
 			const link = (className, href, text) => Object.assign(document.createElement("a"), {
@@ -830,9 +845,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		async function notifyUpdate() {
 			await withTabLock("script-update-notification", 0, async () => {
 				const latest = state();
-				if (signal.aborted || !latest.version || !isNewerVersion(latest.version, "26.1027.1734")) return;
+				if (signal.aborted || !latest.version || !isNewerVersion(latest.version, "26.1027.1735")) return;
 				if (latest.notifiedVersion === latest.version && Date.now() - (latest.notifiedAt || 0) < REMINDER_INTERVAL) return;
-				if (systemNotify(`发现新版本 v${latest.version}，当前 v26.1027.1734。点击从 GitHub 安装更新。`, "https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js", "nspp:script-update", "发现新版本")) GM_setValue$1(STATE_KEY, {
+				if (systemNotify(`发现新版本 v${latest.version}，当前 v26.1027.1735。点击从 GitHub 安装更新。`, "https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js", "nspp:script-update", "发现新版本")) GM_setValue$1(STATE_KEY, {
 					...state(),
 					notifiedVersion: latest.version,
 					notifiedAt: Date.now()
@@ -841,7 +856,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 		async function prompt(manual) {
 			const latest = state();
-			if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, "26.1027.1734")) return;
+			if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, "26.1027.1735")) return;
 			if (!manual && (!canPrompt() || latest.promptedVersion === latest.version && Date.now() - (latest.promptedAt || 0) < REMINDER_INTERVAL)) return;
 			prompting = true;
 			GM_setValue$1(STATE_KEY, {
@@ -860,7 +875,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				const latest = state();
 				const now = Date.now();
 				if (latest.checkedAt && now - latest.checkedAt >= 0 && now - latest.checkedAt < AUTO_CACHE_TTL) {
-					if (latest.version && isNewerVersion(latest.version, "26.1027.1734")) {
+					if (latest.version && isNewerVersion(latest.version, "26.1027.1735")) {
 						await notifyUpdate();
 						prompt(false).catch(() => {});
 					}
@@ -877,11 +892,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					checkedAt: Date.now(),
 					failedAt: void 0
 				});
-				if (version && isNewerVersion(version, "26.1027.1734")) {
+				if (version && isNewerVersion(version, "26.1027.1735")) {
 					await notifyUpdate();
 					if (manual) await prompt(true);
 					else prompt(false).catch(() => {});
-				} else if (manual) notify(`当前已是最新版本（v26.1027.1734）`);
+				} else if (manual) notify(`当前已是最新版本（v26.1027.1735）`);
 			} catch (error) {
 				if (signal.aborted) return;
 				if (!manual) GM_setValue$1(STATE_KEY, {
@@ -965,7 +980,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		buttons.append(shareButton, button);
 		heading.append(title, buttons);
 		const summary = document.createElement("p");
-		summary.textContent = `v26.1027.1734 · NodeSeek / DeepFlood 论坛增强 · GPL-3.0-only`;
+		summary.textContent = `v26.1027.1735 · NodeSeek / DeepFlood 论坛增强 · GPL-3.0-only`;
 		const links = document.createElement("div");
 		links.className = "about-links";
 		for (const [label, href] of [
@@ -3750,7 +3765,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		const title = element$1("h2", "NodeSeek++");
 		title.id = "nspp-title";
 		heading.className = "heading";
-		heading.append(title, element$1("small", `v26.1027.1734`));
+		heading.append(title, element$1("small", `v26.1027.1735`));
 		const close = element$1("button", "关闭");
 		close.type = "button";
 		close.className = "settings-close";
@@ -4122,7 +4137,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		const selector = comments ? "ul.comments" : "ul.post-list:not(.topic-carousel-panel)";
 		const list = document.querySelector(selector);
 		if (!list) return;
-		let next = document.querySelector(".nsk-pager a.pager-next")?.href;
+		const postId = comments ? location.pathname.match(/^\/post-(\d+)/)?.[1] : void 0;
+		const validNext = (href) => {
+			try {
+				const url = new URL(href, location.href);
+				if (url.origin !== location.origin || url.protocol !== location.protocol) return false;
+				if (comments) return !!postId && url.pathname.match(/^\/post-(\d+)(?:-\d+)?(?:\.html)?\/?$/)?.[1] === postId;
+				return true;
+			} catch {
+				return false;
+			}
+		};
+		const initial = document.querySelector(".nsk-pager a.pager-next")?.href;
+		let next = initial && validNext(initial) ? initial : void 0;
 		let busy = false, failed = false, paused = false;
 		const replying = () => comments && document.documentElement.hasAttribute("data-nspp-reply-open");
 		let loading;
@@ -4214,7 +4241,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				visited.add(url.href);
 				failed = false;
 				const href = page.querySelector(".nsk-pager a.pager-next")?.getAttribute("href");
-				next = href ? new URL(href, url).href : void 0;
+				const candidate = href ? new URL(href, url).href : void 0;
+				next = candidate && validNext(candidate) ? candidate : void 0;
 				if (next && visited.has(next)) next = void 0;
 				button.textContent = next ? "加载下一页" : "已加载全部内容";
 				pause.hidden = !next;
@@ -6236,7 +6264,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					a.classList.toggle("nspp-read", !!path && read.has(path));
 				});
 			};
-			const stop = ctx.watch(markRead);
+			const stop = ctx.watch(markRead, ".post-title a");
 			window.addEventListener("beforeunload", () => record("recent"), {
 				capture: true,
 				signal: ctx.signal
@@ -9259,7 +9287,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 						}
 					});
 					if (collapse) Array.from(document.querySelectorAll(contentSelector)).filter((el) => !folded.has(el) && !el.parentElement?.closest(":is(.post-content,.comment-content,.nsk-content,.markdown-body)")).filter((el) => el.scrollHeight > height).forEach(fold);
-				});
+				}, `ul.comments > li, ${contentSelector}`);
 				return () => {
 					stop();
 					hidden.forEach((value, el) => {
@@ -9296,7 +9324,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 							marked.add(parent);
 						}
 					});
-				});
+				}, ".post-title");
 				return () => {
 					stop();
 					marked.forEach((node) => node.classList.remove("nspp-readonly", "nspp-pinned", "nspp-pin-wrap"));
@@ -10302,7 +10330,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					else observer.observe(author);
 				});
 			};
-			const stop = ctx.watch(scan);
+			const stop = ctx.watch(scan, `${userHoverSelector}, .role-tag`);
 			return () => {
 				persist();
 				stop();
@@ -10460,7 +10488,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 							}
 						}
 					});
-				});
+				}, ".post-list-item, .comments .content-item");
 				return () => {
 					stop();
 					hidden.forEach((value, item) => {
@@ -10499,7 +10527,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					badge.className = "nspp-user-note";
 					author.after(badge);
 					added.push(badge);
-				}));
+				}), authorSelector);
 				return () => {
 					stop();
 					added.forEach((el) => el.remove());
@@ -15542,12 +15570,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					scanned.delete(node);
 					highlighted.delete(node);
 				}
+				const rowsByURL = new Map();
+				document.querySelectorAll(".post-list-item .post-title a[href*=\"/post-\"]").forEach((link) => {
+					const row = link.closest(".post-list-item");
+					if (row && !rowsByURL.has(link.href)) rowsByURL.set(link.href, row);
+				});
+				const snapshot = ctx.get(snapshotKey);
+				const cachedByURL = new Map((snapshot?.home || []).map((post) => [post.url, post]));
 				for (const post of parsePosts(document)) {
-					const row = Array.from(document.querySelectorAll(".post-title a")).find((link) => link.href === post.url)?.closest(".post-list-item");
+					const row = rowsByURL.get(post.url);
 					if (!row || scanned.get(row) === post.title) continue;
 					scanned.set(row, post.title);
-					const cached = ctx.get(snapshotKey)?.home.find((item) => item.url === post.url);
-					highlight(row, cached || post);
+					highlight(row, cachedByURL.get(post.url) || post);
 				}
 			};
 			function display(snapshot) {
@@ -15745,7 +15779,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			if (cached) display(cached);
 			renderUnread();
 			refresh();
-			const stopScan = ctx.watch(scan);
+			const stopScan = ctx.watch(scan, ".post-list-item .post-title a");
 			const timer = setInterval(() => {
 				if (!document.hidden) renderState();
 				if (hasWork() && !busy && !paused && !cooling() && Date.now() - last >= interval) refresh();
@@ -16924,7 +16958,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					author.after(badge);
 					badges.push(badge);
 				});
-			});
+			}, authors);
 			return () => {
 				stop();
 				badges.forEach((badge) => badge.remove());
@@ -22199,7 +22233,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 						preview.open(link, "preview");
 					}, { signal: ctx.signal });
 				});
-			});
+			}, ".post-list-item .post-title a");
 			return () => {
 				stop();
 				clearTimeout(timer);
@@ -22958,7 +22992,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 						}
 					}
 				});
-			});
+			}, ".post-list-item");
 			return () => {
 				clearTimeout(hoverTimer);
 				categoryGroups.forEach(({ group, category, style }) => {
