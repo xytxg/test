@@ -14,6 +14,15 @@ const asyncStorage = (): AsyncStorage | undefined => {
   return typeof api?.getValue === 'function' && typeof api.setValue === 'function' && typeof api.listValues === 'function' ? api as AsyncStorage : undefined;
 };
 let backend: 'sync' | 'async' | 'memory' = 'memory';
+const pendingWrites = new Map<string, Promise<void>>();
+const failedWrites = new Map<string, unknown>();
+
+/** Wait until the async userscript manager has actually persisted pending values. */
+export async function flushStorage(): Promise<void> {
+  await Promise.allSettled([...pendingWrites.values()]);
+  if (failedWrites.size) throw new Error('部分油猴数据保存失败，请检查权限或剩余空间');
+}
+
 
 /**
  * iOS managers such as Userscripts only expose the promise-based GM.* API.
@@ -45,7 +54,21 @@ export function GM_setValue(key: string, value: unknown): void {
   if (typeof set === 'function') { set(key, value); return; }
   const copy = structuredClone(value);
   memory.set(key, copy);
-  if (backend === 'async') void asyncStorage()?.setValue(key, copy).catch(() => { /* Kept in memory for this page. */ });
+  if (backend === 'async') {
+    const previous = pendingWrites.get(key) ?? Promise.resolve();
+    const write = previous.catch(() => {}).then(async () => {
+      const api = asyncStorage();
+      if (!api) throw new Error('异步油猴存储不可用');
+      await api.setValue(key, copy);
+    });
+    pendingWrites.set(key, write);
+    // Observe rejection and retain it until an explicit flush or successful newer write.
+    void write.then(() => {
+      if (pendingWrites.get(key) === write) { pendingWrites.delete(key); failedWrites.delete(key); }
+    }, error => {
+      if (pendingWrites.get(key) === write) { pendingWrites.delete(key); failedWrites.set(key, error); }
+    });
+  }
 }
 export function GM_registerMenuCommand(label: string, callback: () => void): void {
   const register = typeof importedMenu === 'function' ? importedMenu : monkeyWindow.GM_registerMenuCommand;

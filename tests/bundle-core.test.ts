@@ -18,7 +18,7 @@ test('manual update checks read metadata and open an update link only for a newe
     Object.assign(window, {
       GM_xmlhttpRequest: (options: typeof requests[number] & { onload(response: { status: number; responseText: string }): void }) => {
         requests.push(options);
-        setTimeout(() => options.onload({ status: 200, responseText: `// ==UserScript==\n// @namespace nodeseek-plus-plus\n// @version ${version}\n// ==/UserScript==` }), 0);
+        setTimeout(() => options.onload({ status: 200, responseText: `// ==UserScript==\n// @namespace nodeseek-plus-plus-xy-test\n// @version ${version}\n// ==/UserScript==` }), 0);
         return { abort() {} };
       },
     });
@@ -32,7 +32,7 @@ test('manual update checks read metadata and open an update link only for a newe
     button.click(); button.click();
     await new Promise(resolve => setTimeout(resolve, 30));
     assert.equal(requests.length, 1);
-    assert.equal(requests[0].url.split('?')[0], 'https://raw.githubusercontent.com/rirh/nodeseek-plus/main/dist/nodeseek-plus-plus.meta.js');
+    assert.equal(requests[0].url.split('?')[0], 'https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.meta.js');
     assert.ok(new URL(requests[0].url).searchParams.get('_'));
     assert.equal(requests[0].nocache, true);
     assert.match(requests[0].headers['Cache-Control'], /no-store/);
@@ -41,9 +41,9 @@ test('manual update checks read metadata and open an update link only for a newe
     const dialog = f.window.document.querySelector<HTMLDialogElement>('.nspp-update-notice')!;
     assert.equal(dialog.open, true);
     assert.match(dialog.textContent!, /99\.999\.9999/);
-    assert.equal(dialog.querySelector<HTMLAnchorElement>('.nspp-update-github')!.href, 'https://github.com/rirh/nodeseek-plus');
+    assert.equal(dialog.querySelector<HTMLAnchorElement>('.nspp-update-github')!.href, 'https://github.com/xytxg/test');
     const install = dialog.querySelector<HTMLAnchorElement>('.nspp-update-install')!;
-    assert.equal(install.href, 'https://raw.githubusercontent.com/rirh/nodeseek-plus/main/dist/nodeseek-plus-plus.user.js');
+    assert.equal(install.href, 'https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js');
     assert.equal(install.target, '_blank');
     dialog.close('cancel');
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -72,7 +72,7 @@ test('page entry always checks updates while system and page reminders are dedup
       GM_notification: (details: typeof notifications[number]) => notifications.push(details),
       GM_xmlhttpRequest: (options: { url: string; onload(response: { status: number; responseText: string }): void }) => {
         requests.push(options.url);
-        queueMicrotask(() => options.onload({ status: 200, responseText: `// ==UserScript==\n// @namespace nodeseek-plus-plus\n// @version ${version}\n// ==/UserScript==` }));
+        queueMicrotask(() => options.onload({ status: 200, responseText: `// ==UserScript==\n// @namespace nodeseek-plus-plus-xy-test\n// @version ${version}\n// ==/UserScript==` }));
         return { abort() {} };
       },
     });
@@ -84,7 +84,7 @@ test('page entry always checks updates while system and page reminders are dedup
     assert.equal(requests.length, 1, 'page entry ignores cached checks and another page checking updates');
     assert.equal(notifications.length, 1, 'a hidden page still sends a system notification');
     assert.match(notifications[0].title, /发现新版本/);
-    assert.equal(notifications[0].url, 'https://raw.githubusercontent.com/rirh/nodeseek-plus/main/dist/nodeseek-plus-plus.user.js');
+    assert.equal(notifications[0].url, 'https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js');
     assert.equal(f.window.document.querySelector('.nspp-update-notice'), null);
     Object.defineProperty(f.window.document, 'hidden', { configurable: true, value: false });
     f.window.document.dispatchEvent(new f.window.Event('visibilitychange'));
@@ -258,7 +258,7 @@ test('settings categories are anchors, scroll updates selection and search filte
     assert.equal(root.querySelector('.categories a')!.textContent, '用户');
     search.value = 'github'; search.dispatchEvent(new f.window.Event('input'));
     assert.deepEqual([...root.querySelectorAll('.categories a')].map(link => link.textContent), ['其他']);
-    assert.ok(root.querySelector('.about-links a[href="https://github.com/rirh/nodeseek-plus"]'));
+    assert.ok(root.querySelector('.about-links a[href="https://github.com/xytxg/test"]'));
   } finally { await f.close(); }
 });
 

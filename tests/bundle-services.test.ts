@@ -4,7 +4,7 @@ import type { Window } from 'happy-dom';
 import { key, fixture } from './helpers/bundle-fixture.ts';
 
 for (const outcome of ['success', 'failure', 'http-error', 'network-error', 'invalid-json']) {
-  test(`attendance ${outcome} is cached for the day, survives reopening and retries tomorrow`, async () => {
+  test(`attendance ${outcome} does not falsely mark a failed request as signed and retries tomorrow`, async () => {
     let clock = Date.parse('2026-09-14T04:00:00Z'), calls = 0;
     const settings = { attendance: { enabled: true, automatic: true, mode: 'fixed' }, 'official-blocklist': { enabled: false } };
     const setup = (window: Window) => {
@@ -26,14 +26,16 @@ for (const outcome of ['success', 'failure', 'http-error', 'network-error', 'inv
     let reopened: Awaited<ReturnType<typeof fixture>> | undefined;
     try {
       await new Promise(resolve => setTimeout(resolve, 30));
-      const control = first.window.document.querySelector<HTMLButtonElement>('#nspp-tools button[aria-label="已签到"]')!;
+      const signed = outcome === 'success';
+      const control = first.window.document.querySelector<HTMLButtonElement>('#nspp-tools button[data-nspp-attendance]')!;
       assert.ok(control);
-      assert.equal(control.hidden, true);
-      assert.deepEqual(first.storage.get('nspp:state:www.nodeseek.com:attendance'), { 'day:7': '2026-09-14' });
+      assert.equal(control.hidden, signed);
+      const state = first.storage.get('nspp:state:www.nodeseek.com:attendance') as Record<string, unknown>;
+      assert.equal(state['day:7'], signed ? '2026-09-14' : undefined);
+      assert.equal(state['attempt:7'], '2026-09-14');
       assert.equal(calls, 1);
-      if (outcome !== 'success') assert.doesNotMatch(first.window.document.body.textContent, /签到失败|retry/);
+      if (outcome !== 'success') assert.match(first.window.document.body.textContent, /签到请求失败|签到未完成/);
       clock += 11 * 60_000;
-      control.click();
       first.window.dispatchEvent(new first.window.Event('focus'));
       first.window.document.dispatchEvent(new first.window.Event('visibilitychange'));
       await new Promise(resolve => setTimeout(resolve, 20));
@@ -41,14 +43,16 @@ for (const outcome of ['success', 'failure', 'http-error', 'network-error', 'inv
       reopened = await fixture(settings, '', '/', first.storage, setup);
       await new Promise(resolve => setTimeout(resolve, 30));
       assert.equal(calls, 1, 'reopening uses the persistent daily record');
-      assert.equal(reopened.window.document.querySelector<HTMLButtonElement>('#nspp-tools button[aria-label="签到"]')!.hidden, true);
+      assert.equal(reopened.window.document.querySelector<HTMLButtonElement>('#nspp-tools button[data-nspp-attendance]')!.hidden, outcome === 'success');
       await first.close();
       clock = Date.parse('2026-09-14T16:01:00Z');
       reopened.window.dispatchEvent(new reopened.window.Event('focus'));
       await new Promise(resolve => setTimeout(resolve, 30));
       assert.equal(calls, 2, 'Shanghai midnight enables a new attempt');
-      assert.deepEqual(first.storage.get('nspp:state:www.nodeseek.com:attendance'), { 'day:7': '2026-09-15' });
-      assert.equal(reopened.window.document.querySelector<HTMLButtonElement>('#nspp-tools button[aria-label="已签到"]')!.hidden, true);
+      const nextDay = first.storage.get('nspp:state:www.nodeseek.com:attendance') as Record<string, string>;
+      assert.equal(nextDay['attempt:7'], '2026-09-15');
+      assert.equal(nextDay['day:7'], outcome === 'success' ? '2026-09-15' : undefined);
+      assert.equal(reopened.window.document.querySelector<HTMLButtonElement>('#nspp-tools button[data-nspp-attendance]')!.hidden, outcome === 'success');
     } finally { await first.close(); await reopened?.close(); }
   });
 }
@@ -64,7 +68,7 @@ test('attendance daily cache does not suppress another account', async () => {
   try {
     await new Promise(resolve => setTimeout(resolve, 30));
     assert.equal(calls, 1);
-    assert.deepEqual(storage.get('nspp:state:www.nodeseek.com:attendance'), { 'day:7': day, 'day:8': day });
+    assert.deepEqual(storage.get('nspp:state:www.nodeseek.com:attendance'), { 'day:7': day, 'attempt:8': day });
   } finally { await f.close(); }
 });
 

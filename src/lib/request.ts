@@ -37,5 +37,5 @@ export async function request<T>(url: string, options: RequestInit & { responseT
     init.signal?.throwIfAborted();
     if (GM_getValue(`nspp:request-cooldown:${location.host}`, 0) > Date.now()) throw new Error('站点请求冷却中，请稍后手动重试');
     return execute();
-  }, profile ? 1 : 0);
+  }, profile ? 1 : 0, init.signal ?? undefined);
 }

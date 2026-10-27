@@ -15,15 +15,16 @@ function button(label: string, fn: () => void, ctx: Context) {
   el.addEventListener('click', fn, { signal: ctx.signal }); return el;
 }
 const attendance: Feature = {
-  id: 'attendance', title: '签到', description: '每天尝试一次，成功或失败均缓存当天记录并隐藏按钮，次日再试；按账户隔离。', group: '操作辅助',
+  id: 'attendance', title: '签到', description: '每天自动尝试一次；仅在成功或确认已签到时标记完成，失败允许手动重试；按账户隔离。', group: '操作辅助',
   defaults: { enabled: true, automatic: true, mode: 'fixed' },
   fields: { automatic: { label: '每天自动签到', type: 'text' }, mode: { label: '奖励方式', type: 'select', options: [{ label: '固定', value: 'fixed' }, { label: '随机', value: 'random' }] } },
   mount(ctx) {
     const initialize = () => {
     const user = currentUser(); if (!user?.member_id) return;
     const key = `day:${user.member_id}`;
+    const attemptKey = `attempt:${user.member_id}`;
     const day = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
-    const control = button('签到', () => { void run(); }, ctx);
+    const control = button('签到', () => { void run(true); }, ctx);
     control.className = 'nspp-action nspp-tool-icon'; control.dataset.nsppAttendance = '';
     const renderControl = (label = '签到') => { control.replaceChildren(toolIcon('attendance')); control.title = label; control.setAttribute('aria-label', label); };
     renderControl(); (document.querySelector('#nspp-tools') || document.body).append(control);
@@ -39,7 +40,7 @@ const attendance: Feature = {
     sync();
     const tick = () => {
       sync();
-      if (ctx.get<boolean>('automatic') && !known() && !document.hidden && !control.disabled) void run();
+      if (ctx.get<boolean>('automatic') && !known() && ctx.get<string>(attemptKey) !== day() && !document.hidden && !control.disabled) void run();
     };
     window.addEventListener('focus', tick, { signal: ctx.signal });
     document.addEventListener('visibilitychange', tick, { signal: ctx.signal });
@@ -53,8 +54,8 @@ const attendance: Feature = {
         .to(control, { scale: 1, duration: .15 })
         .to(control, { y: -8, autoAlpha: 0, duration: .25, delay: .45, ease: 'power2.in' });
     };
-    async function run() {
-      if (control.disabled || ctx.signal.aborted) return;
+    async function run(manual = false) {
+      if (control.disabled || ctx.signal.aborted || (!manual && ctx.get<string>(attemptKey) === day())) return;
       if (known()) { complete(false); ctx.notify('今日已签到'); return; }
       animation?.kill();
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) gsap.fromTo(control, { scale: .94 }, { scale: 1, duration: .2, ease: 'power2.out' });
@@ -63,15 +64,22 @@ const attendance: Feature = {
       try {
         await withTabLock(`attendance:${user!.member_id}`, 10000, async () => {
         if (ctx.signal.aborted) return;
-        if (known()) { complete(false); return; }
+        if (known() || (!manual && ctx.get<string>(attemptKey) === day())) { if (known()) complete(false); return; }
+        ctx.set(attemptKey, requestDay);
         const result = await ctx.request<{ success?: boolean; message?: string; gain?: number }>(`/api/attendance?random=${ctx.get<string>('mode') === 'random'}`, { method: 'POST' });
         if (ctx.signal.aborted) return;
-        ctx.set(key, requestDay);
-        if (known()) complete(!!result?.success); else sync();
-        if (result?.success) ctx.notify(result.message || `签到成功，获得 ${result.gain ?? ''} 鸡腿`);
+        const alreadySigned = /(?:已签到|已经签到|重复签到|already\s*(?:signed|checked))/i.test(result?.message || '');
+        if (result?.success || alreadySigned) {
+          ctx.set(key, requestDay);
+          complete(!!result?.success);
+          if (result?.success) ctx.notify(result.message || `签到成功，获得 ${result.gain ?? ''} 鸡腿`);
+        } else {
+          sync();
+          ctx.notify(result?.message ? `签到未完成：${result.message}` : '签到未成功，请手动检查并重试');
+        }
         });
       } catch {
-        if (!ctx.signal.aborted) { ctx.set(key, requestDay); if (known()) complete(false); else sync(); }
+        if (!ctx.signal.aborted) { sync(); ctx.notify('签到请求失败，状态尚未确认，请检查后手动重试'); }
       }
       finally { control.disabled = false; renderControl(known() ? '已签到' : '签到'); control.removeAttribute('aria-busy'); }
     }

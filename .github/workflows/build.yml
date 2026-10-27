@@ -1,0 +1,42 @@
+name: Build & test userscript
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'dist/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nodeseek-plus-xy-test
+          path: dist/nodeseek-plus-plus.*.js
+      - name: Publish userscript to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/nodeseek-plus-plus.user.js dist/nodeseek-plus-plus.meta.js
+          if ! git diff --cached --quiet; then
+            git commit -m "build: publish verified userscript [skip ci]"
+            git push
+          fi

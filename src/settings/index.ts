@@ -1,5 +1,5 @@
 import { toolIcon } from "../lib/tool-icon";
-import { hasStorage } from "../lib/userscript";
+import { hasStorage, flushStorage } from "../lib/userscript";
 import css from "./style.css?inline";
 import loadingCss from "../loading.css?inline";
 import sheetCss from "../views/sheet.css?inline";
@@ -285,12 +285,12 @@ export function mountSettings(features: Feature[]) {
   } });
   dialog.addEventListener("close", () => { document.documentElement.removeAttribute('data-nspp-settings-open'); launch.focus(); });
   search.addEventListener("input", render);
-  form.addEventListener("submit", event => {
+  form.addEventListener("submit", async event => {
     event.preventDefault();
     save.disabled = true;
     save.setAttribute("aria-busy", "true");
     save.textContent = "正在保存…";
-    try { saveSettings(features, draft); location.reload(); }
+    try { saveSettings(features, draft); await flushStorage(); location.reload(); }
     catch { save.disabled = false; save.removeAttribute("aria-busy"); save.textContent = "保存并刷新"; notify("保存失败，请检查油猴存储权限后重试。", "error"); }
   });
   reset.addEventListener("click", () => {
@@ -298,11 +298,11 @@ export function mountSettings(features: Feature[]) {
     render();
     notify("已恢复默认，保存后生效。", "success");
   });
-  clearCache.addEventListener("click", () => {
+  clearCache.addEventListener("click", async () => {
     clearCache.disabled = true;
     clearCache.setAttribute("aria-busy", "true");
     clearCache.textContent = "正在清空…";
-    try { clearCaches(); location.reload(); }
+    try { clearCaches(); await flushStorage(); location.reload(); }
     catch {
       clearCache.disabled = false;
       clearCache.removeAttribute("aria-busy");

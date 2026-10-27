@@ -93,3 +93,18 @@ test('foreground requests take priority over queued profile decoration', async (
   await Promise.all([active, background, foreground]);
   assert.deepEqual(events, ['page', 'profile']);
 });
+
+test('aborted requests are removed before dispatch and do not block later requests', async () => {
+  const queue = createRequestQueue(() => 1);
+  let finish!: () => void;
+  const first = queue(() => new Promise<void>(resolve => { finish = resolve; }));
+  const controller = new AbortController();
+  let executed = false;
+  const aborted = queue(async () => { executed = true; }, 1, controller.signal);
+  controller.abort(new Error('cancelled'));
+  await assert.rejects(aborted, /cancelled/);
+  const third = queue(async () => { executed = true; });
+  finish();
+  await Promise.all([first, third]);
+  assert.equal(executed, true);
+});

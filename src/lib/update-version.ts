@@ -1,7 +1,7 @@
-export const UPDATE_URL = 'https://raw.githubusercontent.com/rirh/nodeseek-plus/main/dist/nodeseek-plus-plus.user.js';
+export const UPDATE_URL = 'https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js';
 export const UPDATE_META_URL = UPDATE_URL.replace(/\.user\.js$/, '.meta.js');
-export const REPOSITORY_URL = 'https://github.com/rirh/nodeseek-plus';
-const NAMESPACE = 'nodeseek-plus-plus';
+export const REPOSITORY_URL = 'https://github.com/xytxg/test';
+const NAMESPACE = 'nodeseek-plus-plus-xy-test';
 
 export function readUpdateVersion(source: string): string {
   const header = source.match(/^\s*\/\/ ==UserScript==\r?\n([\s\S]*?)^\/\/ ==\/UserScript==/m)?.[1];
