@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NodeSeek++ XY Test
 // @namespace    nodeseek-plus-plus-xy-test
-// @version      26.1027.1736
+// @version      26.1027.1737
 // @description  模块化论坛增强：阅读、过滤、回复、签到、交易与关键词监控，一个功能一套实现。
 // @license      GPL-3.0-only
 // @homepageURL  https://github.com/xytxg/test
@@ -743,7 +743,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			title.append(Object.assign(document.createElement("strong"), { textContent: "新版本已发布" }));
 			const message = document.createElement("p");
 			message.className = "nspp-update-message";
-			message.textContent = `当前版本：26.1027.1736　最新版本：${latest}\n点击更新，在脚本管理器中确认后刷新页面。`;
+			message.textContent = `当前版本：26.1027.1737　最新版本：${latest}\n点击更新，在脚本管理器中确认后刷新页面。`;
 			const actions = document.createElement("div");
 			actions.className = "nspp-update-actions";
 			const link = (className, href, text) => Object.assign(document.createElement("a"), {
@@ -845,9 +845,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		async function notifyUpdate() {
 			await withTabLock("script-update-notification", 0, async () => {
 				const latest = state();
-				if (signal.aborted || !latest.version || !isNewerVersion(latest.version, "26.1027.1736")) return;
+				if (signal.aborted || !latest.version || !isNewerVersion(latest.version, "26.1027.1737")) return;
 				if (latest.notifiedVersion === latest.version && Date.now() - (latest.notifiedAt || 0) < REMINDER_INTERVAL) return;
-				if (systemNotify(`发现新版本 v${latest.version}，当前 v26.1027.1736。点击从 GitHub 安装更新。`, "https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js", "nspp:script-update", "发现新版本")) GM_setValue$1(STATE_KEY, {
+				if (systemNotify(`发现新版本 v${latest.version}，当前 v26.1027.1737。点击从 GitHub 安装更新。`, "https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js", "nspp:script-update", "发现新版本")) GM_setValue$1(STATE_KEY, {
 					...state(),
 					notifiedVersion: latest.version,
 					notifiedAt: Date.now()
@@ -856,7 +856,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 		async function prompt(manual) {
 			const latest = state();
-			if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, "26.1027.1736")) return;
+			if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, "26.1027.1737")) return;
 			if (!manual && (!canPrompt() || latest.promptedVersion === latest.version && Date.now() - (latest.promptedAt || 0) < REMINDER_INTERVAL)) return;
 			prompting = true;
 			GM_setValue$1(STATE_KEY, {
@@ -875,7 +875,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				const latest = state();
 				const now = Date.now();
 				if (latest.checkedAt && now - latest.checkedAt >= 0 && now - latest.checkedAt < AUTO_CACHE_TTL) {
-					if (latest.version && isNewerVersion(latest.version, "26.1027.1736")) {
+					if (latest.version && isNewerVersion(latest.version, "26.1027.1737")) {
 						await notifyUpdate();
 						prompt(false).catch(() => {});
 					}
@@ -892,11 +892,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					checkedAt: Date.now(),
 					failedAt: void 0
 				});
-				if (version && isNewerVersion(version, "26.1027.1736")) {
+				if (version && isNewerVersion(version, "26.1027.1737")) {
 					await notifyUpdate();
 					if (manual) await prompt(true);
 					else prompt(false).catch(() => {});
-				} else if (manual) notify(`当前已是最新版本（v26.1027.1736）`);
+				} else if (manual) notify(`当前已是最新版本（v26.1027.1737）`);
 			} catch (error) {
 				if (signal.aborted) return;
 				if (!manual) GM_setValue$1(STATE_KEY, {
@@ -980,7 +980,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		buttons.append(shareButton, button);
 		heading.append(title, buttons);
 		const summary = document.createElement("p");
-		summary.textContent = `v26.1027.1736 · NodeSeek / DeepFlood 论坛增强 · GPL-3.0-only`;
+		summary.textContent = `v26.1027.1737 · NodeSeek / DeepFlood 论坛增强 · GPL-3.0-only`;
 		const links = document.createElement("div");
 		links.className = "about-links";
 		for (const [label, href] of [
@@ -3765,7 +3765,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		const title = element$1("h2", "NodeSeek++");
 		title.id = "nspp-title";
 		heading.className = "heading";
-		heading.append(title, element$1("small", `v26.1027.1736`));
+		heading.append(title, element$1("small", `v26.1027.1737`));
 		const close = element$1("button", "关闭");
 		close.type = "button";
 		close.className = "settings-close";
@@ -4173,14 +4173,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			pause.setAttribute("aria-pressed", String(paused));
 		};
 		renderPause();
-		if (next) (document.querySelector("#nspp-tools") || document.body).append(pause);
+		if (next && typeof IntersectionObserver === "function") (document.querySelector("#nspp-tools") || document.body).append(pause);
 		pause.addEventListener("click", () => {
 			paused = !paused;
 			renderPause();
 			if (paused) {
-				observer.disconnect();
+				observer?.disconnect();
 				loading?.abort();
-			} else if (next && !atAutoLimit()) observer.observe(button);
+			} else if (next && !atAutoLimit()) observer?.observe(button);
 		}, { signal: ctx.signal });
 		const load = async (manual = false) => {
 			if (busy || !next || visited.has(next) || ctx.signal.aborted || replying() || !manual && atAutoLimit()) return;
@@ -4202,6 +4202,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				if (!source || !source.children.length) throw new Error("页面内容不可用");
 				source.querySelectorAll("script, iframe, object, embed, base, link, style").forEach((el) => el.remove());
 				if (comments) source.querySelectorAll("button, form, input, select, textarea").forEach((el) => el.remove());
+				source.querySelectorAll("img").forEach((img) => {
+					img.loading = "lazy";
+					img.decoding = "async";
+				});
 				source.querySelectorAll("*").forEach((el) => {
 					for (const attr of Array.from(el.attributes)) {
 						if (attr.name === "target" && attr.value === "_blank" && el.tagName === "A") {
@@ -4262,7 +4266,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				if (next && visited.has(next)) next = void 0;
 				button.textContent = !next ? "已加载全部内容" : atAutoLimit() ? "自动加载已达上限，点击继续" : "加载下一页";
 				pause.hidden = !next || atAutoLimit();
-				if (atAutoLimit()) observer.unobserve(button);
+				if (atAutoLimit()) observer?.unobserve(button);
 			} catch {
 				if (loading.signal.aborted) return;
 				failed = true;
@@ -4274,27 +4278,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				if (paused && next) button.textContent = "已暂停，点击加载下一页";
 				if (loading.signal.aborted && next) button.textContent = paused ? "已暂停，点击加载下一页" : atAutoLimit() ? "自动加载已达上限，点击继续" : "加载下一页";
 				if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next && !atAutoLimit()) {
-					observer.unobserve(button);
-					observer.observe(button);
+					observer?.unobserve(button);
+					observer?.observe(button);
 				}
 			}
 		};
 		button.addEventListener("click", () => {
 			load(true);
 		}, { signal: ctx.signal });
-		const observer = new IntersectionObserver((entries) => {
+		const observer = typeof IntersectionObserver === "function" ? new IntersectionObserver((entries) => {
 			if (entries.some((e) => e.isIntersecting) && !failed && !paused && !atAutoLimit() && !replying() && !document.hidden) load();
-		}, { rootMargin: "150px" });
+		}, { rootMargin: "150px" }) : void 0;
 		document.addEventListener("nspp:reply-state", () => {
 			if (replying()) {
-				observer.disconnect();
+				observer?.disconnect();
 				loading?.abort();
-			} else if (next && !paused && !atAutoLimit()) observer.observe(button);
+			} else if (next && !paused && !atAutoLimit()) observer?.observe(button);
 		}, { signal: ctx.signal });
-		if (next) observer.observe(button);
+		if (next) observer?.observe(button);
 		else button.hidden = true;
 		return () => {
-			observer.disconnect();
+			observer?.disconnect();
 			loading?.abort();
 			button.remove();
 			pause.remove();
@@ -23776,49 +23780,61 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 		const contacts = () => read("contacts", "account", account);
 		const messages = async (peer) => (await read("messages", "thread", [account, peer])).map((row) => row.message).sort((a, b) => timestamp(a) - timestamp(b) || (serverId(a) || 0) - (serverId(b) || 0));
-		async function merge(peer, name, incoming, mark) {
-			const db = await database();
-			return new Promise((resolve, reject) => {
-				const transaction = db.transaction(["messages", "contacts"], "readwrite");
-				const store = transaction.objectStore("messages"), peers = transaction.objectStore("contacts");
-				const history = store.index("thread").getAll([account, peer]);
-				const contact = peers.get([account, peer]);
-				let ready = 0, merged = [];
-				const write = () => {
-					if (++ready !== 2) return;
-					merged = mergeMessages(history.result.map((row) => row.message), incoming.filter((row) => row.sender_id === account && row.receiver_id === peer || row.sender_id === peer && row.receiver_id === account));
-					if (mark) merged = merged.map((row) => row.receiver_id === account && (mark === "all" || mark.includes(serverId(row))) ? {
-						...row,
-						viewed: true
-					} : row);
-					const keys = new Set(merged.map(messageKey));
-					for (const row of history.result) if (!keys.has(row.key)) store.delete([
+		function enqueueMerge(transaction, peer, name, incoming, mark, complete) {
+			const store = transaction.objectStore("messages");
+			const peers = transaction.objectStore("contacts");
+			const history = store.index("thread").getAll([account, peer]);
+			const contact = peers.get([account, peer]);
+			let ready = 0;
+			const write = () => {
+				if (++ready !== 2) return;
+				let merged = mergeMessages(history.result.map((row) => row.message), incoming.filter((row) => row.sender_id === account && row.receiver_id === peer || row.sender_id === peer && row.receiver_id === account));
+				const ids = Array.isArray(mark) ? new Set(mark) : void 0;
+				if (mark) merged = merged.map((row) => row.receiver_id === account && (mark === "all" || ids?.has(serverId(row))) ? {
+					...row,
+					viewed: true
+				} : row);
+				const keys = new Set(merged.map(messageKey));
+				for (const row of history.result) if (!keys.has(row.key)) store.delete([
+					account,
+					peer,
+					row.key
+				]);
+				const previousJSON = new Map(history.result.map((row) => [row.key, JSON.stringify(row.message)]));
+				for (const message of merged) {
+					const key = messageKey(message);
+					if (previousJSON.get(key) !== JSON.stringify(message)) store.put({
 						account,
 						peer,
-						row.key
-					]);
-					const oldMessages = new Map(history.result.map((row) => [row.key, JSON.stringify(row.message)]));
-					for (const message of merged) {
-						const key = messageKey(message);
-						if (oldMessages.get(key) !== JSON.stringify(message)) store.put({
-							account,
-							peer,
-							key,
-							message
-						});
-					}
-					const latest = merged.at(-1);
-					const old = contact.result;
-					if (latest) peers.put({
+						key,
+						message
+					});
+				}
+				const latest = merged.at(-1);
+				const old = contact.result;
+				if (latest) {
+					const updated = {
 						account,
 						id: peer,
 						name: name || old?.name || `用户 ${peer}`,
 						latest,
 						unread: latest.receiver_id === account && (latest.viewed === 0 || latest.viewed === false)
-					});
-				};
-				history.onsuccess = write;
-				contact.onsuccess = write;
+					};
+					if (JSON.stringify(updated) !== JSON.stringify(old)) peers.put(updated);
+				}
+				complete(merged);
+			};
+			history.onsuccess = write;
+			contact.onsuccess = write;
+		}
+		async function merge(peer, name, incoming, mark) {
+			const db = await database();
+			return new Promise((resolve, reject) => {
+				const transaction = db.transaction(["messages", "contacts"], "readwrite");
+				let merged = [];
+				enqueueMerge(transaction, peer, name, incoming, mark, (messages) => {
+					merged = messages;
+				});
 				transaction.oncomplete = () => resolve(merged);
 				transaction.onabort = transaction.onerror = () => reject(new Error("保存本地消息失败，请检查浏览器存储空间"));
 			});
@@ -23835,9 +23851,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				}
 				group.push(row);
 			}
-			for (const [peer, rows] of groups) {
-				const newest = rows.at(-1);
-				await merge(peer, newest.sender_id === account ? newest.receiver_name : newest.sender_name, rows);
+			if (groups.size) {
+				const db = await database();
+				await new Promise((resolve, reject) => {
+					const tx = db.transaction(["messages", "contacts"], "readwrite");
+					for (const [peer, entries] of groups) {
+						const newest = entries.reduce((latest, row) => timestamp(row) >= timestamp(latest) ? row : latest);
+						enqueueMerge(tx, peer, newest.sender_id === account ? newest.receiver_name : newest.sender_name, entries, void 0, () => {});
+					}
+					tx.oncomplete = () => resolve();
+					tx.onabort = tx.onerror = () => reject(new Error("批量保存本地私信失败，请检查存储空间"));
+				});
 			}
 			return contacts();
 		}
