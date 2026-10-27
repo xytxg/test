@@ -3,7 +3,7 @@
  * No remote fonts, glass effects, animated gradients or excessive blur.
  */
 #nspp-tools,
-:is(dialog.nspp-sheet, .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice, .nspp-ai-dialog, .nspp-messages) {
+:is(dialog.nspp-sheet:not(.nspp-post-preview), .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice, .nspp-ai-dialog, .nspp-messages) {
   --nspp-ui-bg: #fff;
   --nspp-ui-soft: #f5f7fa;
   --nspp-ui-text: #202b3b;
@@ -14,7 +14,7 @@
   color-scheme: light;
 }
 .dark-layout #nspp-tools,
-.dark-layout :is(dialog.nspp-sheet, .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice, .nspp-ai-dialog, .nspp-messages) {
+.dark-layout :is(dialog.nspp-sheet:not(.nspp-post-preview), .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice, .nspp-ai-dialog, .nspp-messages) {
   --nspp-ui-bg: #1b2330;
   --nspp-ui-soft: #252f3d;
   --nspp-ui-text: #e7edf7;
@@ -53,13 +53,13 @@
 #nspp-tools [data-nspp-settings-launcher] { border-top: 1px solid var(--nspp-ui-border); background: transparent; }
 #nspp-tools :focus-visible { outline: 2px solid var(--nspp-ui-ring); outline-offset: 2px; }
 /* Shared visual hierarchy for native <dialog> based plugin panels. */
-:is(dialog.nspp-sheet, .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice, .nspp-ai-dialog) {
+:is(dialog.nspp-sheet:not(.nspp-post-preview), .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice, .nspp-ai-dialog) {
   border-color: var(--nspp-ui-border);
   background-color: var(--nspp-ui-bg);
   color: var(--nspp-ui-text);
   box-shadow: 0 22px 65px #0c152b30;
 }
-:is(dialog.nspp-sheet, .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice)::backdrop {
+:is(dialog.nspp-sheet:not(.nspp-post-preview), .nspp-monitor, .nspp-hot-rankings, .nspp-history, .nspp-update-notice)::backdrop {
   background: #0e172580;
 }
 :is(.nspp-monitor, .nspp-history, .nspp-ai-dialog) :is(button, input, select, textarea),
