@@ -48,7 +48,9 @@ export function mountSettings(features: Feature[]) {
   const title = element("h2", "NodeSeek++");
   title.id = "nspp-title";
   heading.className = "heading";
-  heading.append(title, element("small", `v${__APP_VERSION__}`));
+  const enabledCount = element("small");
+  enabledCount.className = "enabled-count";
+  heading.append(title, element("small", `v${__APP_VERSION__}`), enabledCount);
   const close = element("button", "关闭");
   close.type = "button";
   close.className = "settings-close";
@@ -178,14 +180,20 @@ export function mountSettings(features: Feature[]) {
     const row = element("article");
     const label = element("label");
     label.className = "feature-heading";
-    label.title = feature.description;
+    const copy = element("span"); copy.className = "feature-copy";
+    const description = element("small", feature.description);
+    copy.append(element("strong", feature.title), description);
     const toggle = element("input");
     toggle.type = "checkbox";
     toggle.checked = settings.enabled === true;
-    label.append(element("strong", feature.title), toggle);
+    toggle.setAttribute("aria-label", `启用${feature.title}`);
+    label.append(copy, toggle);
     row.append(label);
     const options = Object.keys(feature.defaults).filter(key => key !== "enabled");
-    if (!options.length) return row;
+    if (!options.length) {
+      toggle.addEventListener("change", () => { settings.enabled = toggle.checked; updateEnabledCount(); });
+      return row;
+    }
     const details = element("div");
     details.className = "feature-options";
     const conditional: [HTMLElement, () => boolean][] = [];
@@ -193,7 +201,7 @@ export function mountSettings(features: Feature[]) {
       details.hidden = !toggle.checked;
       for (const [field, visible] of conditional) field.hidden = !visible();
     };
-    toggle.addEventListener("change", () => { settings.enabled = toggle.checked; sync(); });
+    toggle.addEventListener("change", () => { settings.enabled = toggle.checked; sync(); updateEnabledCount(); });
     for (const key of options) {
       const metadata = feature.fields?.[key];
       const value = settings[key];
@@ -232,7 +240,12 @@ export function mountSettings(features: Feature[]) {
     row.append(details);
     return row;
   }
+  function updateEnabledCount() {
+    const active = features.filter(feature => draft[feature.id]?.enabled === true).length;
+    enabledCount.textContent = `${active}/${features.length} 已启用`;
+  }
   function render() {
+    updateEnabledCount();
     content.replaceChildren();
     navigation.replaceChildren();
     sections = []; links = [];
@@ -275,7 +288,8 @@ export function mountSettings(features: Feature[]) {
     render();
     if (!dialog.open) dialog.showModal();
     document.documentElement.setAttribute('data-nspp-settings-open', '');
-    close.focus();
+    if (matchMedia("(min-width: 701px)").matches) search.focus();
+    else close.focus();
   };
   launch.addEventListener("click", open);
   close.addEventListener("click", () => dialog.close());
@@ -285,6 +299,20 @@ export function mountSettings(features: Feature[]) {
   } });
   dialog.addEventListener("close", () => { document.documentElement.removeAttribute('data-nspp-settings-open'); launch.focus(); });
   search.addEventListener("input", render);
+  // Pressing Enter in a search field inside the form must never submit all settings.
+  search.addEventListener("keydown", event => {
+    if (event.key === "Enter") event.preventDefault();
+    if (event.key === "Escape" && search.value) {
+      event.preventDefault(); event.stopPropagation();
+      search.value = ""; render();
+    }
+  });
+  dialog.addEventListener("keydown", event => {
+    if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("input,textarea,select,[contenteditable]")) return;
+    event.preventDefault(); search.focus();
+  });
   form.addEventListener("submit", async event => {
     event.preventDefault();
     save.disabled = true;

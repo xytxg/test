@@ -364,3 +364,24 @@ test('scoped DOM watchers ignore unrelated insertions yet process newly appended
     assert.ok(scans > 0, 'a new post must still be enhanced');
   } finally { await f.close(); }
 });
+
+test('settings UX exposes descriptions and prevents Enter in search from saving the whole form', async () => {
+  const f = await fixture({ 'official-blocklist': { enabled: false }, monitor: { enabled: false } }, '');
+  try {
+    f.window.document.querySelector<HTMLButtonElement>('[data-nspp-settings-launcher]')!.click();
+    const root = f.window.document.querySelector('#nspp-settings')!.shadowRoot!;
+    assert.match(root.querySelector('.enabled-count')!.textContent!, /已启用/);
+    assert.ok(root.querySelector('.feature-copy small')?.textContent?.trim(), 'feature explanations should be readable without a tooltip');
+    assert.match(root.querySelector('style')!.textContent!, /\.feature-copy/);
+    const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+    search.value = '自动翻页'; search.dispatchEvent(new f.window.Event('input'));
+    assert.match(root.querySelector('.content')!.textContent!, /自动翻页/);
+    const enter = new f.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    assert.equal(search.dispatchEvent(enter), false, 'pressing Enter in search should not submit');
+    assert.ok(root.querySelector<HTMLDialogElement>('dialog')!.open);
+    const escape = new f.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    assert.equal(search.dispatchEvent(escape), false, 'Escape clears an active search without closing settings');
+    assert.equal(search.value, '');
+    assert.ok(root.querySelector<HTMLDialogElement>('dialog')!.open);
+  } finally { await f.close(); }
+});

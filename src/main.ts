@@ -26,6 +26,7 @@ import "./styles/dialogs.css";
 import "./styles/hot-rankings-mobile.css";
 import "./styles/share.css";
 import "./views/sheet.css";
+import "./styles/ui-refresh.css";
 import loadingCss from "./loading.css?inline";
 
 const MENU_COMMANDS = [
