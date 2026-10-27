@@ -2,6 +2,7 @@ import type { TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Window } from 'happy-dom';
+import { UPDATE_META_URL } from '../../src/lib/update-version.ts';
 
 export const bundle = readFileSync(process.env.NSPP_TEST_BUNDLE || new URL('../../dist/nodeseek-plus-plus.user.js', import.meta.url), 'utf8');
 export const key = 'nspp:settings:www.nodeseek.com';
@@ -36,11 +37,11 @@ export async function fixture(settings: Record<string, unknown> = {}, html = '',
     type RequestOptions = { url: string; onload(response: { status: number; responseText: string }): void };
     const original = (window as unknown as { GM_xmlhttpRequest?: (options: RequestOptions) => unknown }).GM_xmlhttpRequest;
     Object.assign(window, { GM_xmlhttpRequest: (options: RequestOptions) => {
-      if (options.url.split('?')[0] !== 'https://raw.githubusercontent.com/rirh/nodeseek-plus/main/dist/nodeseek-plus-plus.meta.js') {
+      if (options.url.split('?')[0] !== UPDATE_META_URL) {
         if (!original) throw new Error('No fixture GM response');
         return original(options);
       }
-      queueMicrotask(() => options.onload({ status: 200, responseText: '// ==UserScript==\n// @namespace nodeseek-plus-plus\n// @version 0.0.0\n// ==/UserScript==' }));
+      queueMicrotask(() => options.onload({ status: 200, responseText: '// ==UserScript==\n// @namespace nodeseek-plus-plus-xy-test\n// @version 0.0.0\n// ==/UserScript==' }));
       return { abort() {} };
     } });
   }

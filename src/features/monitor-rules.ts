@@ -12,6 +12,10 @@ export function safeMonitorPattern(pattern: string): boolean {
   // Backreferences with repetitions and nested regex lookarounds are
   // particularly hard to predict: reject them for monitoring rules.
   if (/\\[1-9]/.test(pattern) || /\(\?(?:<=|<!)/.test(pattern)) return false;
+  // Bound quantifiers as well; enormous repeats waste compilation and match time.
+  for (const match of pattern.matchAll(/\{(\d+)(?:,(\d*))?\}/g)) {
+    if (Number(match[1]) > 1000 || (match[2] && Number(match[2]) > 1000)) return false;
+  }
   // Typical ambiguous alternations, such as (a|aa)+ or (foo|foobar)*.
   const alternatives = pattern.matchAll(/\(([^()[\]]+\|[^()[\]]+)\)\s*(?:[+*?]|\{\d+,?\d*\})/g);
   for (const [, alternativesText] of alternatives) {

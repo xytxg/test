@@ -27,6 +27,7 @@ test('monitor rejects common catastrophic regex forms, backreferences, overlong 
   assert.equal(rules.length, 0);
   assert.deepEqual(errors, expressions);
   assert.equal(compileMonitorRules('a'.repeat(241)).rules.length, 0);
+  assert.equal(compileMonitorRules('/a{1000000000}/').rules.length, 0);
   const many = compileMonitorRules(Array.from({ length: 66 }, (_, i) => 'key' + i).join('\n'));
   assert.equal(many.rules.length, 64);
   assert.equal(many.errors.length, 2);

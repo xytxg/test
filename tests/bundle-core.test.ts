@@ -308,3 +308,33 @@ test('AI launcher requires complete enabled configuration and keeps configuratio
     assert.equal(f.requests.length, 0);
   } finally { await f.close(); }
 });
+
+test('async-only iOS storage does not reload settings before the slow write completes', async () => {
+  let finish: (() => void) | undefined;
+  const store = new Map<string, unknown>([[key, { attendance: { enabled: true, automatic: false }, monitor: { enabled: false }, 'notification-categories': { enabled: false }, 'request-settings': { enabled: true, requestInterval: 0 } }]]);
+  const f = await fixture({}, '', '/', undefined, window => {
+    Object.assign(window, {
+      GM_getValue: undefined, GM_setValue: undefined,
+      GM: {
+        getValue: async (name: string) => structuredClone(store.get(name)),
+        listValues: async () => [...store.keys()],
+        setValue: (name: string, value: unknown) => {
+          if (name !== key) { store.set(name, structuredClone(value)); return Promise.resolve(); }
+          return new Promise<void>(resolve => { finish = () => { store.set(name, structuredClone(value)); resolve(); }; });
+        },
+      },
+    });
+  });
+  try {
+    f.window.document.querySelector<HTMLButtonElement>('[data-nspp-settings-launcher]')!.click();
+    const root = f.window.document.querySelector('#nspp-settings')!.shadowRoot!;
+    const save = root.querySelector<HTMLButtonElement>('.primary')!;
+    save.click();
+    await waitFor(() => typeof finish === 'function');
+    assert.equal(save.disabled, true, 'save stays busy until GM.setValue resolves');
+    assert.deepEqual(store.get(key), { attendance: { enabled: true, automatic: false }, monitor: { enabled: false }, 'notification-categories': { enabled: false }, 'request-settings': { enabled: true, requestInterval: 0 } });
+    finish!();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.ok(store.get(key));
+  } finally { finish?.(); await f.close(); }
+});
