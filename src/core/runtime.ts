@@ -69,7 +69,11 @@ export function startFeatures(features: Feature[], settings: Settings, notify: (
           if (!(node instanceof Element)) return false;
           return node.matches(selector) || !!node.querySelector(selector) || !!node.closest(selector);
         };
-        return relevant(target) || nodes.some(relevant);
+        // The mutation target can be document.body: querying all of its descendants
+        // would wake every watcher after any unrelated DOM insertion.
+        // Search descendants only on the *changed nodes* themselves.
+        const parent = target instanceof Element && (target.matches(selector) || !!target.closest(selector));
+        return parent || nodes.some(relevant);
       })) pending.add(callback);
     }
     if (pending.size && !timer && !document.hidden) timer = setTimeout(flush, 100);
