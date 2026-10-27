@@ -164,3 +164,13 @@
 .nspp-image-viewer { max-width: 95vw; max-height: 95vh; padding: 12px; }
 .nspp-image-viewer img { max-width: 90vw; max-height: 82vh; object-fit: contain; }
 .nspp-image-viewer::backdrop { background: rgb(0 0 0 / .8); }
+
+/* A separate mobile preview action preserves native title navigation. */
+.post-title .nspp-title-preview { display: none; vertical-align: middle; margin-left: 6px; padding: 1px 6px; border: 1px solid #818b9860; border-radius: 5px; background: transparent; color: inherit; font: 11px/18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; cursor: pointer; opacity: .7; }
+.post-title .nspp-title-preview:hover { opacity: 1; }
+.post-title .nspp-title-preview:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }
+@media (max-width: 700px) { .post-title .nspp-title-preview { display: inline-flex; align-items: center; } }
+@media (hover: none) { .post-title .nspp-title-preview { display: inline-flex; align-items: center; } }
+
+.nspp-original-comment-action { display: inline-flex; align-items: center; gap: 4px; margin: 8px 0 2px; padding: 3px 6px; border: 1px solid #818b9840; border-radius: 5px; font: 12px/20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--link-color, #0969da); text-decoration: none; }
+.nspp-original-comment-action:hover { text-decoration: underline; }

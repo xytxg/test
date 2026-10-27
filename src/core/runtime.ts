@@ -43,11 +43,17 @@ export function startFeatures(features: Feature[], settings: Settings, notify: (
     if (!document.hidden && dirty && !timer) timer = setTimeout(flush, 100);
   };
   document.addEventListener('visibilitychange', visibility); visibility();
+  // Avoid re-running every feature when our own dialogs, badges and toolbars change.
+  // Keep native list changes observable, including mixed native/plugin batches.
+  const ownedSelector = '#nspp-tools, #nspp-settings, .nspp-monitor, .nspp-user-hover, .nspp-user-badges, .nspp-message-editor, .nspp-compose, dialog.nspp-sheet, .nspp-post-preview, .nspp-image-viewer, .nspp-history, .nspp-hot-rankings, .nspp-quick-replies';
+  const owned = (node: Node) => {
+    const element = node instanceof Element ? node : node.parentElement;
+    return !!element?.closest(ownedSelector);
+  };
   const observer = new MutationObserver(records => {
     if (!records.some(record => {
-      if (!record.addedNodes.length && !record.removedNodes.length) return false;
-      const target = record.target instanceof Element ? record.target : record.target.parentElement;
-      return !target?.closest('#nspp-tools, .nspp-monitor, .nspp-user-hover, .nspp-user-badges, .nspp-message-editor, .nspp-compose');
+      const nodes = [...record.addedNodes, ...record.removedNodes];
+      return nodes.length > 0 && !owned(record.target) && nodes.some(node => !owned(node));
     })) return;
     dirty = true;
     if (timer || document.hidden) return;

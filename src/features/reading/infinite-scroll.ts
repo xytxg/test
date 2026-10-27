@@ -81,7 +81,21 @@ function mount(ctx: Context) {
                         listed.add(path);
                     }
                 }
-                list.append(document.importNode(child, true));
+                const imported = document.importNode(child, true);
+                if (comments) {
+                    // Event handlers on fetched pages do not survive DOMParser/importNode.
+                    // Link to the exact original page instead of showing a fake working reply.
+                    const actions = document.createElement('a');
+                    actions.className = 'nspp-original-comment-action';
+                    actions.textContent = '前往原页引用或回复 ↗';
+                    const original = new URL(url.href);
+                    if (imported.id) original.hash = encodeURIComponent(imported.id);
+                    actions.href = original.href;
+                    actions.target = '_blank';
+                    actions.rel = 'noopener noreferrer';
+                    imported.append(actions);
+                }
+                list.append(imported);
             }
             visited.add(url.href);
             failed = false;
@@ -119,4 +133,4 @@ function mount(ctx: Context) {
         button.hidden = true;
     return () => { observer.disconnect(); loading?.abort(); button.remove(); pause.remove(); };
 }
-export const infiniteScroll: Feature = { id: 'infinite-scroll', title: '自动翻页', description: '合并下一页帖子或评论；失败时手动重试。新增评论的互动请通过原始页面链接操作。', group: '阅读', defaults: { enabled: true, posts: true, comments: false }, fields: { posts: { label: '帖子自动翻页', type: 'text' }, comments: { label: '评论自动翻页（仅阅读）', type: 'text' } }, mount };
+export const infiniteScroll: Feature = { id: 'infinite-scroll', title: '自动翻页', description: '合并下一页帖子或评论；失败时手动重试。自动加载评论附有原页回复入口，避免无效的引用/回复按钮。', group: '阅读', defaults: { enabled: true, posts: true, comments: false }, fields: { posts: { label: '帖子自动翻页', type: 'text' }, comments: { label: '评论自动翻页（仅阅读）', type: 'text' } }, mount };

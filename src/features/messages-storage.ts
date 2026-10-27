@@ -8,14 +8,22 @@ const messageKey = (message: Message) => serverId(message) !== undefined ? `serv
 
 export function mergeMessages(previous: Message[], incoming: Message[]): Message[] {
   const result = new Map(previous.map(message => [messageKey(message), message]));
+  const echoIndex = new Map<string, [string, Message][]>();
+  const signature = (message: Message) => JSON.stringify([message.sender_id, message.receiver_id, message.content]);
+  for (const row of previous) {
+    if (!row.local_id || serverId(row) !== undefined) continue;
+    const group = signature(row);
+    const entries = echoIndex.get(group) || [];
+    entries.push([messageKey(row), row]);
+    echoIndex.set(group, entries);
+  }
   for (const message of incoming) {
     const key = messageKey(message), id = serverId(message);
     if (id !== undefined && !result.has(key)) {
       // Reconcile one acknowledged local echo with one newly received server message.
-      const echo = [...result.entries()].find(([, row]) => row.local_id && serverId(row) === undefined && id > (row.after_id || 0)
-        && row.sender_id === message.sender_id && row.receiver_id === message.receiver_id && row.content === message.content
+      const echo = echoIndex.get(signature(message))?.find(([, row]) => id > (row.after_id || 0)
         && Math.abs(timestamp(row) - timestamp(message)) < 300000);
-      if (echo) result.delete(echo[0]);
+      if (echo) { result.delete(echo[0]); echoIndex.set(signature(message), echoIndex.get(signature(message))!.filter(entry => entry !== echo)); }
     }
     const fields = Object.fromEntries(Object.entries(message).filter(([, value]) => value !== undefined));
     result.set(key, { ...result.get(key), ...fields } as Message);
@@ -36,10 +44,10 @@ export function createMessageArchive(account: number) {
       };
       request.onsuccess = () => {
         if (closed) { request.result.close(); reject(new Error('存档已关闭')); return; }
-        request.result.onversionchange = () => request.result.close(); resolve(request.result);
+        request.result.onversionchange = () => { request.result.close(); opening = undefined; }; resolve(request.result);
       };
       request.onerror = () => { opening = undefined; reject(new Error('本地消息存档不可用')); };
-      request.onblocked = () => { reject(new Error('本地存档被其他页面占用，请关闭旧页面后重试')); };
+      request.onblocked = () => { opening = undefined; reject(new Error('本地存档被其他页面占用，请关闭旧页面后重试')); };
     });
   }
   async function read<T>(store: string, index: string, key: IDBValidKey): Promise<T[]> {

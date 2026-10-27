@@ -1,5 +1,5 @@
 /**
- * Shared modal panel. Desktop keeps each panel's own centered layout; narrow or touch screens
+ * Shared modal panel. Desktop keeps each panel's own centered layout; narrow screens
  * render every sheet as one bottom sheet (see `.nspp-sheet` in sheet.css). Mark the scrolling
  * region with `nspp-sheet-body` so headers and footers stay visible while it scrolls.
  */

@@ -103,8 +103,8 @@ test('preview footer shares list actions while block control stays immediately a
   } finally { await f.close(); }
 });
 
-test('mobile title tap opens the preview sheet instead of following the link', async () => {
-  const f = await fixture({}, '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-42-1">Mobile post</a></div></li></ul>', '/', undefined, window => {
+test('mobile title tap can opt in to preview without losing modified link navigation', async () => {
+  const f = await fixture({ 'post-preview': { enabled: true, mobileTap: 'preview' } }, '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-42-1">Mobile post</a></div></li></ul>', '/', undefined, window => {
     window.matchMedia = ((query: string) => ({ matches: query.includes('hover: none') })) as typeof window.matchMedia;
   });
   try {
@@ -172,7 +172,7 @@ test('post preview follows the forum theme while open', async () => {
 for (const mobile of [false, true]) {
   test(`post preview images open a gallery and preserve the ${mobile ? 'mobile' : 'desktop'} card until closed`, async () => {
     let nativeOpens = 0;
-    const f = await fixture({ 'official-blocklist': { enabled: false }, 'user-level': { enabled: false } }, '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-42-1">Images</a></div></li></ul>', '/', undefined, window => {
+    const f = await fixture({ 'official-blocklist': { enabled: false }, 'user-level': { enabled: false }, 'post-preview': { enabled: true, mobileTap: 'preview' } }, '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-42-1">Images</a></div></li></ul>', '/', undefined, window => {
       window.document.addEventListener('click', event => {
         if (event.target instanceof window.HTMLImageElement) nativeOpens++;
       }, true);
@@ -216,3 +216,19 @@ for (const mobile of [false, true]) {
     } finally { await f.close(); }
   });
 }
+
+test('mobile default keeps title navigable and offers a separate preview button', async () => {
+  const f = await fixture({}, '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-42-1">Native link</a></div></li></ul>', '/', undefined, window => {
+    window.matchMedia = ((query: string) => ({ matches: query.includes('hover: none') })) as typeof window.matchMedia;
+  });
+  try {
+    const link = f.window.document.querySelector<HTMLAnchorElement>('.post-title a')!;
+    const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true });
+    link.dispatchEvent(click);
+    assert.equal(click.defaultPrevented, false);
+    const button = f.window.document.querySelector<HTMLButtonElement>('.nspp-title-preview')!;
+    button.click();
+    const preview = f.window.document.querySelector<HTMLDialogElement>('.nspp-post-preview')!;
+    assert.equal(preview.open, true);
+  } finally { await f.close(); }
+});
