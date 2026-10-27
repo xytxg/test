@@ -1,7 +1,6 @@
 import { gmRequest } from '../lib/userscript';
 import type { Feature } from '../core/types';
 import { toolIcon } from '../lib/tool-icon';
-import burningFlame from '../assets/hot-flame.svg?raw';
 import { createSheet } from '../views/sheet';
 
 const rankings = { hot: '实时热榜', daily: '日榜', weekly: '周榜' };
@@ -55,7 +54,7 @@ export const hotRankings: Feature = {
     const pending = new Map<Ranking, Promise<void>>();
     const errors = new Set<Ranking>();
     const launch = document.createElement('button'); launch.type = 'button'; launch.className = 'nspp-tool-icon'; launch.title = 'NodeSeek 热榜'; launch.setAttribute('aria-label', launch.title); launch.dataset.nsppHotLauncher = '';
-    launch.append(document.importNode(new DOMParser().parseFromString(burningFlame, 'image/svg+xml').documentElement, true));
+    launch.append(toolIcon('hot'));
     const panel = createSheet('nspp-monitor nspp-hot-rankings', 'NodeSeek 热榜', { tall: true });
     const head = document.createElement('div'); head.className = 'nspp-hot-header'; const title = document.createElement('h2'); title.textContent = 'NodeSeek 热榜';
     const close = document.createElement('button'); close.type = 'button'; close.className = 'nspp-hot-close'; close.title = '关闭热榜'; close.setAttribute('aria-label', close.title); close.append(toolIcon('close')); close.addEventListener('click', () => panel.close(), { signal: ctx.signal }); head.append(title, close);
@@ -100,7 +99,10 @@ export const hotRankings: Feature = {
         const heat = document.createElement('span'); heat.className = 'nspp-hot-heat'; heat.setAttribute('aria-label', `热度 ${post.score}`); heat.title = `热度 ${post.score}`;
         if (index < 3) heat.append(toolIcon('hot'));
         heat.append(document.createTextNode(post.score >= 10000 ? `${(post.score / 10000).toFixed(1)}万` : post.score.toLocaleString('zh-CN')));
-        row.append(rank, link, heat); list.append(row);
+        const item = document.createElement('div'); item.className = 'nspp-hot-item';
+        const summary = document.createElement('small'); summary.className = 'nspp-hot-summary';
+        summary.textContent = `${post.author || '匿名用户'} · ${post.views.toLocaleString('zh-CN')} 浏览 · ${post.comments.toLocaleString('zh-CN')} 回复`;
+        item.append(link, summary); row.append(rank, item, heat); list.append(row);
       }
     };
     async function load(force = false) {

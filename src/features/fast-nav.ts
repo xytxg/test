@@ -1,8 +1,7 @@
-import { gsap } from 'gsap';
 import { toolIcon } from '../lib/tool-icon';
 
 // Proxies NodeSeek's native #fast-nav-button-group into the toolbar: clicks go to the native buttons so the site
-// keeps its own scrolling behaviour, and each proxy mirrors its native button's visibility with a GSAP transition.
+// keeps its own scrolling behaviour, and each proxy mirrors its native button's visibility without changing its hit area.
 const BUTTONS = [
   { id: 'back-to-top', icon: 'up', title: '回到顶部' },
   { id: 'back-to-parent', icon: 'back', title: '返回上级' },
@@ -35,19 +34,10 @@ export function mountFastNav(tools: HTMLElement): () => void {
       toggle(proxy, !!target && !target.hidden && getComputedStyle(target).display !== 'none');
     });
   };
-  // Expand/fade buttons in and out; hidden is only set once collapsed so the divider never jumps early.
-  const shown = new WeakMap<HTMLButtonElement, boolean>();
+  // Native controls can change on every scroll frame. Keep size in CSS (38px /
+  // 44px on phones) instead of animating a hard-coded 30px height on each change.
   function toggle(proxy: HTMLButtonElement, visible: boolean) {
-    if (shown.get(proxy) === visible) return;
-    const first = !shown.has(proxy); shown.set(proxy, visible);
-    gsap.killTweensOf(proxy);
-    if (first || matchMedia('(prefers-reduced-motion: reduce)').matches) { proxy.hidden = !visible; gsap.set(proxy, { clearProps: 'all' }); return; }
-    if (visible) {
-      proxy.hidden = false;
-      gsap.fromTo(proxy, { height: 0, minHeight: 0, opacity: 0, scale: .6 }, { height: 30, minHeight: 30, opacity: 1, scale: 1, duration: .24, ease: 'back.out(1.6)', clearProps: 'all' });
-    } else {
-      gsap.to(proxy, { height: 0, minHeight: 0, opacity: 0, scale: .6, duration: .18, ease: 'power2.in', onComplete: () => { proxy.hidden = true; gsap.set(proxy, { clearProps: 'all' }); } });
-    }
+    if (proxy.hidden === visible) proxy.hidden = !visible;
   }
   function schedule() { if (!frame) frame = requestAnimationFrame(sync); }
   // The site renders the group late and swaps it on SPA navigation; watch for it at the body level (child list only).
@@ -57,7 +47,7 @@ export function mountFastNav(tools: HTMLElement): () => void {
   window.addEventListener('resize', schedule, { passive: true, signal });
   sync();
   return () => {
-    controls.abort(); proxies.forEach(proxy => gsap.killTweensOf(proxy)); groupObserver.disconnect(); bodyObserver.disconnect(); cancelAnimationFrame(frame);
+    controls.abort(); groupObserver.disconnect(); bodyObserver.disconnect(); cancelAnimationFrame(frame);
     document.documentElement.removeAttribute('data-nspp-fast-nav'); group.remove();
   };
 }

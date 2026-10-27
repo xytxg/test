@@ -217,12 +217,15 @@ test('request concurrency and default interval settings are searchable and saved
     const root = f.window.document.querySelector('#nspp-settings')!.shadowRoot!;
     const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
     search.value = '最大并发请求数'; search.dispatchEvent(new f.window.Event('input'));
-    assert.equal(root.querySelectorAll('article').length, 1);
-    assert.match(root.querySelector('article')!.textContent!, /接口请求并发/);
-    assert.ok(root.querySelector('article > .feature-options'));
+    const visible = [...root.querySelectorAll<HTMLElement>('.feature-card')].filter(row => !row.hidden);
+    assert.equal(visible.length, 1);
+    const card = visible[0];
+    assert.match(card.textContent!, /接口请求并发/);
+    assert.ok(card.querySelector('.feature-options'));
+    card.querySelector<HTMLButtonElement>('.feature-expand')!.click();
     assert.equal(root.querySelector('details'), null);
-    assert.equal(root.querySelector<HTMLInputElement>('input[type="number"]')!.value, '2');
-    const inputs = root.querySelectorAll<HTMLInputElement>('input[type="number"]');
+    assert.equal(card.querySelector<HTMLInputElement>('input[type="number"]')!.value, '2');
+    const inputs = card.querySelectorAll<HTMLInputElement>('input[type="number"]');
     assert.equal(inputs[0].min, '1'); assert.equal(inputs[0].max, '10');
     assert.equal(inputs[1].value, '200'); assert.equal(inputs[1].min, '0'); assert.equal(inputs[1].max, '5000');
     inputs[1].value = '350'; inputs[1].dispatchEvent(new f.window.Event('input'));
@@ -231,27 +234,27 @@ test('request concurrency and default interval settings are searchable and saved
   } finally { await f.close(); }
 });
 
-test('settings categories are anchors, scroll updates selection and search filters both panes', async () => {
+test('settings category navigation and cross-category search expose the appropriate sections', async () => {
   const f = await fixture();
   try {
     f.menus[0]();
     const root = f.window.document.querySelector('#nspp-settings')!.shadowRoot!;
-    const nav = [...root.querySelectorAll<HTMLAnchorElement>('.categories a')];
-    assert.deepEqual(nav.map(link => link.textContent), ['浏览', '用户', '工具', '其他']);
-    assert.equal(nav[0].getAttribute('aria-current'), 'location');
-    const content = root.querySelector('.content')!;
-    const sections = [...content.querySelectorAll('section')];
-    Object.defineProperty(content, 'getBoundingClientRect', { value: () => ({ top: 0 }) });
-    sections.forEach((section, i) => Object.defineProperty(section, 'getBoundingClientRect', { value: () => ({ top: (i - 2) * 100 }) }));
-    content.dispatchEvent(new f.window.Event('scroll'));
-    assert.equal(nav[2].getAttribute('aria-current'), 'location');
+    const nav = [...root.querySelectorAll<HTMLButtonElement>('.categories button')];
+    assert.deepEqual(nav.map(button => button.dataset.category), ['全部', '浏览', '用户', '工具', '其他', '数据']);
+    assert.equal(nav[0].getAttribute('aria-current'), 'page');
+    nav[2].click();
+    assert.equal(nav[2].getAttribute('aria-current'), 'page');
+    assert.equal(root.querySelector<HTMLElement>('[data-section="浏览"]')!.hidden, true);
+    assert.equal(root.querySelector<HTMLElement>('[data-section="用户"]')!.hidden, false);
     const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
     search.value = '黑名单'; search.dispatchEvent(new f.window.Event('input'));
-    assert.equal(root.querySelectorAll('.categories a').length, 1);
-    assert.equal(root.querySelector('.categories a')!.textContent, '用户');
+    assert.equal(nav[0].getAttribute('aria-current'), 'page', 'search expands to the whole catalog');
+    assert.equal(root.querySelector<HTMLElement>('[data-section="浏览"]')!.hidden, true);
+    assert.equal(root.querySelector<HTMLElement>('[data-section="用户"]')!.hidden, false);
     search.value = 'github'; search.dispatchEvent(new f.window.Event('input'));
-    assert.deepEqual([...root.querySelectorAll('.categories a')].map(link => link.textContent), ['其他']);
+    assert.equal(root.querySelector<HTMLElement>('[data-section="数据"]')!.hidden, false);
     assert.ok(root.querySelector('.about-links a[href="https://github.com/xytxg/test"]'));
+    assert.ok(root.querySelector('.about-links a[href="https://github.com/xytxg/test/issues"]'));
   } finally { await f.close(); }
 });
 

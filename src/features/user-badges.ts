@@ -1,9 +1,8 @@
 import { userHover, userHoverSelector, isUserHoverAnchor, userHoverEnabled } from '../views/user-hover';
 import { renderProfileTags, profileTagKey } from '../views/profile-tags';
-import { format } from 'date-fns';
 import { siteIcon } from './post-interaction-data';
 import type { Feature } from '../core/types';
-import { authorId, forumAge, registration, trustScore, type UserProfile } from './user-profile';
+import { authorId, forumAge, registration, registrationDate, trustScore, type UserProfile } from './user-profile';
 import { createSheet } from '../views/sheet';
 
 
@@ -119,7 +118,7 @@ export const userBadges: Feature = {
         age.className = 'nspp-age';
         age.textContent = info.days === null ? '加入时间未知' : `${info.days}天`;
         age.prepend(siteIcon('calendar-thirty'));
-        age.title = [info.days === null ? '注册时长未知' : `已加入 ${info.days} 天`, Number.isFinite(info.timestamp) ? `加入于 ${new Date(info.timestamp).toLocaleDateString('zh-CN')}` : '注册时间未知', `发帖 ${user.nPost ?? '—'} · 评论 ${user.nComment ?? '—'}`].join('\n');
+        age.title = [info.days === null ? '注册时长未知' : `已加入 ${info.days} 天`, Number.isFinite(info.timestamp) ? `加入于 ${registrationDate(info.timestamp)}` : '注册时间未知', `发帖 ${user.nPost ?? '—'} · 评论 ${user.nComment ?? '—'}`].join('\n');
         age.setAttribute('aria-label', `${age.textContent}，查看注册资料`);
         age.addEventListener('click', () => {
           scoreDialog?.remove();
@@ -136,7 +135,7 @@ export const userBadges: Feature = {
           const data = document.createElement('dl');
           for (const [label, value] of [
             ['论坛存续', `${forumAge()} 天`],
-            ['注册日期', info.days !== null ? new Date(info.timestamp).toLocaleDateString('zh-CN') : '未知'],
+            ['注册日期', info.days !== null ? registrationDate(info.timestamp) : '未知'],
             ['发帖', String(user.nPost ?? '—')], ['评论', String(user.nComment ?? '—')],
           ]) {
             const term = document.createElement('dt'); term.textContent = label;
@@ -191,7 +190,7 @@ export const userBadges: Feature = {
         const dayCount = document.createElement('strong'); dayCount.textContent = info.days === null ? '未知' : String(info.days);
         duration.replaceChildren(siteIcon('calendar-thirty'), document.createTextNode('加入 '), dayCount, document.createTextNode(info.days === null ? '' : ' 天'));
         duration.addEventListener('click', () => age.click(), { signal: ctx.signal });
-        const joined = document.createElement('span'); joined.textContent = `注册 ${info.days === null ? '未知' : format(new Date(info.timestamp), 'yyyy-MM-dd')}`;
+        const joined = document.createElement('span'); joined.textContent = `注册 ${info.days === null ? '未知' : registrationDate(info.timestamp)}`;
         rich.append(duration, joined); profileDetails.after(rich);
       } catch {
         if (ctx.signal.aborted || !badge.isConnected) return;

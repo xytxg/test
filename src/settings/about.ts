@@ -19,9 +19,9 @@ export function aboutContent(check: () => Promise<void>, share: () => void): HTM
   for (const [label, href] of [
     ['GitHub', REPOSITORY_URL],
     ['下载安装', UPDATE_URL],
-    ['Greasy Fork', 'https://greasyfork.org/zh-CN/scripts/595488'],
-    ['使用说明', 'https://github.com/rirh/nodeseek-plus#readme'],
-    ['反馈问题', 'https://github.com/rirh/nodeseek-plus/issues'],
+    ['上游项目', 'https://github.com/rirh/nodeseek-plus'],
+    ['使用说明', `${REPOSITORY_URL}#readme`],
+    ['反馈问题', `${REPOSITORY_URL}/issues`],
   ]) {
     const link = document.createElement('a'); link.href = href; link.textContent = label; link.target = '_blank'; link.rel = 'noopener noreferrer'; links.append(link);
   }

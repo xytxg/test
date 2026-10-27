@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 const capture = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
 const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit' });
-// Accept github.com URLs and SSH host aliases (e.g. git@rirh_github:...) whose ssh config resolves to github.com.
+// Accept github.com URLs and SSH host aliases (e.g. git@github_alias:...) whose ssh config resolves to github.com.
 function isReleaseRemote(url) {
-  const match = url.match(/^(?:https:\/\/([\w.-]+)\/|git@([\w.-]+):|ssh:\/\/git@([\w.-]+)(?::\d+)?\/)rirh\/nodeseek-plus(?:\.git)?$/);
+  const match = url.match(/^(?:https:\/\/([\w.-]+)\/|git@([\w.-]+):|ssh:\/\/git@([\w.-]+)(?::\d+)?\/)xytxg\/test(?:\.git)?$/);
   if (!match) return false;
   const host = match[1] || match[2] || match[3];
   if (host === 'github.com') return true;
@@ -35,8 +35,8 @@ try {
   run('git', ['commit', '-m', `release: ${pkg.version}`]);
   run('git', ['push', 'origin', 'HEAD:main']);
   console.log(`GitHub 已发布 ${pkg.version}。`);
-  console.log('油叉由 GitHub push Webhook 异步同步；本命令不把推送成功当作油叉同步成功。');
-  console.log('同步源：https://raw.githubusercontent.com/rirh/nodeseek-plus/main/dist/nodeseek-plus-plus.user.js');
+  console.log('XY Test 安装与自动更新使用本仓库，不会更新或发布上游油叉脚本。');
+  console.log('同步源：https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js');
 } catch (error) {
   console.error(error instanceof Error ? error.message : '发布失败');
   console.error('发布未全部完成。保留当前文件与提交，请检查后重试；不会强制推送或重置。');

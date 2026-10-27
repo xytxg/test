@@ -57,3 +57,11 @@ test('forum age advances by calendar day in UTC+8 while age points cap at 730 da
   assert.equal(trustScore({ ...founder, created_at: baseline - 730 * 86400000 }, baseline)!.age, 35);
   assert.ok(trustScore({ ...founder, created_at: baseline - 729 * 86400000 }, baseline)!.age < 35);
 });
+
+
+test('registration dates stay on the forum UTC+8 calendar across viewer time zones', async () => {
+  const { registrationDate } = await import('../src/features/user-profile.ts');
+  assert.equal(registrationDate(Date.parse('2023-12-31T16:00:00Z')), '2024-01-01');
+  assert.equal(registrationDate(Date.parse('2023-12-31T15:59:59Z')), '2023-12-31');
+  assert.equal(registrationDate(NaN), '未知');
+});

@@ -16,6 +16,13 @@ export function registration(user: UserProfile, now = Date.now()) {
     : Number.isFinite(coin) ? Math.min(6, Math.floor(Math.sqrt(Math.max(0, coin)) / 10)) : null;
   return { days, tone, label, level, timestamp };
 }
+/** Registration dates use the forum's UTC+8 calendar, independent of viewer locale. */
+export function registrationDate(timestamp: number): string {
+  if (!Number.isFinite(timestamp)) return '未知';
+  const date = new Date(timestamp + 8 * 3600_000);
+  return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : '未知';
+}
+
 export function authorId(el: Element, base: string): string | undefined {
   const own = el.getAttribute('data-uid');
   if (own && /^\d+$/.test(own)) return own;
