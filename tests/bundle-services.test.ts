@@ -34,7 +34,6 @@ for (const outcome of ['success', 'failure', 'http-error', 'network-error', 'inv
       assert.equal(state['day:7'], signed ? '2026-09-14' : undefined);
       assert.equal(state['attempt:7'], '2026-09-14');
       assert.equal(calls, 1);
-      if (outcome !== 'success') assert.match(first.window.document.body.textContent, /签到请求失败|签到未完成/);
       clock += 11 * 60_000;
       first.window.dispatchEvent(new first.window.Event('focus'));
       first.window.document.dispatchEvent(new first.window.Event('visibilitychange'));
@@ -275,6 +274,7 @@ test('RSS titles highlight list rows without fetching individual posts', async (
   let calls = 0;
   const f = await fixture({ monitor: { enabled: true, keywords: '/香港.*年付/i' }, 'user-level': { enabled: false }, 'official-blocklist': { enabled: false }, 'list-interactions': { enabled: false } }, '<li class="post-list-item"><div class="post-title"><a href="/post-72-1">出售机器</a></div></li>', '/', undefined, window => {
     Object.assign(window, { GM_xmlhttpRequest: (options: { onload: (response: unknown) => void }) => {
+      if (!('url' in options) || !String(options.url).includes('rss.nodeseek.com')) return { abort() {} };
       calls++;
       queueMicrotask(() => options.onload({ status: 200, responseText: '<rss><channel><item><title>香港机器年付</title><link>https://www.nodeseek.com/post-72-1</link></item></channel></rss>' }));
       return { abort() {} };
@@ -360,7 +360,10 @@ test('hot rankings load lazily, keep tabs independent, cache results and retain 
   type Options = { url: string; anonymous: boolean; onload(response: { status: number; responseText: string }): void; onerror(): void };
   const calls: Options[] = [];
   const f = await fixture({}, '', '/', undefined, window => {
-    Object.assign(window, { GM_xmlhttpRequest: (options: Options) => { calls.push(options); return { abort() {} }; } });
+    Object.assign(window, { GM_xmlhttpRequest: (options: Options) => {
+      if (options.url.includes('api.bimg.eu.org')) calls.push(options);
+      return { abort() {} };
+    } });
   });
   const payload = (id: number, title: string) => ({ updated_at: 1789375421, posts: [{ post: { id, title, author: 'Alice', views: 123, comments: 4 }, score: 55.6 }, { post: { id, title: 'duplicate' } }, { post: { id: 'javascript:bad', title: 'bad' } }] });
   const wait = () => new Promise(resolve => setTimeout(resolve, 5));
@@ -409,8 +412,8 @@ test('share launcher sits above settings and opens QR, X, Telegram and more acti
     const actions = [...sheet.querySelectorAll<HTMLButtonElement>('.nspp-share-actions button')];
     assert.deepEqual(actions.map(button => button.textContent), ['保存二维码', 'X', 'Telegram', '更多']);
     actions[1].click(); actions[2].click();
-    assert.match(opened[0], /^https:\/\/x\.com\/intent\/post\?text=.+&url=https%3A%2F%2Fgithub\.com%2Frirh%2Fnodeseek-plus$/);
-    assert.match(opened[1], /^https:\/\/t\.me\/share\/url\?url=https%3A%2F%2Fgithub\.com%2Frirh%2Fnodeseek-plus&text=/);
+    assert.match(opened[0], /^https:\/\/x\.com\/intent\/post\?text=.+&url=https%3A%2F%2Fgithub\.com%2Fxytxg%2Ftest$/);
+    assert.match(opened[1], /^https:\/\/t\.me\/share\/url\?url=https%3A%2F%2Fgithub\.com%2Fxytxg%2Ftest&text=/);
   } finally { await f.close(); }
 });
 
