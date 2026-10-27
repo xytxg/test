@@ -27,7 +27,7 @@ export const relationshipFeatures: Feature[] = [
                     author.after(badge);
                     badges.push(badge);
                 });
-            });
+            }, authors);
             return () => {
                 stop();
                 badges.forEach(badge => badge.remove());

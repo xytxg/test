@@ -364,3 +364,12 @@ test('newly loaded comments provide an actionable original-page reply link', asy
     assert.equal(link.rel, 'noopener noreferrer');
   } finally { await f.close(); }
 });
+
+test('comment pagination rejects foreign threads before making a request', async () => {
+  const f = await fixture({ 'infinite-scroll': { enabled: true, comments: true }, 'user-level': { enabled: false } },
+    '<ul class="comments"><li>First</li></ul><div class="nsk-pager"><a class="pager-next" href="/post-999-2">Wrong thread</a></div>', '/post-1-1');
+  try {
+    assert.equal(f.window.document.querySelector('.comments + button.nspp-action')?.hasAttribute('hidden'), true);
+    assert.equal(f.requests.length, 0);
+  } finally { await f.close(); }
+});

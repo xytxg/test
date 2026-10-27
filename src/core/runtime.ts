@@ -28,19 +28,21 @@ export function clearCaches(): void {
 }
 
 export function startFeatures(features: Feature[], settings: Settings, notify: (text: string) => void): () => void {
-  const callbacks = new Set<() => void>();
+  const callbacks = new Map<() => void, string | undefined>();
+  const pending = new Set<() => void>();
   const cleanups: (() => void)[] = [];
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let dirty = false;
   const run = (callback: () => void) => { try { callback(); } catch { notify("部分页面增强未能应用，可关闭对应模块后刷新重试"); } };
   const flush = () => {
     timer = undefined;
     if (document.hidden) return;
-    dirty = false; callbacks.forEach(run);
+    const ready = [...pending];
+    pending.clear();
+    ready.forEach(callback => { if (callbacks.has(callback)) run(callback); });
   };
   const visibility = () => {
     document.documentElement.toggleAttribute('data-nspp-background', document.hidden);
-    if (!document.hidden && dirty && !timer) timer = setTimeout(flush, 100);
+    if (!document.hidden && pending.size && !timer) timer = setTimeout(flush, 100);
   };
   document.addEventListener('visibilitychange', visibility); visibility();
   // Avoid re-running every feature when our own dialogs, badges and toolbars change.
@@ -51,13 +53,26 @@ export function startFeatures(features: Feature[], settings: Settings, notify: (
     return !!element?.closest(ownedSelector);
   };
   const observer = new MutationObserver(records => {
-    if (!records.some(record => {
-      const nodes = [...record.addedNodes, ...record.removedNodes];
-      return nodes.length > 0 && !owned(record.target) && nodes.some(node => !owned(node));
-    })) return;
-    dirty = true;
-    if (timer || document.hidden) return;
-    timer = setTimeout(flush, 100);
+    // Collect only native DOM changes. Plugin-generated buttons and dialogs must
+    // never cause a feedback loop of full-document scans.
+    const changes = records.flatMap(record => {
+      if (owned(record.target)) return [];
+      const nodes = [...record.addedNodes, ...record.removedNodes].filter(node => !owned(node));
+      return nodes.length ? [{ target: record.target, nodes }] : [];
+    });
+    if (!changes.length) return;
+    for (const [callback, selector] of callbacks) {
+      if (!selector || changes.some(({ target, nodes }) => {
+        // A hydrated child of an existing item may not itself match the selector.
+        // Checking ancestors ensures these changes still re-run the watcher.
+        const relevant = (node: Node) => {
+          if (!(node instanceof Element)) return false;
+          return node.matches(selector) || !!node.querySelector(selector) || !!node.closest(selector);
+        };
+        return relevant(target) || nodes.some(relevant);
+      })) pending.add(callback);
+    }
+    if (pending.size && !timer && !document.hidden) timer = setTimeout(flush, 100);
   });
   observer.observe(document.body, { childList: true, subtree: true });
   for (const feature of features) {
@@ -83,10 +98,10 @@ export function startFeatures(features: Feature[], settings: Settings, notify: (
           GM_setValue(cacheKey, state);
         }
       },
-      watch: callback => {
-        callbacks.add(callback);
+      watch: (callback, selector) => {
+        callbacks.set(callback, selector);
         run(callback);
-        const stop = () => { callbacks.delete(callback); };
+        const stop = () => { callbacks.delete(callback); pending.delete(callback); };
         cleanups.push(stop);
         return stop;
       },
@@ -105,6 +120,6 @@ export function startFeatures(features: Feature[], settings: Settings, notify: (
     document.documentElement.removeAttribute('data-nspp-background');
     clearTimeout(timer);
     cleanups.reverse().forEach(cleanup => { try { cleanup(); } catch { /* Continue cleanup. */ } });
-    callbacks.clear();
+    callbacks.clear(); pending.clear();
   };
 }

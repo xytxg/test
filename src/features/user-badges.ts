@@ -256,7 +256,7 @@ export const userBadges: Feature = {
       const visible = pending.map(([author]) => { if (!observer) return true; const rect = author.getBoundingClientRect(); return rect.bottom >= 0 && rect.top <= innerHeight + 200; });
       pending.forEach(([author, id, badge], index) => { if (visible[index]) void load(author, id, badge); else observer!.observe(author); });
     };
-    const stop = ctx.watch(scan);
+    const stop = ctx.watch(scan, `${userHoverSelector}, .role-tag`);
     return () => { persist(); stop(); colorStyle.remove(); scoreDialog?.remove(); roles.forEach((original, tag) => { if (original === null) tag.removeAttribute('data-nspp-role'); else tag.setAttribute('data-nspp-role', original); }); observer?.disconnect(); nodes.forEach(({ badge, details, release }) => { badge.remove(); details.remove(); release(); }); };
   },
 };

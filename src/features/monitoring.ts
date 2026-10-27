@@ -231,13 +231,18 @@ const monitor: Feature = {
     const scan = () => {
       if (!rules.length || paused || cooling() || ctx.signal.aborted) return;
       for (const node of scanned.keys()) if (!node.isConnected) { scanned.delete(node); highlighted.delete(node); }
+      const rowsByURL = new Map<string, HTMLElement>();
+      document.querySelectorAll<HTMLAnchorElement>('.post-list-item .post-title a[href*="/post-"]').forEach(link => {
+        const row = link.closest<HTMLElement>('.post-list-item');
+        if (row && !rowsByURL.has(link.href)) rowsByURL.set(link.href, row);
+      });
+      const snapshot = ctx.get<Snapshot>(snapshotKey);
+      const cachedByURL = new Map((snapshot?.home || []).map(post => [post.url, post]));
       for (const post of parsePosts(document)) {
-        const link = Array.from(document.querySelectorAll<HTMLAnchorElement>('.post-title a')).find(link => link.href === post.url);
-        const row = link?.closest<HTMLElement>('.post-list-item');
+        const row = rowsByURL.get(post.url);
         if (!row || scanned.get(row) === post.title) continue;
         scanned.set(row, post.title);
-        const cached = ctx.get<Snapshot>(snapshotKey)?.home.find(item => item.url === post.url);
-        highlight(row, cached || post);
+        highlight(row, cachedByURL.get(post.url) || post);
       }
     };
     function display(snapshot: Snapshot) {
@@ -352,7 +357,7 @@ const monitor: Feature = {
     footer.append(hint, pause, permission, refreshButton); panel.append(footer);
     document.body.append(panel, configDialog); (document.querySelector('#nspp-tools') || document.body).prepend(launch);
     const cached = ctx.get<Snapshot>(snapshotKey); if (cached) display(cached); renderUnread(); void refresh();
-    const stopScan = ctx.watch(scan);
+    const stopScan = ctx.watch(scan, '.post-list-item .post-title a');
     const timer = setInterval(() => {
       if (!document.hidden) renderState();
       if (hasWork() && !busy && !paused && !cooling() && Date.now() - last >= interval) void refresh();

@@ -120,7 +120,7 @@ export const listInteractions: Feature = {
           if (value) { times.set(time, { value, text, title: time.getAttribute('title') }); refreshTimes(); }
         }
       });
-    });
+    }, '.post-list-item');
     return () => { clearTimeout(hoverTimer); categoryGroups.forEach(({ group, category, style }) => { group.before(category); if (style === null) category.removeAttribute('style'); else category.setAttribute('style', style); group.remove(); }); clearInterval(timeTimer); times.forEach((original, el) => { el.textContent = original.text; if (original.title === null) el.removeAttribute('title'); else el.title = original.title; }); disposed = true; queue.clear(); visible?.disconnect(); stop(); quickReplies.destroy(); view.destroy(); rows.forEach(state => state.bar.remove()); };
   },
 };

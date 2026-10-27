@@ -5,7 +5,8 @@ export interface Context {
   root: Document;
   get<T = Value>(key: string): T;
   set(key: string, value: unknown): void;
-  watch(callback: () => void): () => void;
+  /** Optional CSS selector filters expensive DOM watches to relevant additions/removals. */
+  watch(callback: () => void, selector?: string): () => void;
   request<T>(url: string, options?: RequestInit & { responseType?: "json" | "text" }): Promise<T>;
   notify(message: string): void;
   signal: AbortSignal;

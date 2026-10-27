@@ -62,7 +62,7 @@ export const focusFeature: Feature = {
                     .filter(el => el.scrollHeight > height);
                 tall.forEach(fold);
             }
-        });
+        }, `ul.comments > li, ${contentSelector}`);
         return () => { stop(); hidden.forEach((value, el) => { el.hidden = value; }); cleanups.forEach(fn => fn()); };
     },
 };
@@ -86,7 +86,7 @@ export const postStatusFeature: Feature = {
                     parent.classList.add('nspp-pin-wrap'); marked.add(parent);
                 }
             });
-        });
+        }, '.post-title');
         return () => { stop(); marked.forEach(node => node.classList.remove('nspp-readonly', 'nspp-pinned', 'nspp-pin-wrap')); };
     },
 };

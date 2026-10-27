@@ -341,3 +341,24 @@ test('a fresh cached current version skips automatic network requests', async ()
     assert.ok(!f.window.document.querySelector('.nspp-update-notice'));
   } finally { await f.close(); }
 });
+
+test('scoped DOM watchers ignore unrelated insertions yet process newly appended native posts', async () => {
+  const f = await fixture({ 'official-blocklist': { enabled: false }, 'user-level': { enabled: false } },
+    '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-11-1">First</a></div></li></ul>');
+  try {
+    const doc = f.window.document;
+    const original = doc.querySelectorAll.bind(doc);
+    let scans = 0;
+    doc.querySelectorAll = ((selector: string) => {
+      if (selector === '.post-list-item .post-title a') scans++;
+      return original(selector);
+    }) as typeof doc.querySelectorAll;
+    doc.body.append(doc.createElement('aside'));
+    await new Promise(resolve => setTimeout(resolve, 160));
+    assert.equal(scans, 0, 'unrelated DOM insertions should not rescan post-preview links');
+    const list = doc.querySelector('.post-list')!;
+    list.insertAdjacentHTML('beforeend', '<li class="post-list-item"><div class="post-title"><a href="/post-12-1">Fresh</a></div></li>');
+    await waitFor(() => !!list.querySelector('.post-list-item:last-child .nspp-title-preview'));
+    assert.ok(scans > 0, 'a new post must still be enhanced');
+  } finally { await f.close(); }
+});

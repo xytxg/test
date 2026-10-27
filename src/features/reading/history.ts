@@ -42,7 +42,7 @@ export const historyFeature: Feature = {
             const read = new Set(load('entries').map(entry => entry.path));
             document.querySelectorAll<HTMLAnchorElement>('.post-title a').forEach(a => { const path = key(a.href); a.classList.toggle('nspp-read', !!path && read.has(path)); });
         };
-        const stop = ctx.watch(markRead);
+        const stop = ctx.watch(markRead, '.post-title a');
         window.addEventListener('beforeunload', () => record('recent'), { capture: true, signal: ctx.signal });
         const historyButton = document.createElement('button');
         historyButton.type = 'button';

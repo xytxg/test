@@ -39,7 +39,7 @@ export const postPreview: Feature = {
           preview.open(link, 'preview');
         }, { signal: ctx.signal });
       });
-    });
+    }, '.post-list-item .post-title a');
     return () => {
       stop(); clearTimeout(timer);
       for (const [link, { title, button }] of bound) {

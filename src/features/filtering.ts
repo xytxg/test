@@ -99,7 +99,7 @@ export const filteringFeatures: Feature[] = [
                         }
                     }
                 });
-            });
+            }, '.post-list-item, .comments .content-item');
             return () => { stop(); hidden.forEach((value, item) => { item.hidden = value; }); restore.reverse().forEach(fn => fn()); };
         },
     },
@@ -124,7 +124,7 @@ export const filteringFeatures: Feature[] = [
                 badge.className = 'nspp-user-note';
                 author.after(badge);
                 added.push(badge);
-            }));
+            }), authorSelector);
             return () => { stop(); added.forEach(el => el.remove()); };
         },
     },

@@ -10,7 +10,17 @@ function mount(ctx: Context) {
     const list = document.querySelector(selector);
     if (!list)
         return;
-    let next = document.querySelector<HTMLAnchorElement>('.nsk-pager a.pager-next')?.href;
+    const postId = comments ? location.pathname.match(/^\/post-(\d+)/)?.[1] : undefined;
+    const validNext = (href: string): boolean => {
+        try {
+            const url = new URL(href, location.href);
+            if (url.origin !== location.origin || url.protocol !== location.protocol) return false;
+            if (comments) return !!postId && url.pathname.match(/^\/post-(\d+)(?:-\d+)?(?:\.html)?\/?$/)?.[1] === postId;
+            return true;
+        } catch { return false; }
+    };
+    const initial = document.querySelector<HTMLAnchorElement>('.nsk-pager a.pager-next')?.href;
+    let next = initial && validNext(initial) ? initial : undefined;
     let busy = false, failed = false, paused = false;
     const replying = () => comments && document.documentElement.hasAttribute('data-nspp-reply-open');
     let loading: AbortController | undefined;
@@ -100,7 +110,8 @@ function mount(ctx: Context) {
             visited.add(url.href);
             failed = false;
             const href = page.querySelector<HTMLAnchorElement>('.nsk-pager a.pager-next')?.getAttribute('href');
-            next = href ? new URL(href, url).href : undefined;
+            const candidate = href ? new URL(href, url).href : undefined;
+            next = candidate && validNext(candidate) ? candidate : undefined;
             if (next && visited.has(next))
                 next = undefined;
             button.textContent = next ? '加载下一页' : '已加载全部内容';
