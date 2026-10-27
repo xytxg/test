@@ -45,7 +45,7 @@ export function startFeatures(features: Feature[], settings: Settings, notify: (
   document.addEventListener('visibilitychange', visibility); visibility();
   // Avoid re-running every feature when our own dialogs, badges and toolbars change.
   // Keep native list changes observable, including mixed native/plugin batches.
-  const ownedSelector = '#nspp-tools, #nspp-settings, .nspp-monitor, .nspp-user-hover, .nspp-user-badges, .nspp-message-editor, .nspp-compose, dialog.nspp-sheet, .nspp-post-preview, .nspp-image-viewer, .nspp-history, .nspp-hot-rankings, .nspp-quick-replies';
+  const ownedSelector = '#nspp-tools, #nspp-settings, .nspp-monitor, .nspp-user-hover, .nspp-user-badges, .nspp-message-editor, .nspp-compose, dialog.nspp-sheet, .nspp-post-preview, .nspp-image-viewer, .nspp-history, .nspp-hot-rankings, .nspp-quick-replies, .nspp-title-preview';
   const owned = (node: Node) => {
     const element = node instanceof Element ? node : node.parentElement;
     return !!element?.closest(ownedSelector);

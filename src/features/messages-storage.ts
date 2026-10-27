@@ -95,7 +95,9 @@ export function createMessageArchive(account: number) {
     for (const row of rows) {
       if (row.sender_id !== account && row.receiver_id !== account) continue;
       const peer = row.sender_id === account ? row.receiver_id : row.sender_id;
-      groups.set(peer, [...(groups.get(peer) || []), row]);
+      let group = groups.get(peer);
+      if (!group) { group = []; groups.set(peer, group); }
+      group.push(row);
     }
     for (const [peer, rows] of groups) {
       const newest = rows.at(-1)!;
@@ -103,5 +105,31 @@ export function createMessageArchive(account: number) {
     }
     return contacts();
   }
-  return { contacts, messages, merge, mergeList, close: () => { closed = true; void opening?.then(db => db.close()).catch(() => {}); } };
+  /** User-triggered deletion only: never silently discard historic private messages. */
+  async function clearAccount(): Promise<void> {
+    const db = await database();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(['messages', 'contacts'], 'readwrite');
+      const messagesStore = tx.objectStore('messages');
+      const contactsStore = tx.objectStore('contacts');
+      const bounds = IDBKeyRange.bound([account, 0], [account, Number.MAX_SAFE_INTEGER]);
+      const rows = messagesStore.index('thread').openKeyCursor(bounds);
+      rows.onsuccess = () => {
+        const cursor = rows.result;
+        if (!cursor) return;
+        messagesStore.delete(cursor.primaryKey);
+        cursor.continue();
+      };
+      const people = contactsStore.index('account').openKeyCursor(IDBKeyRange.only(account));
+      people.onsuccess = () => {
+        const cursor = people.result;
+        if (!cursor) return;
+        contactsStore.delete(cursor.primaryKey);
+        cursor.continue();
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = tx.onabort = () => reject(new Error('清理本地私信存档失败，请检查浏览器存储权限'));
+    });
+  }
+  return { contacts, messages, merge, mergeList, clearAccount, close: () => { closed = true; void opening?.then(db => db.close()).catch(() => {}); } };
 }

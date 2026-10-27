@@ -347,3 +347,20 @@ test('floating reply leaves desktop and disabled mobile native replies alone', a
     } finally { await f.close(); }
   }
 });
+
+test('newly loaded comments provide an actionable original-page reply link', async () => {
+  const f = await fixture({ 'infinite-scroll': { enabled: true, comments: true }, 'user-level': { enabled: false }, 'official-blocklist': { enabled: false } },
+    '<ul class="comments"><li id="comment-1">Existing reply</li></ul><div class="nsk-pager"><a class="pager-next" href="/post-1-2">Next</a></div>',
+    '/post-1-1', undefined, window => {
+      window.fetch = (async () => new window.Response('<ul class="comments"><li id="comment-2">More reply <button>unbound native action</button></li></ul>')) as typeof window.fetch;
+    });
+  try {
+    f.window.document.querySelector<HTMLButtonElement>('.comments + button.nspp-action')!.click();
+    await new Promise(resolve => setTimeout(resolve, 35));
+    const link = f.window.document.querySelector<HTMLAnchorElement>('#comment-2 .nspp-original-comment-action')!;
+    assert.ok(link);
+    assert.equal(link.href, 'https://www.nodeseek.com/post-1-2#comment-2');
+    assert.equal(link.target, '_blank');
+    assert.equal(link.rel, 'noopener noreferrer');
+  } finally { await f.close(); }
+});

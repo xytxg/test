@@ -469,3 +469,21 @@ test('notification categories stay in the own sidebar card on the fans page', as
     assert.equal(doc.querySelectorAll('aside .nspp-notification-link').length, 3);
   } finally { await f.close(); }
 });
+
+test('clearing a local private-message archive requires explicit user confirmation', async () => {
+  const f = await fixture({}, '', '/notification#/message', undefined, window => {
+    let confirmed = false;
+    window.confirm = (() => confirmed) as typeof window.confirm;
+  });
+  try {
+    const clear = f.window.document.querySelector<HTMLButtonElement>('.nspp-messages-clear-local');
+    if (clear) {
+      const result = clear.disabled;
+      assert.equal(result, false);
+      clear.click();
+      await new Promise(resolve => setTimeout(resolve, 10));
+      assert.equal(clear.disabled, false);
+      assert.equal(clear.textContent, '清理本机存档');
+    }
+  } finally { await f.close(); }
+});

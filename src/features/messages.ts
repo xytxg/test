@@ -39,7 +39,9 @@ function mountChat(ctx: Context, account: number) {
   }
   const original = button('原版页面'); original.title = '本次返回站点原有通知页面';
   const markAll = button('全部已读'); markAll.title = '将当前分类全部标为已读';
-  const topActions = element('div', 'nspp-messages-top-actions'); topActions.append(markAll, original);
+  const clearLocal = button('清理本机存档', 'nspp-messages-clear-local');
+  clearLocal.title = '只删除此设备当前登录账号的私信本地存档，不删除服务器消息';
+  const topActions = element('div', 'nspp-messages-top-actions'); topActions.append(markAll, clearLocal, original);
   top.append(topActions);
   const workspace = element('div', 'nspp-messages-workspace');
   const sidebar = element('aside', 'nspp-messages-sidebar');
@@ -425,6 +427,26 @@ function mountChat(ctx: Context, account: number) {
     if (Number.isSafeInteger(id) && id > 0 && text) drafts.set(id, { text, markdown: true });
     params.delete('native'); suppressed = false;
     history.pushState(null, '', `/notification${location.hash.split('?')[0] || '#/message'}${params.size ? `?${params}` : ''}`); syncRoute();
+  }, { signal: ctx.signal });
+  clearLocal.addEventListener('click', async () => {
+    if (!panelValid() || clearLocal.disabled) return;
+    if (!window.confirm('仅清除本机当前账号的私信存档（不会删除 NodeSeek 服务器消息）。清理后近期消息可能重新同步，是否继续？')) return;
+    clearLocal.disabled = true;
+    clearLocal.textContent = '正在清理…';
+    try {
+      await archive.clearAccount();
+      if (!panelValid()) return;
+      peers.clear(); histories.clear(); visibleHistory.clear();
+      listReady = false; page = 1; listPageSignature = ''; threadKey = '';
+      renderList();
+      ctx.notify('当前账号的本地私信存档已清理，服务器消息仍然保留');
+      if (category === 'message') void loadList();
+    } catch (error) {
+      if (panelValid()) ctx.notify(error instanceof Error ? error.message : '本地存档清理失败');
+    } finally {
+      clearLocal.disabled = false;
+      clearLocal.textContent = '清理本机存档';
+    }
   }, { signal: ctx.signal });
   markAll.addEventListener('click', async () => {
     if (!panelValid() || markAll.disabled) return;
