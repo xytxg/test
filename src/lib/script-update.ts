@@ -4,9 +4,11 @@ import { isNewerVersion, readUpdateVersion, UPDATE_META_URL, UPDATE_URL } from '
 import { updateNotice } from '../views/update-notice';
 
 const CHECK_INTERVAL = 6 * 60 * 60 * 1000;
+const AUTO_CACHE_TTL = 30 * 60 * 1000;
+const ERROR_RETRY_TTL = 5 * 60 * 1000;
 const REMINDER_INTERVAL = 24 * 60 * 60 * 1000;
 const STATE_KEY = 'nspp:script-update';
-type UpdateState = { version?: string; promptedVersion?: string; promptedAt?: number; notifiedVersion?: string; notifiedAt?: number };
+type UpdateState = { version?: string; checkedAt?: number; failedAt?: number; promptedVersion?: string; promptedAt?: number; notifiedVersion?: string; notifiedAt?: number };
 
 function requestVersion(signal: AbortSignal): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -61,10 +63,24 @@ export function createUpdateChecker(notify: (message: string) => void, canPrompt
   }
 
   async function run(manual: boolean) {
+    if (!manual) {
+      const latest = state();
+      const now = Date.now();
+      // Reuse a recent result on ordinary page navigation and when returning
+      // from the background. Manual checks always contact the update source.
+      if (latest.checkedAt && now - latest.checkedAt >= 0 && now - latest.checkedAt < AUTO_CACHE_TTL) {
+        if (latest.version && isNewerVersion(latest.version, __APP_VERSION__)) {
+          await notifyUpdate();
+          void prompt(false).catch(() => {});
+        }
+        return;
+      }
+      if (latest.failedAt && now - latest.failedAt >= 0 && now - latest.failedAt < ERROR_RETRY_TTL) return;
+    }
     try {
       const version = await requestVersion(signal);
       if (signal.aborted) return;
-      GM_setValue(STATE_KEY, { ...state(), version });
+      GM_setValue(STATE_KEY, { ...state(), version, checkedAt: Date.now(), failedAt: undefined });
       if (version && isNewerVersion(version, __APP_VERSION__)) {
         await notifyUpdate();
         if (manual) await prompt(true);
@@ -72,7 +88,9 @@ export function createUpdateChecker(notify: (message: string) => void, canPrompt
       }
       else if (manual) notify(`当前已是最新版本（v${__APP_VERSION__}）`);
     } catch (error) {
-      if (manual && !signal.aborted) notify(error instanceof Error ? error.message : '检查更新失败，请稍后重试');
+      if (signal.aborted) return;
+      if (!manual) GM_setValue(STATE_KEY, { ...state(), failedAt: Date.now() });
+      else notify(error instanceof Error ? error.message : '检查更新失败，请稍后重试');
     }
   }
 

@@ -57,10 +57,10 @@ test('manual update checks read metadata and open an update link only for a newe
   } finally { await f.close(); }
 });
 
-test('page entry always checks updates while system and page reminders are deduplicated', async () => {
+test('automatic update checks use shared cache while manual checks still force a refresh', async () => {
   const shared = new Map<string, unknown>([
     [key, { attendance: { enabled: false }, monitor: { enabled: false }, 'notification-categories': { enabled: false } }],
-    ['nspp:script-update', { checkedAt: Date.now(), version: '1.0.0' }],
+    ['nspp:script-update', { checkedAt: Date.now() - 3600_000, version: '1.0.0' }],
     ['nspp:lock:www.nodeseek.com:script-update', { started: Date.now(), until: Date.now() + 120000, owner: 'another-page' }],
   ]);
   const requests: string[] = [];
@@ -72,53 +72,46 @@ test('page entry always checks updates while system and page reminders are dedup
       GM_notification: (details: typeof notifications[number]) => notifications.push(details),
       GM_xmlhttpRequest: (options: { url: string; onload(response: { status: number; responseText: string }): void }) => {
         requests.push(options.url);
-        queueMicrotask(() => options.onload({ status: 200, responseText: `// ==UserScript==\n// @namespace nodeseek-plus-plus-xy-test\n// @version ${version}\n// ==/UserScript==` }));
+        queueMicrotask(() => options.onload({ status: 200, responseText: `// ==UserScript==\\n// @namespace nodeseek-plus-plus-xy-test\\n// @version ${version}\\n// ==/UserScript==` }));
         return { abort() {} };
       },
     });
   };
-  const f = await fixture({}, '', '/', shared, setup, true);
+  const first = await fixture({}, '', '/', shared, setup, true);
   let second: Awaited<ReturnType<typeof fixture>> | undefined;
   try {
-    await new Promise(resolve => setTimeout(resolve, 10));
-    assert.equal(requests.length, 1, 'page entry ignores cached checks and another page checking updates');
-    assert.equal(notifications.length, 1, 'a hidden page still sends a system notification');
-    assert.match(notifications[0].title, /发现新版本/);
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(requests.length, 1, 'a stale cache fetches once');
+    assert.equal(notifications.length, 1, 'hidden pages still notify of genuine updates');
     assert.equal(notifications[0].url, 'https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js');
-    assert.equal(f.window.document.querySelector('.nspp-update-notice'), null);
-    Object.defineProperty(f.window.document, 'hidden', { configurable: true, value: false });
-    f.window.document.dispatchEvent(new f.window.Event('visibilitychange'));
-    await new Promise(resolve => setTimeout(resolve, 10));
-    const dialog = f.window.document.querySelector<HTMLDialogElement>('.nspp-update-notice')!;
-    assert.ok(dialog?.open, 'the page reminder waits until visible');
-    assert.equal(requests.length, 2, 'returning to the page requests fresh metadata');
-    const firstRestore = new f.window.Event('pageshow'); Object.defineProperty(firstRestore, 'persisted', { value: true });
-    f.window.dispatchEvent(firstRestore);
-    await new Promise(resolve => setTimeout(resolve, 10));
-    assert.equal(requests.length, 3, 'an open automatic reminder must not block a page-entry check');
-    dialog.close('cancel');
+    Object.defineProperty(first.window.document, 'hidden', { configurable: true, value: false });
+    first.window.document.dispatchEvent(new first.window.Event('visibilitychange'));
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(requests.length, 1, 'focus uses cached update metadata');
+    assert.ok(first.window.document.querySelector<HTMLDialogElement>('.nspp-update-notice')?.open);
+    const restored = new first.window.Event('pageshow'); Object.defineProperty(restored, 'persisted', { value: true });
+    first.window.dispatchEvent(restored);
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(requests.length, 1, 'BFCache restore does not refetch fresh metadata');
+    first.window.document.querySelector<HTMLDialogElement>('.nspp-update-notice')!.close('cancel');
     second = await fixture({}, '', '/page-2', shared, setup, true);
-    await new Promise(resolve => setTimeout(resolve, 10));
-    assert.equal(requests.length, 4, 'each new page requests fresh metadata');
-    assert.equal(notifications.length, 1, 'the same version does not notify again on another page');
-    Object.defineProperty(second.window.document, 'hidden', { configurable: true, value: false });
-    second.window.document.dispatchEvent(new second.window.Event('visibilitychange'));
-    await new Promise(resolve => setTimeout(resolve, 10));
-    assert.equal(second.window.document.querySelector('.nspp-update-notice'), null);
-    const restore = new second.window.Event('pageshow'); Object.defineProperty(restore, 'persisted', { value: true });
-    second.window.dispatchEvent(restore);
-    await new Promise(resolve => setTimeout(resolve, 10));
-    assert.equal(requests.length, 6, 'visibility and back-forward cache restoration each check again');
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(requests.length, 1, 'another page reuses the persisted metadata cache');
     assert.equal(notifications.length, 1);
     version = '99.999.9999.1';
-    second.window.dispatchEvent(restore);
-    await new Promise(resolve => setTimeout(resolve, 10));
-    assert.equal(requests.length, 7);
-    assert.equal(new Set(requests).size, requests.length, 'every page check uses a unique request URL');
-    assert.equal(notifications.length, 2, 'a different new version notifies immediately');
-    assert.match(notifications[1].text, /99\.999\.9999\.1/);
-    second.window.document.querySelector<HTMLDialogElement>('.nspp-update-notice')!.close('cancel');
-  } finally { await f.close(); await second?.close(); }
+    Object.defineProperty(second.window.document, 'hidden', { configurable: true, value: false });
+    second.window.document.dispatchEvent(new second.window.Event('visibilitychange'));
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(requests.length, 1, 'automatic checks cannot see new versions until cache expires');
+    second.menus[0]();
+    const root = second.window.document.querySelector('#nspp-settings')!.shadowRoot!;
+    root.querySelector<HTMLButtonElement>('.check-update')!.click();
+    await new Promise(resolve => setTimeout(resolve, 35));
+    assert.equal(requests.length, 2, 'manual check bypasses shared cache');
+    assert.equal(new Set(requests).size, 2, 'requests that are sent still bypass HTTP caches');
+    assert.equal(notifications.length, 2, 'manual refresh detects a new version');
+    assert.match(notifications[1].text, /99\\.999\\.9999\\.1/);
+  } finally { await first.close(); await second?.close(); }
 });
 
 test('site fast-nav buttons move into the toolbar and forward clicks to the native controls', async () => {
@@ -337,4 +330,14 @@ test('async-only iOS storage does not reload settings before the slow write comp
     await new Promise(resolve => setTimeout(resolve, 20));
     assert.ok(store.get(key));
   } finally { finish?.(); await f.close(); }
+});
+
+test('a fresh cached current version skips automatic network requests', async () => {
+  const store = new Map<string, unknown>([[key, { attendance: { enabled: false }, monitor: { enabled: false }, 'notification-categories': { enabled: false } }], ['nspp:script-update', { checkedAt: Date.now(), version: '26.1027.1734' }]]);
+  const f = await fixture({}, '', '/', store, undefined, true);
+  try {
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.equal(f.requests.length, 0);
+    assert.ok(!f.window.document.querySelector('.nspp-update-notice'));
+  } finally { await f.close(); }
 });
