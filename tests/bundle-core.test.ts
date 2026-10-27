@@ -347,6 +347,8 @@ test('scoped DOM watchers ignore unrelated insertions yet process newly appended
     '<ul class="post-list"><li class="post-list-item"><div class="post-title"><a href="/post-11-1">First</a></div></li></ul>');
   try {
     const doc = f.window.document;
+    // Finish the initial 100ms coalesced DOM pass before measuring later changes.
+    await new Promise(resolve => setTimeout(resolve, 170));
     const original = doc.querySelectorAll.bind(doc);
     let scans = 0;
     doc.querySelectorAll = ((selector: string) => {
