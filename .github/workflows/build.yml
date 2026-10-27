@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm build
       - run: pnpm test
@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/nodeseek-plus-plus.user.js dist/nodeseek-plus-plus.meta.js
+          git add pnpm-lock.yaml dist/nodeseek-plus-plus.user.js dist/nodeseek-plus-plus.meta.js
           if ! git diff --cached --quiet; then
             git commit -m "build: publish verified userscript [skip ci]"
             git push
