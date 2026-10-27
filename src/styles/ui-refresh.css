@@ -167,3 +167,276 @@
 @media (prefers-reduced-motion: reduce) {
   #nspp-tools .nspp-tool-icon { transition: none; }
 }
+
+/* ---------------------------------------------------------------
+ * NodeSeek++ Interface 2.0. One scoped design layer, shared across
+ * plugin-only surfaces. Site-native post preview keeps forum colors.
+ * --------------------------------------------------------------- */
+:is(#nspp-tools, .nspp-user-hover, .nspp-interaction, .nspp-quick-replies,
+    .nspp-share, .nspp-footprints-dialog, .nspp-user-transfer,
+    .nspp-profile-dialog, .nspp-confirm-dialog, .nspp-messages,
+    .nspp-monitor, .nspp-history, .nspp-hot-rankings, .nspp-ai-dialog,
+    .nspp-update-notice, .nspp-floating-reply, .nspp-compose) {
+  --ui-bg: #ffffff;
+  --ui-bg-alt: #f6f8fb;
+  --ui-bg-hover: #edf3fb;
+  --ui-line: #dce4ed;
+  --ui-text: #243246;
+  --ui-subtle: #66788e;
+  --ui-primary: #2b64c9;
+  --ui-primary-hover: #2455ac;
+  --ui-focus: #81a8f8;
+  --ui-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+}
+.dark-layout :is(#nspp-tools, .nspp-user-hover, .nspp-interaction, .nspp-quick-replies,
+    .nspp-share, .nspp-footprints-dialog, .nspp-user-transfer,
+    .nspp-profile-dialog, .nspp-confirm-dialog, .nspp-messages,
+    .nspp-monitor, .nspp-history, .nspp-hot-rankings, .nspp-ai-dialog,
+    .nspp-update-notice, .nspp-floating-reply, .nspp-compose) {
+  --ui-bg: #1c2532;
+  --ui-bg-alt: #273243;
+  --ui-bg-hover: #30445d;
+  --ui-line: #3b4b5f;
+  --ui-text: #e7edf5;
+  --ui-subtle: #a7b5c8;
+  --ui-primary: #91b9ff;
+  --ui-primary-hover: #b8d2ff;
+  --ui-focus: #a5c7ff;
+}
+/* Interaction model: consistent hit area, focus and disabled feedback. */
+:is(.nspp-monitor, .nspp-history, .nspp-quick-replies, .nspp-share,
+    .nspp-user-transfer, .nspp-profile-dialog, .nspp-confirm-dialog,
+    .nspp-ai-dialog, .nspp-footprints-dialog) :is(button, input, textarea, select) {
+  box-sizing: border-box;
+  font-family: inherit;
+  border-radius: 9px;
+}
+:is(.nspp-monitor, .nspp-history, .nspp-quick-replies, .nspp-share,
+    .nspp-user-transfer, .nspp-profile-dialog, .nspp-confirm-dialog,
+    .nspp-ai-dialog, .nspp-footprints-dialog) :is(button, a, input, textarea, select):focus-visible,
+.nspp-user-hover :is(button, a):focus-visible,
+.nspp-messages :is(button, a, textarea):focus-visible,
+#nspp-tools button:focus-visible {
+  outline: 2px solid var(--ui-focus, #81a8f8);
+  outline-offset: 2px;
+}
+:is(.nspp-monitor, .nspp-history, .nspp-quick-replies, .nspp-share,
+    .nspp-user-transfer, .nspp-profile-dialog, .nspp-confirm-dialog,
+    .nspp-ai-dialog, .nspp-footprints-dialog) :is(input, textarea, select) {
+  border-color: var(--ui-line);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}
+:is(.nspp-monitor, .nspp-history, .nspp-quick-replies, .nspp-share,
+    .nspp-user-transfer, .nspp-profile-dialog, .nspp-confirm-dialog,
+    .nspp-ai-dialog, .nspp-footprints-dialog) button:disabled,
+.nspp-messages button:disabled { opacity: .48; cursor: not-allowed; }
+/* Common modal surfaces and restrained elevation. */
+:is(.nspp-quick-replies, .nspp-share, .nspp-user-transfer, .nspp-footprints-dialog,
+    .nspp-profile-dialog, .nspp-confirm-dialog, .nspp-user-hover,
+    .nspp-interaction, .nspp-ai-dialog) {
+  border: 1px solid var(--ui-line);
+  border-radius: 15px;
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  box-shadow: 0 16px 48px #10203925;
+}
+:is(.nspp-quick-replies, .nspp-share, .nspp-user-transfer, .nspp-footprints-dialog,
+    .nspp-profile-dialog, .nspp-confirm-dialog, .nspp-ai-dialog)::backdrop {
+  background: #0e182a80;
+}
+.nspp-confirm-dialog { width: min(400px, calc(100vw - 32px)); padding: 22px; }
+.nspp-confirm-dialog h2 { font-size: 16px; font-weight: 650; line-height: 1.45; }
+.nspp-confirm-dialog p { margin: 12px 0 22px; opacity: 1; color: var(--ui-subtle); line-height: 1.7; }
+.nspp-confirm-dialog form { gap: 10px; }
+.nspp-confirm-dialog :is(button, a) { min-height: 38px; border-radius: 9px; border-color: var(--ui-line); }
+.nspp-confirm-dialog .nspp-confirm-primary { background: #2b64c9; border-color: #2b64c9; }
+.nspp-confirm-dialog .nspp-confirm-danger { background: #bd3c46; border-color: #bd3c46; }
+.nspp-confirm-dialog :is(.nspp-confirm-primary, .nspp-confirm-danger) { color: #fff; }
+/* User card / identity / transfer — tone is expressed via restrained stripe. */
+.nspp-user-hover {
+  width: min(300px, calc(100vw - 20px));
+  padding: 15px;
+  border-radius: 14px;
+  border-color: var(--ui-line);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  box-shadow: 0 14px 45px #1020392b;
+}
+.nspp-user-hover[data-trust="success"] { border-left: 3px solid #2e946a; background: var(--ui-bg); }
+.nspp-user-hover[data-trust="warning"] { border-left: 3px solid #bf8f30; background: var(--ui-bg); }
+.nspp-user-hover[data-trust="danger"] { border-left: 3px solid #c75b62; background: var(--ui-bg); }
+.nspp-user-hover[data-trust="perfect"] { border-left: 3px solid #c19e56; background: var(--ui-bg); }
+.nspp-user-hover .nspp-user-hover-header { margin-bottom: 10px; }
+.nspp-user-hover .nspp-user-hover-monogram { border-radius: 11px; background: var(--ui-bg-alt); color: var(--ui-primary); }
+.nspp-user-hover .nspp-user-hover-rich { gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--ui-line); }
+.nspp-user-hover .nspp-user-hover-signature { color: var(--ui-subtle); opacity: 1; }
+.nspp-user-hover dl { border-color: var(--ui-line); }
+.nspp-user-hover dt { color: var(--ui-subtle); opacity: 1; }
+.nspp-user-hover .nspp-user-hover-actions { gap: 6px; margin-top: 12px; }
+.nspp-user-hover .nspp-user-hover-actions > :is(a, button) { min-height: 32px; padding: 6px 9px; border-radius: 8px; }
+.nspp-user-hover .nspp-user-hover-actions > [data-action="follow"] { background: #2b64c9; }
+.nspp-user-hover .nspp-user-hover-actions > [data-action="message"] { background: #586da8; }
+.nspp-user-hover .nspp-user-hover-actions > [data-action="transfer"] { background: #287e5d; }
+.nspp-user-hover.nspp-user-hover-inline {
+  width: auto; max-width: none; border: 0; border-radius: 0; box-shadow: none; background: transparent;
+}
+.nspp-user-transfer { padding: 18px; }
+.nspp-user-transfer input { min-height: 40px; padding: 9px 11px; }
+.nspp-profile-dialog header { min-height: 48px; padding: 12px 15px; border-bottom: 1px solid var(--ui-line); }
+.nspp-profile-dialog dl { padding: 14px 16px; border-color: var(--ui-line); }
+.nspp-profile-dialog dt { color: var(--ui-subtle); opacity: 1; }
+/* Hot rankings: readable scan-friendly list, not a dense row of tiny targets. */
+.nspp-hot-rankings { border-radius: 18px 0 0 18px; padding: 18px 18px 14px; }
+.nspp-hot-rankings .nspp-hot-header { gap: 14px; padding-bottom: 14px; margin-bottom: 5px; border-bottom: 1px solid var(--ui-line); }
+.nspp-hot-rankings h2 { font-size: 16px; font-weight: 650; }
+.nspp-hot-rankings nav { gap: 4px; }
+.nspp-hot-rankings nav button { min-height: 32px; padding: 5px 11px; border-radius: 8px; font-size: 12px; }
+.nspp-hot-rankings button[aria-pressed="true"],
+.dark-layout .nspp-hot-rankings button[aria-pressed="true"] { background: var(--ui-bg-alt); color: var(--ui-primary); }
+.nspp-hot-rankings .nspp-hot-close { width: 34px; height: 34px; border-radius: 9px; }
+.nspp-hot-rankings ol { padding-right: 3px; }
+.nspp-hot-rankings li { gap: 10px; min-height: 44px; padding: 8px 5px; border-color: var(--ui-line); border-radius: 8px; }
+.nspp-hot-rankings li:hover { background: var(--ui-bg-alt); }
+.nspp-hot-rankings li a { font-size: 13px; line-height: 1.6; font-weight: 500; }
+.nspp-hot-rankings .nspp-hot-rank { width: 25px; font-size: 12px; }
+.nspp-hot-rankings .nspp-hot-heat { min-width: 58px; font-size: 11px; }
+/* Monitor, rules and footprints use the same header / body / footer geometry. */
+.nspp-monitor { border-radius: 16px; }
+.nspp-monitor header { min-height: 52px; padding: 10px 18px; }
+.nspp-monitor header h3 { font-size: 16px; font-weight: 650; }
+.nspp-monitor :is(.nspp-monitor-summary, .nspp-monitor-results, .nspp-monitor-tracked) { padding-inline: 18px; }
+.nspp-monitor .nspp-monitor-results li { padding-block: 8px; border-bottom: 1px solid var(--ui-line); }
+.nspp-monitor footer { gap: 10px; min-height: 55px; padding: 11px 18px; }
+.nspp-monitor button { min-height: 36px; border-radius: 9px; }
+.nspp-monitor-config .nspp-monitor-editor { gap: 12px; padding: 14px 18px 18px; }
+.nspp-monitor-editor textarea { min-height: 100px; padding: 11px; border: 1px solid var(--ui-line); border-radius: 9px; }
+.nspp-footprints-dialog { width: min(640px, calc(100vw - 24px)); padding: 14px; }
+.nspp-footprints-dialog header { padding: 5px 4px 13px; border-bottom: 1px solid var(--ui-line); }
+.nspp-footprints-toolbar { padding: 12px 4px; gap: 8px; }
+.nspp-footprints-list { gap: 4px; }
+.nspp-footprints-dialog a { border-radius: 8px; padding: 9px; }
+/* Reading history and quick-replies now share row/field cadence. */
+.nspp-history { width: min(680px, calc(100vw - 24px)); border-radius: 16px; }
+.nspp-history header { padding: 13px 18px; }
+.nspp-history h2 { font-size: 16px; }
+.nspp-history .nspp-history-toolbar { padding: 12px 18px; gap: 10px; border-bottom: 1px solid var(--ui-line); }
+.nspp-history input { min-height: 39px; padding-inline: 12px; }
+.nspp-history ol { padding-inline: 18px; }
+.nspp-history li { min-height: 44px; gap: 12px; padding: 10px 0; }
+.nspp-history time, .nspp-history .nspp-history-day { color: var(--ui-subtle); }
+.nspp-history li button { min-width: 30px; min-height: 30px; border-radius: 8px; }
+.nspp-quick-replies { width: min(480px, calc(100vw - 28px)); border-radius: 16px; }
+.nspp-quick-replies button { min-height: 36px; padding: 7px 11px; border-color: var(--ui-line); }
+.nspp-quick-replies .nspp-quick-primary { background: #2b64c9; border-color: #2b64c9; color: #fff; }
+.nspp-quick-replies .nspp-quick-primary:hover:not(:disabled) { background: #2455ac; }
+.nspp-quick-replies form { padding: 14px 16px; border-color: var(--ui-line); }
+.nspp-quick-replies :is(input, textarea) { padding: 10px 11px; }
+.nspp-quick-replies textarea { min-height: 95px; max-height: 28dvh; }
+/* Inline post actions and previews: subtle outline, preserve the forum palette. */
+.nspp-interaction { border: 1px solid var(--ui-line); border-radius: 12px; box-shadow: 0 5px 17px #10203914; }
+.nspp-interaction header { min-height: 40px; padding: 8px 13px; border-bottom: 1px solid var(--ui-line); }
+.nspp-interaction form { padding: 12px 14px; }
+.nspp-interaction textarea { min-height: 95px; border-color: var(--ui-line); border-radius: 9px; padding: 11px; }
+.nspp-interaction button { min-height: 30px; border-radius: 7px; }
+.nspp-post-preview { border-radius: 12px; box-shadow: 0 12px 34px #10182829; }
+.nspp-post-preview header { min-height: 40px; padding: 9px 12px; }
+.nspp-post-preview > .nspp-preview-content { padding: 10px 12px; line-height: 1.65; }
+.nspp-post-preview footer { padding: 8px 12px; }
+/* Sharing panel — clear QR hierarchy and selectable, copyable source. */
+dialog.nspp-share { width: min(460px, calc(100vw - 24px)); border-radius: 16px; padding: 20px; }
+.nspp-share .nspp-share-head { margin-bottom: 18px; }
+.nspp-share .nspp-share-head strong { font-size: 17px; }
+.nspp-share .nspp-share-close { width: 34px; height: 34px; border-radius: 9px; }
+.nspp-share .nspp-share-intro { gap: 16px; }
+.nspp-share .nspp-share-qr { width: 108px; height: 108px; padding: 8px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--ui-line); }
+.nspp-share .nspp-share-intro p { line-height: 1.75; }
+.nspp-share .nspp-share-intro small { color: var(--ui-subtle); }
+.nspp-share .nspp-share-text { margin-top: 18px; padding: 14px; border: 1px solid var(--ui-line); border-radius: 11px; background: var(--ui-bg-alt); }
+.nspp-share .nspp-share-text pre { color: var(--ui-subtle); }
+.nspp-share .nspp-share-text button { min-height: 34px; padding: 6px 12px; border-radius: 8px; border-color: var(--ui-line); background: var(--ui-bg); color: var(--ui-text); }
+.nspp-share .nspp-share-actions { gap: 10px; margin-top: 18px; }
+.nspp-share .nspp-share-actions button { gap: 9px; color: var(--ui-subtle); }
+.nspp-share .nspp-share-actions button > span { width: 48px; height: 48px; border-radius: 13px; background: var(--ui-bg-alt); color: var(--ui-text); }
+.nspp-share .nspp-share-actions button:hover > span { background: var(--ui-bg-hover); }
+/* AI writing, update notices, image viewer and message editor. */
+.nspp-ai-dialog { padding: 22px; border-radius: 16px; }
+.nspp-ai-dialog h2 { font-size: 17px; }
+.nspp-ai-dialog label { gap: 8px; margin-bottom: 16px; color: var(--ui-text); }
+.nspp-ai-dialog :is(input, textarea, select) { min-height: 39px; padding: 10px; border-color: var(--ui-line); background: var(--ui-bg-alt); }
+.nspp-ai-dialog button { min-height: 36px; padding: 7px 13px; border-color: var(--ui-line); background: var(--ui-bg-alt); }
+.nspp-ai-dialog :is(.nspp-ai-primary, [data-nspp-ai]) { background: #2b64c9; color: #fff; border-color: #2b64c9; }
+.nspp-ai-dialog :is(.nspp-ai-primary, [data-nspp-ai]):hover { background: #2455ac; }
+.nspp-ai-dialog .nspp-ai-actions { border-color: var(--ui-line); }
+.nspp-update-notice { padding: 18px; border-radius: 15px; border-color: var(--ui-line); }
+.nspp-update-title { font-size: 16px; }
+.nspp-update-message { line-height: 1.7; color: var(--ui-subtle); }
+.nspp-update-actions { gap: 12px; margin-top: 16px; }
+.nspp-update-notice .nspp-update-install { min-height: 37px; padding: 8px 14px; border-radius: 9px; }
+.nspp-update-notice .nspp-update-dismiss { color: var(--ui-subtle); }
+.nspp-messages { border-radius: 16px; }
+.nspp-messages-top { min-height: 52px; padding-inline: 18px; }
+.nspp-messages-top-actions button { min-height: 32px; border-radius: 8px; }
+.nspp-messages-fixed-contacts a { border-radius: 8px; }
+.nspp-messages-workspace { grid-template-columns: 270px minmax(0, 1fr); }
+.nspp-messages-search { padding: 14px 12px; gap: 8px; }
+.nspp-messages-search input { min-height: 40px; padding: 10px 12px; }
+.nspp-messages .nspp-messages-peer { min-height: 72px; padding: 12px; gap: 11px; }
+.nspp-messages-peer-title strong { font-size: 13.5px; }
+.nspp-messages-snippet { line-height: 1.6; }
+.nspp-messages .nspp-messages-bubble { padding: 10px 13px; border-radius: 13px; line-height: 1.7; }
+.nspp-messages .nspp-messages-message.is-mine .nspp-messages-bubble::before,
+.nspp-messages .nspp-messages-bubble::before { display: none; }
+.nspp-messages .nspp-messages-thread { padding: 20px 24px; }
+.nspp-message-editor-toolbar { padding: 6px 10px; gap: 4px; border-bottom: 1px solid var(--chat-border); }
+.nspp-message-editor-toolbar button { min-width: 34px; width: 34px; height: 34px; border-radius: 8px; }
+.nspp-message-editor-body textarea { padding: 14px 16px; caret-color: var(--ui-primary); }
+.nspp-messages-compose-actions { padding: 10px 14px 13px; }
+.nspp-messages .nspp-messages-send { min-height: 39px; min-width: 86px; padding-inline: 16px; }
+.nspp-message-return { background: #2b64c9; border-color: #2b64c9; border-radius: 8px; color: #fff; }
+.nspp-image-preview .viewer-toolbar > ul { background: #172336dd; border-color: #ffffff30; }
+.nspp-image-preview .viewer-toolbar > ul > li { border-radius: 10px; min-width: 40px; min-height: 40px; }
+.nspp-image-preview .viewer-button { border-radius: 12px; }
+/* Light/dark, narrow screens, accessibility: consistent interaction, no hover-only inputs. */
+@media (max-width: 700px) {
+  #nspp-tools { width: 48px; max-width: 48px; padding: 6px; border-radius: 15px; }
+  #nspp-tools .nspp-tool-icon { width: 36px; height: 36px; min-height: 36px; }
+  dialog.nspp-sheet:not(.nspp-post-preview) { border-radius: 20px 20px 0 0; }
+  .nspp-hot-rankings { width: 100%; height: 100dvh; padding: max(12px, env(safe-area-inset-top)) 14px max(10px, env(safe-area-inset-bottom)); border-radius: 0; }
+  .nspp-hot-rankings .nspp-hot-header { align-items: center; flex-wrap: wrap; }
+  .nspp-hot-rankings nav { gap: 2px; overflow-x: auto; }
+  .nspp-hot-rankings nav button { min-height: 39px; padding: 7px 11px; }
+  .nspp-hot-rankings .nspp-hot-close { width: 40px; height: 40px; }
+  .nspp-history header, .nspp-monitor header { min-height: 50px; padding-inline: 16px; }
+  .nspp-history li { min-height: 50px; }
+  .nspp-history li button { min-height: 40px; min-width: 40px; }
+  .nspp-quick-replies { width: 100%; }
+  .nspp-quick-replies :is(button, input, textarea, select) { min-height: 42px; }
+  dialog.nspp-share { inset: auto 0 0; width: 100%; margin: 0; padding: 14px 18px max(20px, env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
+  .nspp-share .nspp-share-actions button > span { width: 48px; height: 48px; }
+  .nspp-messages { border-radius: 9px; }
+  .nspp-messages-workspace { grid-template-columns: minmax(0, 1fr); }
+  .nspp-messages-top { padding-inline: 12px; }
+  .nspp-messages .nspp-messages-peer { min-height: 68px; }
+  .nspp-messages .nspp-messages-thread { padding: 14px; }
+  .nspp-messages .nspp-messages-bubble { max-width: min(86%, 520px); }
+  .nspp-messages-compose-actions { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .nspp-ai-dialog { padding: 14px 16px max(18px, env(safe-area-inset-bottom)); }
+  .nspp-ai-dialog :is(input, select, textarea), .nspp-quick-replies :is(input, textarea) { font-size: 16px; }
+  .nspp-user-transfer input { font-size: 16px; }
+  .nspp-update-notice { inset: auto 12px calc(12px + env(safe-area-inset-bottom)) 12px; width: auto; }
+}
+@media (max-width: 380px) {
+  .nspp-share .nspp-share-intro { gap: 10px; }
+  .nspp-share .nspp-share-qr { width: 90px; height: 90px; }
+  .nspp-hot-rankings .nspp-hot-header { gap: 7px; }
+  .nspp-messages .nspp-messages-peer { padding: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #nspp-tools .nspp-tool-icon, .nspp-share .nspp-share-actions button > span { transition: none; }
+}
+@media (forced-colors: active) {
+  .nspp-messages-peer[aria-pressed="true"], .nspp-hot-rankings button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .nspp-user-hover, .nspp-monitor, .nspp-history { border: 1px solid CanvasText; }
+}
