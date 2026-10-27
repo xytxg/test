@@ -33,3 +33,29 @@ test('a local optimistic echo reconciles with a server acknowledgement in the sa
     assert.deepEqual((await archive.messages(32)).map(message => message.id), [41]);
   } finally { archive.close(); }
 });
+
+test('bulk conversation import handles multiple peers, stale messages and account isolation', async () => {
+  const archive = createMessageArchive(47);
+  const other = createMessageArchive(48);
+  const message = (id: number, peer: number, created_at: string): Message => ({
+    id, sender_id: peer, receiver_id: 47, sender_name: `User ${peer}`,
+    content: `message ${id}`, created_at, viewed: false,
+  });
+  try {
+    const old = message(101, 60, '2026-09-14T00:00:00Z');
+    const latest = message(102, 60, '2026-09-14T00:10:00Z');
+    const second = message(201, 61, '2026-09-14T00:05:00Z');
+    const foreign: Message = { id: 300, sender_id: 48, receiver_id: 61, content: 'foreign', created_at: '2026-09-14T00:12:00Z' };
+    const contacts = await archive.mergeList([latest, second, old, foreign]);
+    assert.equal(contacts.length, 2);
+    assert.equal(contacts.find(row => row.id === 60)?.latest.id, 102, 'unsorted list selects the true latest message');
+    assert.equal(contacts.find(row => row.id === 60)?.unread, true);
+    assert.deepEqual((await archive.messages(60)).map(row => row.id), [101, 102]);
+    assert.deepEqual((await archive.messages(61)).map(row => row.id), [201]);
+    assert.deepEqual(await other.contacts(), []);
+    assert.deepEqual(await other.messages(61), []);
+    await archive.mergeList([old, old, second]);
+    assert.deepEqual((await archive.messages(60)).map(row => row.id), [101, 102], 'repeat import preserves existing messages');
+    assert.equal((await archive.contacts()).find(row => row.id === 60)?.latest.id, 102);
+  } finally { archive.close(); other.close(); }
+});

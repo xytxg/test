@@ -69,31 +69,64 @@ export function createMessageArchive(account: number) {
   }
   const contacts = () => read<SavedConversation>('contacts', 'account', account);
   const messages = async (peer: number) => (await read<SavedMessage>('messages', 'thread', [account, peer])).map(row => row.message).sort((a, b) => timestamp(a) - timestamp(b) || (serverId(a) || 0) - (serverId(b) || 0));
+  /** Enqueue all reads and writes in a caller-owned transaction. A list of
+   * contacts can therefore be merged atomically without opening one costly
+   * readwrite transaction per conversation.
+   */
+  function enqueueMerge(
+    transaction: IDBTransaction, peer: number, name: string | undefined,
+    incoming: Message[], mark: number[] | 'all' | undefined,
+    complete: (messages: Message[]) => void,
+  ): void {
+    const store = transaction.objectStore('messages');
+    const peers = transaction.objectStore('contacts');
+    const history = store.index('thread').getAll([account, peer]);
+    const contact = peers.get([account, peer]);
+    let ready = 0;
+    const write = () => {
+      if (++ready !== 2) return;
+      const previous = (history.result as SavedMessage[]).map(row => row.message);
+      const safe = incoming.filter(row =>
+        (row.sender_id === account && row.receiver_id === peer) ||
+        (row.sender_id === peer && row.receiver_id === account));
+      let merged = mergeMessages(previous, safe);
+      const ids = Array.isArray(mark) ? new Set(mark) : undefined;
+      if (mark) merged = merged.map(row =>
+        row.receiver_id === account && (mark === 'all' || ids?.has(serverId(row)!))
+          ? { ...row, viewed: true } : row);
+      const keys = new Set(merged.map(messageKey));
+      for (const row of history.result as SavedMessage[]) {
+        if (!keys.has(row.key)) store.delete([account, peer, row.key]);
+      }
+      const previousJSON = new Map((history.result as SavedMessage[])
+        .map(row => [row.key, JSON.stringify(row.message)]));
+      for (const message of merged) {
+        const key = messageKey(message);
+        if (previousJSON.get(key) !== JSON.stringify(message)) {
+          store.put({ account, peer, key, message } satisfies SavedMessage);
+        }
+      }
+      const latest = merged.at(-1);
+      const old = contact.result as SavedConversation | undefined;
+      if (latest) {
+        const updated: SavedConversation = {
+          account, id: peer, name: name || old?.name || `用户 ${peer}`, latest,
+          unread: latest.receiver_id === account && (latest.viewed === 0 || latest.viewed === false),
+        };
+        if (JSON.stringify(updated) !== JSON.stringify(old)) peers.put(updated);
+      }
+      complete(merged);
+    };
+    history.onsuccess = write;
+    contact.onsuccess = write;
+  }
+
   async function merge(peer: number, name: string | undefined, incoming: Message[], mark?: number[] | 'all'): Promise<Message[]> {
     const db = await database();
     return new Promise((resolve, reject) => {
-      // The read/merge/write runs in one transaction, including across tabs.
       const transaction = db.transaction(['messages', 'contacts'], 'readwrite');
-      const store = transaction.objectStore('messages'), peers = transaction.objectStore('contacts');
-      const history = store.index('thread').getAll([account, peer]); const contact = peers.get([account, peer]);
-      let ready = 0, merged: Message[] = [];
-      const write = () => {
-        if (++ready !== 2) return;
-        const previous = (history.result as SavedMessage[]).map(row => row.message);
-        const safe = incoming.filter(row => (row.sender_id === account && row.receiver_id === peer) || (row.sender_id === peer && row.receiver_id === account));
-        merged = mergeMessages(previous, safe);
-        if (mark) merged = merged.map(row => row.receiver_id === account && (mark === 'all' || mark.includes(serverId(row)!)) ? { ...row, viewed: true } : row);
-        const keys = new Set(merged.map(messageKey));
-        for (const row of history.result as SavedMessage[]) if (!keys.has(row.key)) store.delete([account, peer, row.key]);
-        const oldMessages = new Map((history.result as SavedMessage[]).map(row => [row.key, JSON.stringify(row.message)]));
-        for (const message of merged) {
-          const key = messageKey(message);
-          if (oldMessages.get(key) !== JSON.stringify(message)) store.put({ account, peer, key, message } satisfies SavedMessage);
-        }
-        const latest = merged.at(-1); const old = contact.result as SavedConversation | undefined;
-        if (latest) peers.put({ account, id: peer, name: name || old?.name || `用户 ${peer}`, latest, unread: latest.receiver_id === account && (latest.viewed === 0 || latest.viewed === false) } satisfies SavedConversation);
-      };
-      history.onsuccess = write; contact.onsuccess = write;
+      let merged: Message[] = [];
+      enqueueMerge(transaction, peer, name, incoming, mark, messages => { merged = messages; });
       transaction.oncomplete = () => resolve(merged);
       transaction.onabort = transaction.onerror = () => reject(new Error('保存本地消息失败，请检查浏览器存储空间'));
     });
@@ -107,9 +140,21 @@ export function createMessageArchive(account: number) {
       if (!group) { group = []; groups.set(peer, group); }
       group.push(row);
     }
-    for (const [peer, rows] of groups) {
-      const newest = rows.at(-1)!;
-      await merge(peer, newest.sender_id === account ? newest.receiver_name : newest.sender_name, rows);
+    if (groups.size) {
+      const db = await database();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(['messages', 'contacts'], 'readwrite');
+        for (const [peer, entries] of groups) {
+          // Select the newest server entry even if the list endpoint is unsorted.
+          const newest = entries.reduce((latest, row) =>
+            timestamp(row) >= timestamp(latest) ? row : latest);
+          enqueueMerge(tx, peer,
+            newest.sender_id === account ? newest.receiver_name : newest.sender_name,
+            entries, undefined, () => {});
+        }
+        tx.oncomplete = () => resolve();
+        tx.onabort = tx.onerror = () => reject(new Error('批量保存本地私信失败，请检查存储空间'));
+      });
     }
     return contacts();
   }

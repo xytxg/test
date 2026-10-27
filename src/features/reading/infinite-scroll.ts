@@ -43,11 +43,11 @@ function mount(ctx: Context) {
         pause.setAttribute('aria-label', pause.title); pause.setAttribute('aria-pressed', String(paused));
     };
     renderPause();
-    if (next) (document.querySelector('#nspp-tools') || document.body).append(pause);
+    if (next && typeof IntersectionObserver === 'function') (document.querySelector('#nspp-tools') || document.body).append(pause);
     pause.addEventListener('click', () => {
         paused = !paused; renderPause();
-        if (paused) { observer.disconnect(); loading?.abort(); }
-        else if (next && !atAutoLimit()) observer.observe(button);
+        if (paused) { observer?.disconnect(); loading?.abort(); }
+        else if (next && !atAutoLimit()) observer?.observe(button);
     }, { signal: ctx.signal });
     const load = async (manual = false) => {
         if (busy || !next || visited.has(next) || ctx.signal.aborted || replying() || (!manual && atAutoLimit()))
@@ -74,6 +74,12 @@ function mount(ctx: Context) {
                 // Remove dead reply/quote forms and provide the working original-page link instead.
                 source.querySelectorAll('button, form, input, select, textarea').forEach(el => el.remove());
             }
+            // Defer decoded images on appended pages: scrolling should not eagerly
+            // decode dozens of offscreen photos on a memory-constrained phone.
+            source.querySelectorAll<HTMLImageElement>('img').forEach(img => {
+                img.loading = 'lazy';
+                img.decoding = 'async';
+            });
             source.querySelectorAll('*').forEach(el => {
                 for (const attr of Array.from(el.attributes)) {
                     if (attr.name === 'target' && attr.value === '_blank' && el.tagName === 'A') {
@@ -132,7 +138,7 @@ function mount(ctx: Context) {
                 next = undefined;
             button.textContent = !next ? '已加载全部内容' : atAutoLimit() ? '自动加载已达上限，点击继续' : '加载下一页';
             pause.hidden = !next || atAutoLimit();
-            if (atAutoLimit()) observer.unobserve(button);
+            if (atAutoLimit()) observer?.unobserve(button);
         }
         catch {
             if (loading.signal.aborted) return;
@@ -145,20 +151,25 @@ function mount(ctx: Context) {
             button.removeAttribute('aria-busy');
             if (paused && next) button.textContent = '已暂停，点击加载下一页';
             if (loading.signal.aborted && next) button.textContent = paused ? '已暂停，点击加载下一页' : atAutoLimit() ? '自动加载已达上限，点击继续' : '加载下一页';
-            if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next && !atAutoLimit()) { observer.unobserve(button); observer.observe(button); }
+            if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next && !atAutoLimit()) { observer?.unobserve(button); observer?.observe(button); }
         }
     };
     button.addEventListener('click', () => { void load(true); }, { signal: ctx.signal });
-    const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting) && !failed && !paused && !atAutoLimit() && !replying() && !document.hidden)
-        void load(); }, { rootMargin: '150px' });
+    // Older Safari/WebViews or privacy-oriented browsers may not expose
+    // IntersectionObserver. Keep manual paging available instead of failing mount.
+    const observer = typeof IntersectionObserver === 'function'
+        ? new IntersectionObserver(entries => {
+            if (entries.some(e => e.isIntersecting) && !failed && !paused && !atAutoLimit() && !replying() && !document.hidden) void load();
+          }, { rootMargin: '150px' })
+        : undefined;
     document.addEventListener('nspp:reply-state', () => {
-        if (replying()) { observer.disconnect(); loading?.abort(); }
-        else if (next && !paused && !atAutoLimit()) observer.observe(button);
+        if (replying()) { observer?.disconnect(); loading?.abort(); }
+        else if (next && !paused && !atAutoLimit()) observer?.observe(button);
     }, { signal: ctx.signal });
     if (next)
-        observer.observe(button);
+        observer?.observe(button);
     else
         button.hidden = true;
-    return () => { observer.disconnect(); loading?.abort(); button.remove(); pause.remove(); };
+    return () => { observer?.disconnect(); loading?.abort(); button.remove(); pause.remove(); };
 }
 export const infiniteScroll: Feature = { id: 'infinite-scroll', title: '自动翻页', description: '合并下一页帖子或评论；自动加载页数可限制，达到上限仍可手动继续。自动加载评论附有原页回复入口。', group: '阅读', defaults: { enabled: true, posts: true, comments: false, autoMaxPages: 6 }, fields: { posts: { label: '帖子自动翻页', type: 'text' }, comments: { label: '评论自动翻页（仅阅读）', type: 'text' }, autoMaxPages: { label: '最多自动加载页数（0 不限制，默认 6）', type: 'number' } }, mount };

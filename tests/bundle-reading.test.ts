@@ -409,3 +409,28 @@ test('automatic pagination stops at the configured page budget and manual load c
     assert.ok(f.window.document.querySelector('#page-2'));
   } finally { await f.close(); }
 });
+
+test('automatic pagination without IntersectionObserver keeps manual page loading usable', async () => {
+  let calls = 0;
+  const f = await fixture({ 'infinite-scroll': { enabled: true, posts: true }, 'user-level': { enabled: false } },
+    '<ul class="post-list"><li class="post-list-item"><a href="/post-1-1">Original</a></li></ul><div class="nsk-pager"><a class="pager-next" href="/page-2">Next</a></div>',
+    '/', undefined, window => {
+      window.IntersectionObserver = undefined as unknown as typeof window.IntersectionObserver;
+      window.fetch = (async () => {
+        calls++;
+        return new window.Response('<ul class="post-list"><li id="manual-row"><div class="post-title"><a href="/post-2-1">New</a></div><img src="/test.png"></li></ul>');
+      }) as typeof window.fetch;
+    });
+  try {
+    const button = f.window.document.querySelector<HTMLButtonElement>('.post-list + button.nspp-action')!;
+    assert.ok(button && !button.hidden, 'manual paging control remains visible');
+    assert.equal(f.window.document.querySelector('[aria-label="暂停自动翻页"]'), null);
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 45));
+    assert.equal(calls, 1);
+    const image = f.window.document.querySelector<HTMLImageElement>('#manual-row img')!;
+    assert.ok(image);
+    assert.equal(image.getAttribute('loading'), 'lazy');
+    assert.equal(image.getAttribute('decoding'), 'async');
+  } finally { await f.close(); }
+});
