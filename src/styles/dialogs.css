@@ -18,7 +18,7 @@
 .nspp-ai-dialog .nspp-ai-compose { padding: 12px 0 0; gap: 8px; }
 .dark-layout .nspp-ai-dialog { color: #dce1e7; background: #202428; color-scheme: dark; }
 .dark-layout .nspp-ai-dialog :is(.nspp-ai-primary, [data-nspp-ai]) { background: #e0e5eb; border-color: #e0e5eb; color: #24292f; }
-@media (max-width: 700px), (hover: none) { .nspp-ai-dialog { padding: 8px 16px 16px; } .nspp-ai-dialog .nspp-ai-compose textarea { min-width: 100%; } }
+@media (max-width: 700px) { .nspp-ai-dialog { padding: 8px 16px 16px; } .nspp-ai-dialog .nspp-ai-compose textarea { min-width: 100%; } }
 
 .nspp-history .nspp-history-day { justify-content: space-between; margin-top: 8px; color: #768390; font-size: 11px; }
 .nspp-history button[aria-pressed="true"] { color: #0969da; border-color: currentColor; }
@@ -52,7 +52,7 @@
 .dark-layout .nspp-update-message, .dark-layout .nspp-update-notice .nspp-update-github { color: #a6a6a6; }
 .dark-layout .nspp-update-notice .nspp-update-dismiss { color: #8a8a8a; }
 @media (max-width: 600px) { .nspp-update-notice { inset: auto 12px calc(12px + env(safe-area-inset-bottom)) 12px; width: auto; } }
-@media (max-width: 700px), (hover: none) {
+@media (max-width: 700px) {
   .nspp-confirm-dialog { padding: 12px 16px 16px; }
   .nspp-confirm-dialog form > :is(button, a) { flex: 1; min-height: 38px; }
 }

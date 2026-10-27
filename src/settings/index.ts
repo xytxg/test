@@ -51,6 +51,11 @@ export function mountSettings(features: Feature[]) {
   const enabledCount = element("small");
   enabledCount.className = "enabled-count";
   heading.append(title, element("small", `v${__APP_VERSION__}`), enabledCount);
+  const brand = element("div"); brand.className = "settings-brand";
+  const mark = element("span", "N+"); mark.className = "settings-mark"; mark.setAttribute("aria-hidden", "true");
+  const brandCopy = element("div"); brandCopy.className = "settings-brand-copy";
+  const subtitle = element("p", "浏览增强 · 消息管理 · 个性化");
+  subtitle.className = "settings-subtitle"; brandCopy.append(heading, subtitle); brand.append(mark, brandCopy);
   const close = element("button", "关闭");
   close.type = "button";
   close.className = "settings-close";
@@ -61,12 +66,13 @@ export function mountSettings(features: Feature[]) {
   const searchBar = element("div");
   searchBar.className = "search-bar";
   searchBar.append(search);
-  header.append(heading, searchBar);
+  header.append(brand, searchBar);
   const content = element("div");
-  content.className = "content";
+  content.className = "content"; content.setAttribute("aria-label", "功能列表");
   const navigation = element("nav");
   navigation.className = "categories";
   navigation.setAttribute("aria-label", "设置分类");
+  const results = element("small"); results.className = "settings-results"; results.setAttribute("role", "status");
   const workspace = element("div");
   workspace.className = "settings-workspace";
   workspace.append(navigation, content);
@@ -98,8 +104,10 @@ export function mountSettings(features: Feature[]) {
   actions.append(close, save);
   const footer = element("footer");
   footer.className = "settings-footer";
+  const footerHint = element("small", "本地设置 · 保存后刷新页面生效");
+  footerHint.className = "settings-footer-hint"; footer.prepend(footerHint);
   footer.append(actions);
-  form.append(header, status, workspace, footer);
+  form.append(header, status, results, workspace, footer);
   dialog.append(form);
   const toast = element("div");
   toast.className = "toast";
@@ -177,7 +185,7 @@ export function mountSettings(features: Feature[]) {
   }
   function renderFeature(feature: Feature) {
     const settings = draft[feature.id];
-    const row = element("article");
+    const row = element("article"); row.className = "feature-card";
     const label = element("label");
     label.className = "feature-heading";
     const copy = element("span"); copy.className = "feature-copy";
@@ -186,12 +194,13 @@ export function mountSettings(features: Feature[]) {
     const toggle = element("input");
     toggle.type = "checkbox";
     toggle.checked = settings.enabled === true;
+    toggle.className = "feature-toggle"; row.dataset.enabled = String(toggle.checked);
     toggle.setAttribute("aria-label", `启用${feature.title}`);
     label.append(copy, toggle);
     row.append(label);
     const options = Object.keys(feature.defaults).filter(key => key !== "enabled");
     if (!options.length) {
-      toggle.addEventListener("change", () => { settings.enabled = toggle.checked; updateEnabledCount(); });
+      toggle.addEventListener("change", () => { settings.enabled = toggle.checked; row.dataset.enabled = String(toggle.checked); updateEnabledCount(); });
       return row;
     }
     const details = element("div");
@@ -201,7 +210,7 @@ export function mountSettings(features: Feature[]) {
       details.hidden = !toggle.checked;
       for (const [field, visible] of conditional) field.hidden = !visible();
     };
-    toggle.addEventListener("change", () => { settings.enabled = toggle.checked; sync(); updateEnabledCount(); });
+    toggle.addEventListener("change", () => { settings.enabled = toggle.checked; row.dataset.enabled = String(toggle.checked); sync(); updateEnabledCount(); });
     for (const key of options) {
       const metadata = feature.fields?.[key];
       const value = settings[key];
@@ -251,14 +260,16 @@ export function mountSettings(features: Feature[]) {
     sections = []; links = [];
     const query = search.value.toLocaleLowerCase().trim();
     const groups = new Map<string, HTMLElement>();
+    let visibleFeatures = 0;
     const ordered = [...features].sort((a, b) => categoryOrder.indexOf(categoryOf(a)) - categoryOrder.indexOf(categoryOf(b)));
     for (const feature of ordered) {
       const category = categoryOf(feature);
       if (query && !`${feature.title} ${feature.description} ${feature.group} ${category} ${Object.values(feature.fields || {}).map(field => field.label).join(' ')}`.toLocaleLowerCase().includes(query)) continue;
       let group = groups.get(category);
       if (!group) { group = addSection(category); groups.set(category, group); }
-      group.append(renderFeature(feature));
+      group.append(renderFeature(feature)); visibleFeatures++;
     }
+    results.textContent = query ? `找到 ${visibleFeatures} 项匹配功能` : `共 ${features.length} 项功能 · 修改后点击保存`;
     const showData = !query || '数据 导出 导入 配置 缓存 恢复默认 备份'.includes(query);
     const showAbout = !query || '关于 nodeseek++ github 项目地址 下载 安装 更新 版本 使用说明 反馈 greasy fork 开源 许可证'.includes(query);
     if (showData || showAbout) {
@@ -275,12 +286,20 @@ export function mountSettings(features: Feature[]) {
         dialog.close(); launcher.click();
       }));
     }
-    if (!groups.size) content.append(element("p", "没有匹配的功能"));
+    if (!groups.size) {
+      const empty = element("div"); empty.className = "settings-empty";
+      empty.append(element("strong", "没有找到相关功能"), element("p", "试试搜索「消息」「阅读」「代理」或清空搜索关键词。"));
+      content.append(empty);
+    }
     content.scrollTop = 0;
     activate(0);
   }
+  // The forum can change themes without reloading; keep shadow-root tokens in sync.
+  const syncTheme = () => host.toggleAttribute("data-dark", document.body.classList.contains("dark-layout"));
+  const themeObserver = new MutationObserver(syncTheme);
+  themeObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   const open = () => {
-    host.toggleAttribute("data-dark", document.body.classList.contains("dark-layout"));
+    syncTheme();
     draft = loadSettings(features);
     status.textContent = hasStorage() ? "" : "油猴存储未就绪，请重新安装脚本后刷新。";
     save.disabled = !hasStorage();
@@ -363,5 +382,5 @@ export function mountSettings(features: Feature[]) {
     } catch (error) { notify(error instanceof Error ? error.message : "导入失败", "error"); }
     finally { file.value = ""; importButton.disabled = false; importButton.removeAttribute("aria-busy"); importButton.textContent = "导入配置"; }
   });
-  return { open, notify, stopUpdates: updates.stop };
+  return { open, notify, stopUpdates: () => { themeObserver.disconnect(); updates.stop(); } };
 }

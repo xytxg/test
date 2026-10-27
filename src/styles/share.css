@@ -27,6 +27,6 @@ dialog.nspp-share::backdrop { background: #1f232866; }
 .dark-layout .nspp-share .nspp-share-actions button > span { background: #2e2e2e; color: #eee; }
 .dark-layout .nspp-share .nspp-share-actions button:hover > span { background: #3a3a3a; }
 .dark-layout .nspp-share .nspp-share-qr { box-shadow: none; }
-@media (max-width: 700px), (hover: none) {
+@media (max-width: 700px) {
   dialog.nspp-share { inset: auto 0 0; width: 100%; margin: 0; padding: 4px 18px max(18px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
 }

@@ -50,9 +50,9 @@
 .nspp-chat-profile-stat > strong { font-size: 12px; font-weight: 600; color: var(--chat-text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .nspp-chat-profile-data button { color: #07994e; padding: 0 4px; }
 .nspp-chat-profile-bio { margin: 3px 0 0; max-height: 3em; overflow: auto; overflow-wrap: anywhere; font-size: 11px; line-height: 1.5; color: var(--chat-muted); white-space: pre-wrap; }
-.nspp-chat-profile[data-trust='success'] { background: linear-gradient(115deg, #ccebdc, #e0f2e7 58%, #bce2d0); }
-.nspp-chat-profile[data-trust='warning'] { background: linear-gradient(115deg, #f7dfaf, #fbedce 58%, #efd096); }
-.nspp-chat-profile[data-trust='danger'] { background: linear-gradient(115deg, #f4ced5, #fae1e4 58%, #efbdc9); }
+.nspp-chat-profile[data-trust='success'] { background: #eef8f1; }
+.nspp-chat-profile[data-trust='warning'] { background: #fff8eb; }
+.nspp-chat-profile[data-trust='danger'] { background: #fff1f3; }
 .nspp-chat-profile[data-trust='danger'] .nspp-chat-profile-trust { color: #b74d58; }
 .nspp-chat-profile-notice { grid-column: 1 / -1; margin: 0; font-size: 10px; line-height: 1.5; color: var(--chat-muted); }
 .nspp-chat-profile[data-trust='danger'] .nspp-chat-profile-notice { color: #ac4b57; }
@@ -70,9 +70,9 @@
 .nspp-chat-profile[data-trust='perfect'] .role-tag[data-nspp-role='admin'] { color: #a4c9ee; background: #679fd222; }
 .nspp-chat-profile[data-trust='perfect'] .role-tag[data-nspp-role='founder'] { color: #9bd6c0; background: #6dbd9822; }
 .nspp-chat-profile[data-trust='perfect'] .role-tag[data-nspp-role='owner'] { color: #e3cb99; background: #d8b77418; }
-.dark-layout .nspp-chat-profile[data-trust='success'] { background: linear-gradient(115deg, #214333, #23392e, #2a503d); }
-.dark-layout .nspp-chat-profile[data-trust='warning'] { background: linear-gradient(115deg, #49391e, #3a3122, #544024); }
-.dark-layout .nspp-chat-profile[data-trust='danger'] { background: linear-gradient(115deg, #4c2a34, #3d2830, #58303e); }
+.dark-layout .nspp-chat-profile[data-trust='success'] { background: #203b30; }
+.dark-layout .nspp-chat-profile[data-trust='warning'] { background: #383123; }
+.dark-layout .nspp-chat-profile[data-trust='danger'] { background: #3c2931; }
 .dark-layout .nspp-chat-profile[data-trust='danger'] :is(.nspp-chat-profile-notice, .nspp-chat-profile-trust) { color: #e79ca4; }
 .dark-layout .nspp-chat-profile[data-trust='warning'] .nspp-chat-profile-notice { color: #d4b780; }
 .nspp-chat-profile-data a.nspp-chat-profile-stat > strong { text-decoration: underline; text-decoration-color: #818b9866; text-underline-offset: 3px; }

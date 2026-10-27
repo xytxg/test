@@ -385,3 +385,30 @@ test('settings UX exposes descriptions and prevents Enter in search from saving 
     assert.ok(root.querySelector<HTMLDialogElement>('dialog')!.open);
   } finally { await f.close(); }
 });
+
+test('redesigned settings show a brand, result count, toggles, and follow live forum themes', async () => {
+  const f = await fixture();
+  try {
+    f.menus[0]();
+    const doc = f.window.document;
+    const root = doc.querySelector('#nspp-settings')!.shadowRoot!;
+    assert.equal(root.querySelector('.settings-mark')?.textContent, 'N+');
+    assert.match(root.querySelector('.settings-results')!.textContent!, /项功能/);
+    const feature = root.querySelector<HTMLElement>('.feature-card')!;
+    const toggle = feature.querySelector<HTMLInputElement>('.feature-toggle')!;
+    assert.equal(feature.dataset.enabled, String(toggle.checked));
+    toggle.click();
+    assert.equal(feature.dataset.enabled, String(toggle.checked));
+    const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+    search.value = '不存在的功能搜索词'; search.dispatchEvent(new f.window.Event('input'));
+    assert.match(root.querySelector('.settings-results')!.textContent!, /0 项匹配/);
+    assert.match(root.querySelector('.settings-empty')!.textContent!, /没有找到/);
+    search.value = ''; search.dispatchEvent(new f.window.Event('input'));
+    doc.body.classList.add('dark-layout');
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(doc.querySelector('#nspp-settings')!.hasAttribute('data-dark'), true);
+    doc.body.classList.remove('dark-layout');
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(doc.querySelector('#nspp-settings')!.hasAttribute('data-dark'), false);
+  } finally { await f.close(); }
+});
