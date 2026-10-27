@@ -4,8 +4,12 @@
 .dark-layout #nspp-tools { --bg-color: #262626; --text-color: #dedede; --border-color: #454545; color-scheme: dark; }
 html[data-nspp-settings-open] #nspp-tools, html[data-nspp-settings-open] [data-nspp-ai-launcher] { display: none !important; }
 html[data-nspp-background] #nspp-tools *, html[data-nspp-background] .nspp-user-hover * { animation-play-state: paused !important; }
+/* Hover cards remain hidden on coarse-pointer desktops, but desktop layouts
+ * must not collapse simply because a touch screen is available. */
 @media (max-width: 700px), (hover: none) {
   .nspp-user-hover:not(.nspp-user-hover-inline) { display: none !important; }
+}
+@media (max-width: 700px) {
   #nspp-tools { right: auto; left: max(8px, env(safe-area-inset-left)); bottom: calc(12px + env(safe-area-inset-bottom)); max-height: 36dvh; width: 44px; max-width: 44px; padding: 6px; gap: 2px; }
   #nspp-tools .nspp-tool-icon { width: 30px; height: 30px; }
   body:has(.nspp-messages-container[data-nspp-message-view='new']) #nspp-tools { display: none !important; }

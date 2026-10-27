@@ -87,7 +87,7 @@ textarea { resize: vertical; min-height: 60px; }
 :host([data-dark]) .toast[data-type="success"] { background: #052e16; color: #bbf7d0; border-color: #166534; }
 :host([data-dark]) .toast[data-type="error"] { background: #450a0a; color: #fecaca; border-color: #991b1b; }
 
-@media (max-width: 700px), (hover: none) {
+@media (max-width: 700px) {
   header { flex-wrap: wrap; padding: 8px 12px; }
   .search-bar { flex: 1 1 100%; margin-left: 0; }
   .settings-workspace { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); height: min(62dvh, 520px); }

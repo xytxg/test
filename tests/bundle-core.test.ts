@@ -412,3 +412,17 @@ test('redesigned settings show a brand, result count, toggles, and follow live f
     assert.equal(doc.querySelector('#nspp-settings')!.hasAttribute('data-dark'), false);
   } finally { await f.close(); }
 });
+
+test('redesigned UI keeps desktop layout on touch-enabled wide screens and scopes CSS to plugin elements', () => {
+  const base = readFileSync(new URL('../src/styles/base.css', import.meta.url), 'utf8');
+  const workspace = readFileSync(new URL('../src/settings/style.css', import.meta.url), 'utf8');
+  const shared = readFileSync(new URL('../src/styles/ui-refresh.css', import.meta.url), 'utf8');
+  assert.match(base, /@media \(max-width: 700px\), \(hover: none\)[\s\S]*?user-hover/);
+  assert.match(base, /@media \(max-width: 700px\) \{\s*#nspp-tools/);
+  assert.doesNotMatch(workspace, /@media \(max-width: 700px\), \(hover: none\)/);
+  for (const surface of ['.nspp-user-hover', '.nspp-quick-replies', '.nspp-share', '.nspp-messages', '.nspp-history', '.nspp-monitor', '.nspp-hot-rankings', '.nspp-ai-dialog', '.nspp-update-notice']) {
+    assert.ok(shared.includes(surface), `shared design system is missing ${surface}`);
+  }
+  assert.ok(!/@import\s+url\(/.test(shared), 'interface should not fetch remote CSS');
+  assert.ok(!/@font-face/.test(shared), 'interface should use system fonts');
+});
