@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NodeSeek++ XY Test
 // @namespace    nodeseek-plus-plus-xy-test
-// @version      26.1027.1735
+// @version      26.1027.1736
 // @description  模块化论坛增强：阅读、过滤、回复、签到、交易与关键词监控，一个功能一套实现。
 // @license      GPL-3.0-only
 // @homepageURL  https://github.com/xytxg/test
@@ -743,7 +743,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			title.append(Object.assign(document.createElement("strong"), { textContent: "新版本已发布" }));
 			const message = document.createElement("p");
 			message.className = "nspp-update-message";
-			message.textContent = `当前版本：26.1027.1735　最新版本：${latest}\n点击更新，在脚本管理器中确认后刷新页面。`;
+			message.textContent = `当前版本：26.1027.1736　最新版本：${latest}\n点击更新，在脚本管理器中确认后刷新页面。`;
 			const actions = document.createElement("div");
 			actions.className = "nspp-update-actions";
 			const link = (className, href, text) => Object.assign(document.createElement("a"), {
@@ -845,9 +845,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		async function notifyUpdate() {
 			await withTabLock("script-update-notification", 0, async () => {
 				const latest = state();
-				if (signal.aborted || !latest.version || !isNewerVersion(latest.version, "26.1027.1735")) return;
+				if (signal.aborted || !latest.version || !isNewerVersion(latest.version, "26.1027.1736")) return;
 				if (latest.notifiedVersion === latest.version && Date.now() - (latest.notifiedAt || 0) < REMINDER_INTERVAL) return;
-				if (systemNotify(`发现新版本 v${latest.version}，当前 v26.1027.1735。点击从 GitHub 安装更新。`, "https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js", "nspp:script-update", "发现新版本")) GM_setValue$1(STATE_KEY, {
+				if (systemNotify(`发现新版本 v${latest.version}，当前 v26.1027.1736。点击从 GitHub 安装更新。`, "https://raw.githubusercontent.com/xytxg/test/main/dist/nodeseek-plus-plus.user.js", "nspp:script-update", "发现新版本")) GM_setValue$1(STATE_KEY, {
 					...state(),
 					notifiedVersion: latest.version,
 					notifiedAt: Date.now()
@@ -856,7 +856,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		}
 		async function prompt(manual) {
 			const latest = state();
-			if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, "26.1027.1735")) return;
+			if (signal.aborted || prompting || !latest.version || !isNewerVersion(latest.version, "26.1027.1736")) return;
 			if (!manual && (!canPrompt() || latest.promptedVersion === latest.version && Date.now() - (latest.promptedAt || 0) < REMINDER_INTERVAL)) return;
 			prompting = true;
 			GM_setValue$1(STATE_KEY, {
@@ -875,7 +875,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				const latest = state();
 				const now = Date.now();
 				if (latest.checkedAt && now - latest.checkedAt >= 0 && now - latest.checkedAt < AUTO_CACHE_TTL) {
-					if (latest.version && isNewerVersion(latest.version, "26.1027.1735")) {
+					if (latest.version && isNewerVersion(latest.version, "26.1027.1736")) {
 						await notifyUpdate();
 						prompt(false).catch(() => {});
 					}
@@ -892,11 +892,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					checkedAt: Date.now(),
 					failedAt: void 0
 				});
-				if (version && isNewerVersion(version, "26.1027.1735")) {
+				if (version && isNewerVersion(version, "26.1027.1736")) {
 					await notifyUpdate();
 					if (manual) await prompt(true);
 					else prompt(false).catch(() => {});
-				} else if (manual) notify(`当前已是最新版本（v26.1027.1735）`);
+				} else if (manual) notify(`当前已是最新版本（v26.1027.1736）`);
 			} catch (error) {
 				if (signal.aborted) return;
 				if (!manual) GM_setValue$1(STATE_KEY, {
@@ -980,7 +980,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		buttons.append(shareButton, button);
 		heading.append(title, buttons);
 		const summary = document.createElement("p");
-		summary.textContent = `v26.1027.1735 · NodeSeek / DeepFlood 论坛增强 · GPL-3.0-only`;
+		summary.textContent = `v26.1027.1736 · NodeSeek / DeepFlood 论坛增强 · GPL-3.0-only`;
 		const links = document.createElement("div");
 		links.className = "about-links";
 		for (const [label, href] of [
@@ -3765,7 +3765,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		const title = element$1("h2", "NodeSeek++");
 		title.id = "nspp-title";
 		heading.className = "heading";
-		heading.append(title, element$1("small", `v26.1027.1735`));
+		heading.append(title, element$1("small", `v26.1027.1736`));
 		const close = element$1("button", "关闭");
 		close.type = "button";
 		close.className = "settings-close";
@@ -4151,6 +4151,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		const initial = document.querySelector(".nsk-pager a.pager-next")?.href;
 		let next = initial && validNext(initial) ? initial : void 0;
 		let busy = false, failed = false, paused = false;
+		const configured = Number(ctx.get("autoMaxPages"));
+		const maxAutoPages = Number.isFinite(configured) ? Math.max(0, Math.min(50, Math.floor(configured))) : 6;
+		let autoPages = 0;
+		const atAutoLimit = () => maxAutoPages > 0 && autoPages >= maxAutoPages;
 		const replying = () => comments && document.documentElement.hasAttribute("data-nspp-reply-open");
 		let loading;
 		const visited = new Set([location.href]);
@@ -4176,10 +4180,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			if (paused) {
 				observer.disconnect();
 				loading?.abort();
-			} else if (next) observer.observe(button);
+			} else if (next && !atAutoLimit()) observer.observe(button);
 		}, { signal: ctx.signal });
 		const load = async (manual = false) => {
-			if (busy || !next || visited.has(next) || ctx.signal.aborted || replying()) return;
+			if (busy || !next || visited.has(next) || ctx.signal.aborted || replying() || !manual && atAutoLimit()) return;
 			const url = new URL(next, location.href);
 			if (url.origin !== location.origin) return;
 			busy = true;
@@ -4197,19 +4201,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				const source = page.querySelector(selector);
 				if (!source || !source.children.length) throw new Error("页面内容不可用");
 				source.querySelectorAll("script, iframe, object, embed, base, link, style").forEach((el) => el.remove());
+				if (comments) source.querySelectorAll("button, form, input, select, textarea").forEach((el) => el.remove());
 				source.querySelectorAll("*").forEach((el) => {
-					for (const attr of Array.from(el.attributes)) if (/^on/i.test(attr.name) || attr.name === "srcdoc") el.removeAttribute(attr.name);
-					else if (/^(href|src|action|formaction|xlink:href)$/i.test(attr.name)) try {
-						const resolved = new URL(attr.value, url);
-						if (![
-							"http:",
-							"https:",
-							"mailto:",
-							"tel:"
-						].includes(resolved.protocol)) el.removeAttribute(attr.name);
-						else if (!attr.value.startsWith("#")) el.setAttribute(attr.name, resolved.href);
-					} catch {
-						el.removeAttribute(attr.name);
+					for (const attr of Array.from(el.attributes)) {
+						if (attr.name === "target" && attr.value === "_blank" && el.tagName === "A") {
+							const current = el.getAttribute("rel") || "";
+							el.setAttribute("rel", [...new Set([
+								...current.split(/\s+/).filter(Boolean),
+								"noopener",
+								"noreferrer"
+							])].join(" "));
+						}
+						if (/^on/i.test(attr.name) || attr.name === "srcdoc") el.removeAttribute(attr.name);
+						else if (/^(href|src|action|formaction|xlink:href)$/i.test(attr.name)) try {
+							const resolved = new URL(attr.value, url);
+							if (![
+								"http:",
+								"https:",
+								"mailto:",
+								"tel:"
+							].includes(resolved.protocol)) el.removeAttribute(attr.name);
+							else if (!attr.value.startsWith("#")) el.setAttribute(attr.name, resolved.href);
+						} catch {
+							el.removeAttribute(attr.name);
+						}
 					}
 				});
 				const listed = comments ? void 0 : new Set(Array.from(list.querySelectorAll(".post-title a"), (a) => postPath(a.href, location.href)));
@@ -4239,13 +4254,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 					list.append(imported);
 				}
 				visited.add(url.href);
+				if (!manual) autoPages++;
 				failed = false;
 				const href = page.querySelector(".nsk-pager a.pager-next")?.getAttribute("href");
 				const candidate = href ? new URL(href, url).href : void 0;
 				next = candidate && validNext(candidate) ? candidate : void 0;
 				if (next && visited.has(next)) next = void 0;
-				button.textContent = next ? "加载下一页" : "已加载全部内容";
-				pause.hidden = !next;
+				button.textContent = !next ? "已加载全部内容" : atAutoLimit() ? "自动加载已达上限，点击继续" : "加载下一页";
+				pause.hidden = !next || atAutoLimit();
+				if (atAutoLimit()) observer.unobserve(button);
 			} catch {
 				if (loading.signal.aborted) return;
 				failed = true;
@@ -4255,8 +4272,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				button.disabled = !next;
 				button.removeAttribute("aria-busy");
 				if (paused && next) button.textContent = "已暂停，点击加载下一页";
-				if (loading.signal.aborted && next) button.textContent = paused ? "已暂停，点击加载下一页" : "加载下一页";
-				if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next) {
+				if (loading.signal.aborted && next) button.textContent = paused ? "已暂停，点击加载下一页" : atAutoLimit() ? "自动加载已达上限，点击继续" : "加载下一页";
+				if (loading.signal.aborted && !ctx.signal.aborted && !paused && !replying() && next && !atAutoLimit()) {
 					observer.unobserve(button);
 					observer.observe(button);
 				}
@@ -4266,13 +4283,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			load(true);
 		}, { signal: ctx.signal });
 		const observer = new IntersectionObserver((entries) => {
-			if (entries.some((e) => e.isIntersecting) && !failed && !paused && !replying() && !document.hidden) load();
+			if (entries.some((e) => e.isIntersecting) && !failed && !paused && !atAutoLimit() && !replying() && !document.hidden) load();
 		}, { rootMargin: "150px" });
 		document.addEventListener("nspp:reply-state", () => {
 			if (replying()) {
 				observer.disconnect();
 				loading?.abort();
-			} else if (next && !paused) observer.observe(button);
+			} else if (next && !paused && !atAutoLimit()) observer.observe(button);
 		}, { signal: ctx.signal });
 		if (next) observer.observe(button);
 		else button.hidden = true;
@@ -4286,12 +4303,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	var infiniteScroll = {
 		id: "infinite-scroll",
 		title: "自动翻页",
-		description: "合并下一页帖子或评论；失败时手动重试。自动加载评论附有原页回复入口，避免无效的引用/回复按钮。",
+		description: "合并下一页帖子或评论；自动加载页数可限制，达到上限仍可手动继续。自动加载评论附有原页回复入口。",
 		group: "阅读",
 		defaults: {
 			enabled: true,
 			posts: true,
-			comments: false
+			comments: false,
+			autoMaxPages: 6
 		},
 		fields: {
 			posts: {
@@ -4301,6 +4319,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 			comments: {
 				label: "评论自动翻页（仅阅读）",
 				type: "text"
+			},
+			autoMaxPages: {
+				label: "最多自动加载页数（0 不限制，默认 6）",
+				type: "number"
 			}
 		},
 		mount
@@ -23699,6 +23721,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 				...result.get(key),
 				...fields
 			});
+			if (message.local_id && id === void 0) {
+				const group = signature(message);
+				const entries = echoIndex.get(group) || [];
+				entries.push([key, message]);
+				echoIndex.set(group, entries);
+			}
 		}
 		return [...result.values()].sort((a, b) => timestamp(a) - timestamp(b) || (serverId(a) || 0) - (serverId(b) || 0));
 	}
@@ -26224,6 +26252,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
 		let category;
 		let countsBusy = false;
 		let listPageSignature = "";
+		const archivedPages = new Map();
 		let threadKey = "", threadBusy = false;
 		let routeController = new AbortController(), threadController = new AbortController();
 		const owner = () => unsafeWindow$1.__config__?.user?.member_id;
@@ -26413,8 +26442,14 @@ Please report this to https://github.com/markedjs/marked.`, e) {
 				listStatus.textContent = "";
 				renderList();
 				try {
-					const contacts = await archive.mergeList(messages);
-					if (panelValid() && !requestSignal.aborted) restoreContacts(contacts);
+					const archiveSignature = JSON.stringify(messages);
+					if (archivedPages.get(targetPage) !== archiveSignature) {
+						const contacts = await archive.mergeList(messages);
+						if (panelValid() && !requestSignal.aborted) {
+							archivedPages.set(targetPage, archiveSignature);
+							restoreContacts(contacts);
+						}
+					}
 				} catch (error) {
 					if (panelValid() && !requestSignal.aborted) listStatus.textContent = error instanceof Error ? error.message : "本地存档保存失败";
 				}
@@ -26818,6 +26853,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
 				peers.clear();
 				histories.clear();
 				visibleHistory.clear();
+				archivedPages.clear();
 				listReady = false;
 				page = 1;
 				listPageSignature = "";
