@@ -1,4 +1,4 @@
-# Surge-EN for Stash (2026-11-02)
+# Surge-EN for Stash (2026-11-03)
 # Based on https://github.com/Rabbit-Spec/Surge/blob/Master/Conf/Spec/Surge-EN.conf
 # Stash native YAML. Public profile contains NO private subscription URLs.
 # To add nodes securely, install the locally edited subscription-override.example.stoverride.
@@ -29,6 +29,14 @@ dns:
     - "*.stun.twilio.com"
     - "stun.syncthing.net"
     - "stun.*"
+    - "127.*.*.*.sslip.io"
+    - "127-*-*-*.sslip.io"
+    - "*.127.*.*.*.sslip.io"
+    - "*-127-*-*-*.sslip.io"
+    - "127.*.*.*.nip.io"
+    - "127-*-*-*.nip.io"
+    - "*.127.*.*.*.nip.io"
+    - "*-127-*-*-*.nip.io"
     - "localhost"
     - "*.local"
 

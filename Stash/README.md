@@ -34,8 +34,16 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 是 2026-11-02 的快照，需要在上游有更新时重新生成。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-03。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
 官方格式文档：[规则集合](https://stash.wiki/rules/rule-set) / [策略组](https://stash.wiki/proxy-protocols/proxy-groups) / [覆写配置](https://stash.wiki/configuration/override)
+
+## 上游自动跟进
+
+已设置每小时检查 Rabbit-Spec/Surge，重点跟进 `Conf/Spec/Surge-EN.conf`、引用规则及相关依赖。发现影响本配置的更新后，转换并校验 Stash YAML、策略引用及规则格式，通过后直接推送本仓库 main；没有相关变化时不重复提交或通知。
+
+同步基准记录在 [upstream-state.json](./upstream-state.json)。保持现有主配置 URL；私有订阅仍通过本地覆写填写。
+
+2026-11-03 本次核对：补齐 Proxy 域名快照缺失的 GitHub 域名，补齐上游 8 条 sslip.io / nip.io 本地回环域名 Fake-IP 排除项。其余 5 个规则快照核对一致（允许去重及排序差异）。后续遇到无法等价转换的新语法时，先保留可用版本并说明阻塞。
