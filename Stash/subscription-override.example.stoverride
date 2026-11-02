@@ -1,0 +1,9 @@
+name: "私人节点订阅（需编辑链接后启用）"
+desc: "仅供模板使用。请下载后在本地填写自己的节点订阅 URL，不要将含 token 的版本提交到公开仓库。"
+proxy-providers:
+  "我的机场":
+    url: "https://example.invalid/REPLACE_WITH_YOUR_OWN_CLASH_STASH_URL"
+    interval: 3600
+    path: "./providers/my-private-subscription.yaml"
+    benchmark-url: "http://cp.cloudflare.com/generate_204"
+    benchmark-timeout: 5
