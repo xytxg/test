@@ -1,0 +1,350 @@
+# Surge-EN for Stash (2026-11-02)
+# Based on https://github.com/Rabbit-Spec/Surge/blob/Master/Conf/Spec/Surge-EN.conf
+# Stash native YAML. Public profile contains NO private subscription URLs.
+# To add nodes securely, install the locally edited subscription-override.example.stoverride.
+# Rules keep the original Surge-EN order; big Proxy/ChinaCIDR rules are optimized.
+
+mode: rule
+log-level: warning
+ipv6: false
+
+dns:
+  enable: true
+  ipv6: false
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  fake-ip-filter:
+    - "*.msftncsi.com"
+    - "*.msftconnecttest.com"
+    - "*.srv.nintendo.net"
+    - "*.stun.playstation.net"
+    - "xbox.*.microsoft.com"
+    - "*.xboxlive.com"
+    - "*.battlenet.com.cn"
+    - "*.battlenet.com"
+    - "*.blzstatic.cn"
+    - "*.battle.net"
+    - "*.turn.twilio.com"
+    - "*.stun.twilio.com"
+    - "stun.syncthing.net"
+    - "stun.*"
+    - "localhost"
+    - "*.local"
+
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "台湾节点"
+      - "新加坡节点"
+      - "我的节点"
+      - "DIRECT"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Surge.png"
+  - name: "Apple"
+    type: select
+    proxies:
+      - "DIRECT"
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Apple_Arcade.png"
+  - name: "AIGC"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/ChatGPT.png"
+  - name: "Telegram"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Telegram.png"
+  - name: "Netflix"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Netflix.png"
+  - name: "Disney+"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Disney.png"
+  - name: "YouTube"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/YouTube.png"
+  - name: "Spotify"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Spotify.png"
+  - name: "TikTok"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/TikTok.png"
+  - name: "BiliBili"
+    type: select
+    proxies:
+      - "DIRECT"
+      - "香港节点"
+      - "台湾节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Bilibili.png"
+  - name: "GlobalMedia"
+    type: select
+    proxies:
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/GlobalMedia.png"
+  - name: "Microsoft"
+    type: select
+    proxies:
+      - "DIRECT"
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Windows.png"
+  - name: "Game"
+    type: select
+    proxies:
+      - "DIRECT"
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Game.png"
+  - name: "香港节点"
+    type: url-test
+    include-all: true
+    filter: "(?i)(🇭🇰|香港|Hong[\\s_-]*Kong|\\bHK\\b)"
+    url: "http://cp.cloudflare.com/generate_204"
+    interval: 300
+    tolerance: 120
+    lazy: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Country-Hong_Kong.png"
+  - name: "美国节点"
+    type: url-test
+    include-all: true
+    filter: "(?i)(🇺🇸|美国|United[\\s_-]*States|\\bUS\\b|\\bUSA\\b)"
+    url: "http://cp.cloudflare.com/generate_204"
+    interval: 300
+    tolerance: 120
+    lazy: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Country-United_States.png"
+  - name: "日本节点"
+    type: url-test
+    include-all: true
+    filter: "(?i)(🇯🇵|日本|Japan|\\bJP\\b)"
+    url: "http://cp.cloudflare.com/generate_204"
+    interval: 300
+    tolerance: 120
+    lazy: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Country-Japan.png"
+  - name: "韩国节点"
+    type: url-test
+    include-all: true
+    filter: "(?i)(🇰🇷|韩国|Korea|\\bKR\\b)"
+    url: "http://cp.cloudflare.com/generate_204"
+    interval: 300
+    tolerance: 120
+    lazy: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Country-South_Korea.png"
+  - name: "台湾节点"
+    type: url-test
+    include-all: true
+    filter: "(?i)(🇹🇼|台湾|台灣|Taiwan|\\bTW\\b)"
+    url: "http://cp.cloudflare.com/generate_204"
+    interval: 300
+    tolerance: 120
+    lazy: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Country-China.png"
+  - name: "新加坡节点"
+    type: url-test
+    include-all: true
+    filter: "(?i)(🇸🇬|新加坡|Singapore|\\bSG\\b)"
+    url: "http://cp.cloudflare.com/generate_204"
+    interval: 300
+    tolerance: 120
+    lazy: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Country-Singapore.png"
+  - name: "我的节点"
+    type: select
+    include-all: true
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Proxy.png"
+
+# Remote rules: Surge *.list must specify format: text (not yaml).
+rule-providers:
+  AIGC:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/xytxg/test/main/Stash/rules/AIGC.list"
+    interval: 86400
+  Apple:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Apple.list"
+    interval: 86400
+  Microsoft:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Microsoft.list"
+    interval: 86400
+  Telegram:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Telegram.list"
+    interval: 86400
+  Game:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Game.list"
+    interval: 86400
+  YouTube:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/YouTube.list"
+    interval: 86400
+  Netflix:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Netflix.list"
+    interval: 86400
+  Disney:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Disney.list"
+    interval: 86400
+  Spotify:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Spotify.list"
+    interval: 86400
+  TikTok:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/xytxg/test/main/Stash/rules/TikTok.list"
+    interval: 86400
+  BiliBili:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/BiliBili.list"
+    interval: 86400
+  ChinaMedia:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/ChinaMedia.list"
+    interval: 86400
+  GlobalMedia:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/GlobalMedia.list"
+    interval: 86400
+  ProxyDomain:
+    behavior: domain
+    format: text
+    url: "https://raw.githubusercontent.com/xytxg/test/main/Stash/rules/ProxyDomain.txt"
+    interval: 86400
+  ProxyOther:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/xytxg/test/main/Stash/rules/ProxyOther.txt"
+    interval: 86400
+  ProxyIP:
+    behavior: ipcidr
+    format: text
+    url: "https://raw.githubusercontent.com/xytxg/test/main/Stash/rules/ProxyIP.txt"
+    interval: 86400
+  China:
+    behavior: domain
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/China.list"
+    interval: 86400
+  ChinaCIDR:
+    behavior: ipcidr
+    format: text
+    url: "https://raw.githubusercontent.com/xytxg/test/main/Stash/rules/ChinaCIDR.txt"
+    interval: 86400
+
+# Routing order preserves original Surge-EN service priority.
+rules:
+  - "DOMAIN,localhost,DIRECT"
+  - "DOMAIN-SUFFIX,local,DIRECT"
+  - "IP-CIDR,127.0.0.0/8,DIRECT,no-resolve"
+  - "IP-CIDR,10.0.0.0/8,DIRECT,no-resolve"
+  - "IP-CIDR,172.16.0.0/12,DIRECT,no-resolve"
+  - "IP-CIDR,192.168.0.0/16,DIRECT,no-resolve"
+  - "IP-CIDR,100.64.0.0/10,DIRECT,no-resolve"
+  - "IP-CIDR6,fc00::/7,DIRECT,no-resolve"
+  - "IP-CIDR6,fe80::/10,DIRECT,no-resolve"
+  - "RULE-SET,AIGC,AIGC"
+  - "RULE-SET,Apple,Apple"
+  - "RULE-SET,Microsoft,Microsoft"
+  - "RULE-SET,Telegram,Telegram"
+  - "RULE-SET,Game,Game"
+  - "RULE-SET,YouTube,YouTube"
+  - "RULE-SET,Netflix,Netflix"
+  - "RULE-SET,Disney,Disney+"
+  - "RULE-SET,Spotify,Spotify"
+  - "RULE-SET,TikTok,TikTok"
+  - "RULE-SET,BiliBili,BiliBili"
+  - "RULE-SET,ChinaMedia,DIRECT"
+  - "RULE-SET,GlobalMedia,GlobalMedia"
+  - "RULE-SET,ProxyDomain,Proxy"
+  - "RULE-SET,ProxyOther,Proxy"
+  - "RULE-SET,ProxyIP,Proxy"
+  - "RULE-SET,China,DIRECT"
+  - "GEOIP,LAN,DIRECT"
+  - "RULE-SET,ChinaCIDR,DIRECT"
+  - "MATCH,Proxy"
