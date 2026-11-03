@@ -47,3 +47,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 同步基准记录在 [upstream-state.json](./upstream-state.json)。保持现有主配置 URL；私有订阅仍通过本地覆写填写。
 
 2026-11-03 本次核对：补齐 Proxy 域名快照缺失的 GitHub 域名，补齐上游 8 条 sslip.io / nip.io 本地回环域名 Fake-IP 排除项。其余 5 个规则快照核对一致（允许去重及排序差异）。后续遇到无法等价转换的新语法时，先保留可用版本并说明阻塞。
+
+### 2026-11-03 规则同步
+
+跟进 Rabbit-Spec/Surge 提交 `9196fb65c523ef354768c6b8bca0ebd1d16a4c22`（10:07:56）：ChinaCIDR 从 10036 条更新为 9686 条（新增 70、移除 420 条文本条目，含网段拆分/合并）；已重新生成 Stash ipcidr/text 快照。其余规则仅更新时间戳，主配置和导入链接保持不变。已通过静态校验，未进行 Stash 实机测试。
