@@ -51,3 +51,9 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 ### 2026-11-03 规则同步
 
 跟进 Rabbit-Spec/Surge 提交 `9196fb65c523ef354768c6b8bca0ebd1d16a4c22`（10:07:56）：ChinaCIDR 从 10036 条更新为 9686 条（新增 70、移除 420 条文本条目，含网段拆分/合并）；已重新生成 Stash ipcidr/text 快照。其余规则仅更新时间戳，主配置和导入链接保持不变。已通过静态校验，未进行 Stash 实机测试。
+
+### 2026-11-06 规则同步
+
+跟进上游 `0e02cb86889ef8017fe25fdc5e92ad3e4bc1199a`（2026-11-05）：Proxy 域名快照新增 21 条，TikTok 新增 3 条。China、Game、Microsoft 分别新增 26、7、2 条，继续由现有远程 provider 更新。主配置、分流优先级和导入链接保持不变。已校验快照完整性、格式、YAML及策略引用；未进行 Stash 实机测试。
+
+按 [Stash 官方规则文档](https://stash.wiki/rules/rule-types)，现有 PROCESS-NAME 条目在 iOS/tvOS 会被忽略，macOS 可用；保留域名与 User-Agent 规则。

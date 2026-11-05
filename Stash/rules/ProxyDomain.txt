@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-03; re-generate after upstream updates.
+# Snapshot generated 2026-11-06; re-generate after upstream updates.
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -246,6 +246,7 @@ assets.streamlinehq.com
 assets.swiftkey.com
 assets.swoogo.com
 assets.tatlerasia.com
+assets.temporary-phone-number.com
 assets.the-independent.com
 assets.tigerdata.com
 assets.tokopedia.net
@@ -2084,6 +2085,7 @@ zod.dev
 +.18comic-god.xyz
 +.18comic.cc
 +.18comic.company
++.18comic.ink
 +.18comic.org
 +.18comic.vip
 +.18commic.com
@@ -3376,6 +3378,7 @@ zod.dev
 +.anthemgame.com
 +.anthemthegame.com
 +.anthonycalzadilla.com
++.anthropic.auth0.com
 +.anthropic.com
 +.anthropic.team
 +.anti1984.com
@@ -3430,6 +3433,7 @@ zod.dev
 +.api.news
 +.api.proxlet.com
 +.api.shuaiapi.com
++.api.themoviedb.org
 +.apiary.io
 +.apibay.org
 +.apigee.com
@@ -4770,6 +4774,7 @@ zod.dev
 +.beget.app
 +.beget.cloud
 +.beget.com
++.beget.email
 +.beget.hosting
 +.beget.pro
 +.beget.tech
@@ -4974,6 +4979,7 @@ zod.dev
 +.bili2.cc
 +.bili888.com
 +.bili999.com
++.bilibili.tv
 +.bilinovel.com
 +.biliplus.com
 +.biliworld.com
@@ -5036,6 +5042,7 @@ zod.dev
 +.bingapistatistics.com
 +.bingparachute.com
 +.bingsandbox.com
++.bingstatic.com
 +.bingvisualsearch.com
 +.bingworld.com
 +.bingx.com
@@ -5236,6 +5243,7 @@ zod.dev
 +.bmia.org
 +.bmj.com
 +.bml.info
++.bmonkeys.net
 +.bmp.ovh
 +.bmw-abudhabi.com
 +.bmw-adventskalender.com
@@ -5507,6 +5515,7 @@ zod.dev
 +.bokep.net
 +.bokepseks.org
 +.bokepvidz.com
++.boldgrid.com
 +.bolehvpn.net
 +.bollywoodlife.com
 +.boltdns.net
@@ -5732,6 +5741,7 @@ zod.dev
 +.bsappapi.com
 +.bscdnweb.com
 +.bsky.app
++.bsky.chat
 +.bstarstatic.com
 +.bstatic.com
 +.bsxm1213.pro
@@ -6781,6 +6791,7 @@ zod.dev
 +.cloudproxy.app
 +.cloudrobotics.com
 +.cloudvolumes.com
++.cloudwp.dev
 +.cloudyzgirl.com
 +.cloupia.com
 +.cloupia.net
@@ -16585,6 +16596,7 @@ zod.dev
 +.npmcdn.com
 +.npmfs.com
 +.npms.io
++.npmx.dev
 +.npnt.me
 +.npr.org
 +.npsboost.com
@@ -21034,7 +21046,10 @@ zod.dev
 +.tiktokeu-cdn.com
 +.tiktokglobalshopv.com
 +.tiktokrow-cdn.com
++.tiktokshop.com
++.tiktokstaticb.com
 +.tiktokv.com
++.tiktokvapp.com
 +.tilda.cc
 +.tildaapi.com
 +.tildacdn.com
@@ -21208,6 +21223,7 @@ zod.dev
 +.torlock.com
 +.torproject.org
 +.torrentkitty.tv
++.torrentleech.org
 +.torrentmac.net
 +.torrentprivacy.com
 +.torrenty.org
@@ -22406,6 +22422,7 @@ zod.dev
 +.vocus.cc
 +.vod360.net
 +.vodafone.com
++.vodafoneziggo.nl
 +.voicettank.org
 +.vokevr.com
 +.vol.moe
@@ -22750,7 +22767,9 @@ zod.dev
 +.webevader.org
 +.webex.com
 +.webex.com.br
++.webflow-ext.com
 +.webflow.com
++.webflow.io
 +.webfreer.com
 +.webgata.net
 +.webgirlsonline.net
@@ -24056,6 +24075,7 @@ zod.dev
 +.youtrack.cloud
 +.youtrannytube.com
 +.youversion.com
++.youversionapi.com
 +.youwin.com
 +.youwuss.com
 +.youxu.info
@@ -24214,6 +24234,7 @@ zod.dev
 +.zibacity.com
 +.ziddu.com
 +.ziffstatic.com
++.ziggo.nl
 +.ziglang.org
 +.zillionk.com
 +.zind.cloud
