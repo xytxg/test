@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-03。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-06。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -57,3 +57,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 跟进上游 `0e02cb86889ef8017fe25fdc5e92ad3e4bc1199a`（2026-11-05）：Proxy 域名快照新增 21 条，TikTok 新增 3 条。China、Game、Microsoft 分别新增 26、7、2 条，继续由现有远程 provider 更新。主配置、分流优先级和导入链接保持不变。已校验快照完整性、格式、YAML及策略引用；未进行 Stash 实机测试。
 
 按 [Stash 官方规则文档](https://stash.wiki/rules/rule-types)，现有 PROCESS-NAME 条目在 iOS/tvOS 会被忽略，macOS 可用；保留域名与 User-Agent 规则。
+
+### 2026-11-06 ChinaCIDR 同步
+
+跟进上游 `81d0161acc6b3a815532e958d6f7eafde4bd97e5`（08:54:54）：ChinaCIDR 从 9686 条更新为 9671 条（新增 47、移除 62 条文本条目，含网段拆分/合并），已转换为 Stash ipcidr/text。其余 24 个变更文件仅更新时间戳。主配置及规则优先级保持不变。已通过网段语法、源规则逐条覆盖、YAML 结构与策略引用静态校验及公开资源访问检查；未进行 Stash 实机测试。
