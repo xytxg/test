@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-06; re-generate after upstream updates.
+# Snapshot generated 2026-11-07; re-generate after upstream updates.
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -342,7 +342,6 @@ cacerts.digicert.com
 cache-05.filehippo.net
 cache.hackedfreegames.com
 cache.industry.siemens.com
-cache.ip-api.com
 cache.mapcomplete.org
 cache.omnicalculator.com
 cached.rebuyengine.com
@@ -3378,7 +3377,6 @@ zod.dev
 +.anthemgame.com
 +.anthemthegame.com
 +.anthonycalzadilla.com
-+.anthropic.auth0.com
 +.anthropic.com
 +.anthropic.team
 +.anti1984.com
@@ -3433,7 +3431,6 @@ zod.dev
 +.api.news
 +.api.proxlet.com
 +.api.shuaiapi.com
-+.api.themoviedb.org
 +.apiary.io
 +.apibay.org
 +.apigee.com
@@ -8544,7 +8541,6 @@ zod.dev
 +.edmontonservice.com
 +.edninfo.com
 +.edns.biz
-+.edns.ip-api.com
 +.edoors.com
 +.edu
 +.edu-research.org
@@ -12766,6 +12762,7 @@ zod.dev
 +.iotinactionevents.com
 +.iownyour.biz
 +.iownyour.org
++.ip-api.com
 +.ip-scan.adspower.net
 +.ip73.com
 +.ipa-iphone.net
@@ -14062,6 +14059,9 @@ zod.dev
 +.lilhumpers.com
 +.liliav.com
 +.lilith-soft.com
++.limbuscompany.global
++.limbuscompanyapi.com
++.limbuscompanycdn.org
 +.limelight.com
 +.limertw.cc
 +.limeteensex.com
@@ -19611,7 +19611,7 @@ zod.dev
 +.skillshare.com
 +.skimtube.com
 +.skinstrip.net
-+.skk.moe
++.skinswap.com
 +.skokka.com
 +.sksarab.top
 +.skunkgirl.cc
@@ -22422,7 +22422,6 @@ zod.dev
 +.vocus.cc
 +.vod360.net
 +.vodafone.com
-+.vodafoneziggo.nl
 +.voicettank.org
 +.vokevr.com
 +.vol.moe
@@ -24234,7 +24233,6 @@ zod.dev
 +.zibacity.com
 +.ziddu.com
 +.ziffstatic.com
-+.ziggo.nl
 +.ziglang.org
 +.zillionk.com
 +.zind.cloud
