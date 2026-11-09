@@ -1,0 +1,51 @@
+#!name=YouTube 增强（Egern 转 Surge）
+#!desc=基于 IBL3ND/Egern-YouTube.yaml 转换；去广告、后台播放、画中画、短视频隐藏、最高画质、Jump Ahead、实验性下载、字幕增强。功能随 YouTube 更新可能失效。
+#!category=YouTube
+#!arguments=blockUpload:true,blockShorts:true,autoHd:true,blockGames:true,blockVerticalLive:true,jumpAhead:true,blockStore:true,nativeDownload:true
+#!arguments-desc=各开关填写 true 或 false。blockUpload=隐藏上传；blockShorts=隐藏 Shorts；autoHd=自动最高画质；blockGames=隐藏小游戏；blockVerticalLive=隐藏竖屏直播；jumpAhead=跳转片段；blockStore=隐藏商店；nativeDownload=实验性原生下载（可能受服务器限制）。\n源 Egern 文件的“屏蔽选段按钮”参数未传给其 JS，故未作为独立开关。
+
+[Rule]
+# YouTube API 与媒体域名禁止 UDP/QUIC，以便 MITM 脚本处理 HTTPS
+AND,((DOMAIN-SUFFIX,googlevideo.com),(PROTOCOL,UDP)),REJECT
+AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
+
+[URL Rewrite]
+# 去掉 GoogleVideo 传输参数 ctier=L（保持源模块逻辑）
+(^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) $1$2$3 302
+# YouTube 字幕翻译链接重定向（保留源模块顺序）
+^https:\/\/((?:www|m)\.youtube\.com/api/timedtext\?)([^#]+)&tlang=([^&#]+)&([^#]*)(#.*)?$ https://$1$2&$4&subtype=Translate$5 302
+^https:\/\/((?:www|m)\.youtube\.com/api/timedtext\?)([^#]+)&tlang=([^&#]+)(#.*)?$ https://$1$2&subtype=Translate$4 302
+^https:\/\/((?:www|m)\.youtube\.com/api/timedtext\?)tlang=([^&#]+)&([^#]*)(#.*)?$ https://$1$3&subtype=Translate$4 302
+^https:\/\/((?:www|m)\.youtube\.com/api/timedtext\?)tlang=([^&#]+)(#.*)?$ https://$1subtype=Translate$3 302
+
+[Map Local]
+# 等价替换 Egern 的 respond: status: 200（空响应）
+^https?:\/\/[\w-]+\.googlevideo\.com\/(?!(dclk_video_ads|videoplayback\?)).+&oad data-type=text data="" status-code=200
+^https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads data-type=text data="" status-code=200
+^https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) data-type=text data="" status-code=200
+^https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext data-type=text data="" status-code=200
+
+[Script]
+# 复用 IBL3ND 上游 JS，不依赖修改后的独立 JS 文件
+# 去广告时段
+YouTube.ad-break = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/player\/ad_break(?:\?.*)?$,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-request.js
+# 下载操作返回
+YouTube.download = type=http-response,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/offline\/get_download_action(?:\?.*)?$,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-response.js,argument="{\"nativeDownload\":{{{nativeDownload}}}}"
+# 播放器请求与实验性原生下载
+YouTube.download-player = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/player(?:\?.*)?$,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-request.js,argument="{\"nativeDownload\":{{{nativeDownload}}}}"
+# 播放响应、首页、搜索、Shorts 等
+YouTube.response = type=http-response,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(?:navigation\/resolve_url|browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config)(?:\?.*)?$,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-response.js,argument="{\"blockUpload\":{{{blockUpload}}},\"blockShorts\":{{{blockShorts}}},\"blockGames\":{{{blockGames}}},\"blockVerticalLive\":{{{blockVerticalLive}}},\"jumpAhead\":{{{jumpAhead}}},\"autoHd\":{{{autoHd}}},\"blockStore\":{{{blockStore}}}}"
+# Googlevideo UMP 媒体响应
+YouTube.ump = type=http-response,pattern=^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback(?:\?.*)?$,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-response.js,argument="{\"blockGames\":{{{blockGames}}},\"blockVerticalLive\":{{{blockVerticalLive}}},\"jumpAhead\":{{{jumpAhead}}},\"autoHd\":{{{autoHd}}},\"blockStore\":{{{blockStore}}}}"
+# Googlevideo UMP 请求
+YouTube.init = type=http-request,pattern=^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback(?:\?.*)?$,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-request.js
+# 自动画质请求
+YouTube.auto-hd = type=http-request,pattern=^https?:\/\/[\w-]+\.googlevideo\.com\/videoplayback,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-request.js,argument="{\"autoHd\":{{{autoHd}}}}"
+# 日志事件
+YouTube.log-event = type=http-request,pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event,requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/youtube-request.js
+# 字幕增强
+YouTube.dual-subs = type=http-response,pattern=^https:\/\/(?:www|m)\.youtube\.com/api/timedtext(?:\?|$),requires-body=true,binary-body-mode=true,max-size=-1,script-path=https://raw.githubusercontent.com/IBL3ND/js/refs/heads/main/YT-CC-ASR-Auto.js
+
+[MITM]
+# 将排除项置于新增项之前；不更改 MITM 证书设置
+hostname = %APPEND% -redirector*.googlevideo.com, *.googlevideo.com, www.youtube.com, s.youtube.com, youtubei.googleapis.com, m.youtube.com
