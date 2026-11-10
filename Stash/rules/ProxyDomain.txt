@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-07; re-generate after upstream updates.
+# Snapshot generated 2026-11-10; re-generate after upstream updates.
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -973,6 +973,7 @@ heroicons.com
 hips.hearstapps.com
 home.integrate.com
 hpstore.corpmerchandise.com
+http-intake.logs.us5.datadoghq.com
 hub-assets.displaycal.net
 hub.slarker.me
 hubspotonwebflow.com
@@ -10821,6 +10822,7 @@ zod.dev
 +.gotblop.com
 +.gotcosmos.com
 +.gotgeeks.com
++.gotinder.com
 +.gotquestions.org
 +.gotraffic.net
 +.gotrusted.com
@@ -10899,6 +10901,7 @@ zod.dev
 +.gridaware.app
 +.grindr.com
 +.grok.com
++.grokbot.com
 +.grokipedia.com
 +.grooby.com
 +.groq.com
@@ -21079,6 +21082,7 @@ zod.dev
 +.timtales.com
 +.tinc-vpn.org
 +.tinder.com
++.tindersparks.com
 +.tindie.com
 +.tindiemedia.com
 +.tiney.com

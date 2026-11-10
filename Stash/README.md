@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-08。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-10。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -73,3 +73,11 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 跟进上游 `dd99e8104568ee798587c9709c4757a156290e24`（07:32）：Apple 新增 128、移除 1 条，合计 2447 条；GlobalMedia 新增 128 条，合计 1845 条。新增内容为 DOMAIN-SUFFIX 和 IP-CIDR，现有 Stash classical/text provider 可直接加载，已逐条检查完整文件，无需改写 URL 或生成新快照。LAN 新增 128 条，但本配置不直接引用该文件；其余 22 个文件仅更新时间戳，AIGC、TikTok、Proxy、ChinaCIDR 快照语义不变。
 
 主配置、分流优先级、DNS 和私有订阅覆写方式保持不变。已完成 YAML 结构、策略引用与循环、RULE-SET、MATCH、变更规则格式及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。在 Stash 更新规则资源即可获取上述远程规则变化。
+
+### 2026-11-10 规则同步
+
+跟进上游 `c0e2cfa010456983a1f3a5424458fd0deb31df60`（10:37）：Proxy 新增精确域名 `http-intake.logs.us5.datadoghq.com`，以及 `gotinder.com`、`grokbot.com`、`tindersparks.com` 三条后缀规则，已转换并更新 domain/text 快照，共 24339 条。91 条 IP、70 条其他规则及 AIGC、TikTok、ChinaCIDR 快照语义不变；Proxy 全部 24500 条源规则均有对应输出。
+
+Apple 新增 1276、移除 13 条（共 3710 条），GlobalMedia 新增 1276、移除 4 条（共 3117 条），Microsoft 新增 1 条（共 855 条）。这些变更仅涉及 DOMAIN、DOMAIN-SUFFIX、IP-CIDR，现有 classical/text provider 可直接加载；已逐条检查完整文件。LAN 新增 1276、移除 4 条，但本配置不直接引用；其余 20 个文件仅更新时间戳。分流仍按现有顺序匹配，Apple 优先于 Microsoft 和 GlobalMedia，未调整上游规则归类。
+
+主配置、策略组、6 地区筛选、DNS、导入链接和本地私有订阅覆写方式保持不变。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 格式、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。
