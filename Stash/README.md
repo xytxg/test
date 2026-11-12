@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-11。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-12。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -87,3 +87,11 @@ Apple 新增 1276、移除 13 条（共 3710 条），GlobalMedia 新增 1276、
 跟进上游 `392564ca026cdbbdcf801462e49b14cd7fdea30f`（08:30）：Apple 新增 436 条，共 4146 条；GlobalMedia 新增 436、移除 8 条，共 3545 条。新增规则为 6 条 DOMAIN 和 430 条 DOMAIN-SUFFIX，现有 Stash classical/text provider 可直接加载；已检查完整规则文件，无需改写 URL 或生成新快照。LAN 同样新增 436、移除 8 条，但本配置不直接引用；其余 22 个文件仅更新时间戳。AIGC、TikTok、Proxy 和 ChinaCIDR 快照已逐条核对，语义不变；Proxy 全部 24500 条源规则仍完整覆盖。
 
 主配置、策略组、6 地区筛选、DNS、规则优先级和本地私有订阅覆写方式保持不变；Apple 仍优先于 Microsoft 和 GlobalMedia，保留上游归类。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 语法、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。在 Stash 更新规则资源即可获取上述远程规则变化。
+
+### 2026-11-12 规则同步
+
+跟进上游 `74d12aa17f926c12629bb1a55e58fb9a5c477a8a`（09:51）：Proxy 域名新增 3、移除 24 条，已重新生成 domain/text 快照，共 24318 条。新增后缀为 `grafana.net`、`questionablequesting.com`、`spacebattles.com`；按上游移除 3 条精确域名和 21 条后缀（含 ca、eu、hk、jp、kr、sg、tw、uk、us 顶级域后缀）。91 条 IP 和 70 条其他规则不变，全部 24479 条源规则均有对应输出；AIGC、TikTok、ChinaCIDR 快照语义不变。
+
+Apple 新增 1669、移除 14 条，共 5801 条；GlobalMedia 新增 1669、移除 4 条，共 5210 条。新增内容为 1667 条 DOMAIN-SUFFIX 和 2 条 IP-CIDR（165.173.176.0/24、192.51.172.0/24），现有 classical/text provider 可直接加载。China 新增 1、移除 22 条，共 6395 条，继续使用 domain/text 远程源。LAN 新增 1669、移除 4 条，但本配置不直接引用；其余 20 个文件仅更新时间戳。全部引用规则已逐条检查，保留原有优先级和上游归类。
+
+主配置、策略组、6 地区筛选、DNS、固定导入链接和本地私有订阅覆写方式保持不变。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 语法、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。

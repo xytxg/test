@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-10; re-generate after upstream updates.
+# Snapshot generated 2026-11-12; re-generate after upstream updates.
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -82,7 +82,6 @@ productionresultssa9.blob.core.windows.net
 +.repo.new
 +.sourcegraph.com
 +.thegithubshop.com
-1password.drift.click
 3dna.nationbuilder.com
 a-tiles.locationiq.com
 a.gawby.com
@@ -1265,7 +1264,6 @@ lzd-img-global.slatic.net
 m-cdn.phonearena.com
 m3u8.girigirilove.com
 magic.scalar.com
-makerworld.bblmw.com
 mantisloader.mantis-awx.com
 map.adsbexchange.com
 maps-api-cdn.meteoblue.com
@@ -1443,7 +1441,6 @@ prodforza.blob.core.windows.net
 proxy.beyondwords.io
 proxy.csidetm.com
 public-assets.typeform.com
-public-cdn.bblmw.com
 public-frontend-cos.metadl.com
 public-pages.cbinsights.com
 public-us-pingsx.api.clonoth.com
@@ -5155,7 +5152,6 @@ zod.dev
 +.blog.com
 +.blog.descargasgay.com
 +.blog.kangye.org
-+.blog.syx86.cn
 +.blogblog.com
 +.blogcatalog.com
 +.blogcdn.com
@@ -5928,7 +5924,6 @@ zod.dev
 +.c3pool.com
 +.c4rex.co
 +.c4slive.com
-+.ca
 +.cabconnect.org
 +.cableav.tv
 +.cableav.xyz
@@ -6341,7 +6336,6 @@ zod.dev
 +.ch
 +.ch.shvoong.com
 +.ch9.ms
-+.chalungu.cn
 +.championshipseriesleague.com
 +.change.org
 +.changeip.name
@@ -6821,7 +6815,6 @@ zod.dev
 +.cncrivals.com
 +.cnd.org
 +.cnet.com
-+.cnex.org.cn
 +.cnineu.com
 +.cnix-gov-cn.com
 +.cnn.com
@@ -8891,7 +8884,6 @@ zod.dev
 +.ettoday.net
 +.etviet.com
 +.etwealth.com
-+.eu
 +.eu-consumer-empowerment.com
 +.eu.orbitor.dev
 +.eu.org
@@ -10843,6 +10835,7 @@ zod.dev
 +.gradconnection.com
 +.gradeuptube.com
 +.grafana.com
++.grafana.net
 +.grafolio.com
 +.graias.com
 +.graiasmovies.com
@@ -10924,7 +10917,6 @@ zod.dev
 +.gshow.com.br
 +.gsrc.io
 +.gstatic-cn.com
-+.gstatic.cn
 +.gstatic.com
 +.gsuite.com
 +.gsuus.com
@@ -11482,7 +11474,6 @@ zod.dev
 +.hjb7e9.top
 +.hjclub.info
 +.hjd2048.com
-+.hk
 +.hk-pub.com
 +.hk01.com
 +.hk1lib.org
@@ -13428,7 +13419,6 @@ zod.dev
 +.joylovedolls.com
 +.joymiihub.com
 +.joyourself.com
-+.jp
 +.jpavcom.com
 +.jpbabe.com
 +.jpboy1069.net
@@ -13788,7 +13778,6 @@ zod.dev
 +.kpkuang.org
 +.kpptoto.info
 +.kqes.net
-+.kr
 +.kraftonde.com
 +.kraken.com
 +.kraken.onl
@@ -15362,7 +15351,6 @@ zod.dev
 +.moeero-library.com
 +.moeerolibrary.com
 +.moefuns.co
-+.moegirl.org
 +.moeimg.net
 +.moeli-desu.com
 +.moeload.com
@@ -17036,7 +17024,6 @@ zod.dev
 +.openweave.io
 +.openwebster.com
 +.openwrt.org
-+.openwrt.org.cn
 +.openxla.org
 +.opera.com
 +.operacdn.com
@@ -18096,7 +18083,6 @@ zod.dev
 +.qiniuyun22.xyz
 +.qise100.com
 +.qiwen.lu
-+.qixianglu.cn
 +.qkshare.com
 +.qmap.pub
 +.qmov.com
@@ -18143,6 +18129,7 @@ zod.dev
 +.quatrowireless.com
 +.quatrum.com.br
 +.quay.io
++.questionablequesting.com
 +.questvisual.com
 +.quicinc.com
 +.quickbook.com.br
@@ -19310,7 +19297,6 @@ zod.dev
 +.sftuk.org
 +.sfunpay.com
 +.sfx.ms
-+.sg
 +.sg120.me
 +.sg1lib.org
 +.sgp1.fun
@@ -19911,8 +19897,6 @@ zod.dev
 +.sourcewadio.com
 +.sourcingforebay.net
 +.sourcingforebay.tv
-+.south-plus.net
-+.south-plus.org
 +.southfloridamini.com
 +.southmongolia.org
 +.sovec.net
@@ -19920,6 +19904,7 @@ zod.dev
 +.soylent.com
 +.soylentnews.org
 +.sp.cool
++.spacebattles.com
 +.spaceexplored.com
 +.spacemail.com
 +.spaceship-cdn.com
@@ -20959,7 +20944,6 @@ zod.dev
 +.tiantang.today
 +.tianti.io
 +.tiantibooks.org
-+.tianyantong.org.cn
 +.tianzhu.org
 +.tiava.com
 +.tiava1.com
@@ -21512,7 +21496,6 @@ zod.dev
 +.tvplayvideos.com
 +.tvpromise.com
 +.tvunetworks.com
-+.tw
 +.tw-blog.com
 +.tw-npo.org
 +.tw01.org
@@ -21727,7 +21710,6 @@ zod.dev
 +.uisp.com
 +.ujapanesesex.com
 +.ujizzcn.com
-+.uk
 +.uk-exhibitionist.com
 +.ukipad.com
 +.ukit.com
@@ -21845,7 +21827,6 @@ zod.dev
 +.urlparser.com
 +.urlscan.io
 +.urukawa.com
-+.us
 +.usa-beatsbydreheadphonesonsale.net
 +.usacn.com
 +.usaco.org
@@ -22866,7 +22847,6 @@ zod.dev
 +.whatsonweibo.com
 +.whatthefox.com
 +.wheatseeds.org
-+.wheel-size.cn
 +.wheelockslatin.com
 +.wheelpop.com
 +.wheelworks.net
@@ -24226,7 +24206,6 @@ zod.dev
 +.zhoushuguang.com
 +.zhreader.com
 +.zhtv01.com
-+.zhuanxing.cn
 +.zhuatieba.com
 +.zhuichaguoji.org
 +.zhujiget.com
