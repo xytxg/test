@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-12。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-13。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -93,5 +93,13 @@ Apple 新增 1276、移除 13 条（共 3710 条），GlobalMedia 新增 1276、
 跟进上游 `74d12aa17f926c12629bb1a55e58fb9a5c477a8a`（09:51）：Proxy 域名新增 3、移除 24 条，已重新生成 domain/text 快照，共 24318 条。新增后缀为 `grafana.net`、`questionablequesting.com`、`spacebattles.com`；按上游移除 3 条精确域名和 21 条后缀（含 ca、eu、hk、jp、kr、sg、tw、uk、us 顶级域后缀）。91 条 IP 和 70 条其他规则不变，全部 24479 条源规则均有对应输出；AIGC、TikTok、ChinaCIDR 快照语义不变。
 
 Apple 新增 1669、移除 14 条，共 5801 条；GlobalMedia 新增 1669、移除 4 条，共 5210 条。新增内容为 1667 条 DOMAIN-SUFFIX 和 2 条 IP-CIDR（165.173.176.0/24、192.51.172.0/24），现有 classical/text provider 可直接加载。China 新增 1、移除 22 条，共 6395 条，继续使用 domain/text 远程源。LAN 新增 1669、移除 4 条，但本配置不直接引用；其余 20 个文件仅更新时间戳。全部引用规则已逐条检查，保留原有优先级和上游归类。
+
+主配置、策略组、6 地区筛选、DNS、固定导入链接和本地私有订阅覆写方式保持不变。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 语法、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。
+
+### 2026-11-13 规则同步
+
+跟进上游 `14038fc8b2e866df79752912dda79bf65fde796e`（08:58）：Proxy 新增精确域名 `production-copilot-host-westus.webpubsub.azure.com` 和 `iprsoftwaremedia.com`，已更新 domain/text 快照，共 24320 条；91 条 IP 和 70 条其他规则不变，全部 24481 条源规则完整覆盖。ChinaCIDR 从 9671 条更新为 9664 条（新增 88、移除 95 条文本条目，含网段拆分/合并），已重新提取 IPv4/IPv6 网段为 ipcidr/text 快照；AIGC、TikTok 快照语义不变。
+
+Apple 与 GlobalMedia 均新增 187、移除 1 条，分别共 5987、5396 条。新增内容为 3 条 DOMAIN、183 条 DOMAIN-SUFFIX 和 1 条 IP-CIDR（104.251.176.0/22），移除 IP-CIDR 192.51.172.0/24；现有 classical/text provider 可直接加载。LAN 同样新增 187、移除 1 条，但本配置不直接引用；其余 20 个文件仅更新时间戳。全部引用规则已逐条检查，保留现有分流顺序和上游归类。
 
 主配置、策略组、6 地区筛选、DNS、固定导入链接和本地私有订阅覆写方式保持不变。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 语法、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。
