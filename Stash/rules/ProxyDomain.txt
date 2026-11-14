@@ -1,7 +1,8 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-13; re-generate after upstream updates.
+# Snapshot generated 2026-11-14; re-generate after upstream updates.
+
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -1449,6 +1450,7 @@ public-us-pingsx.api.clonoth.com
 public.hare200.com
 public.komiic.com
 public.mocortech.com
+public.popclip.app
 public.zoorix.com
 q676790b.pmhcjk.com
 qualcomm.sc.omtrdc.net
