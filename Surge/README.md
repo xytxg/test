@@ -1,6 +1,27 @@
-# Surge Monitor Pro v3.0.0 — 自动内存监控
+# Surge Monitor Pro v3.0.1 — 自动内存监控
 
 **一个 Surge 信息面板，三个采集/事件入口。** 这不是“每点一次刷新就增加一个曲线点”的统计面板，而是用 Surge 官方的 Cron + Event + Shared Persistent Store 做尽力而为的定时采样。
+
+## v3.0.1 紧急修复：timeOf 未定义与旧脚本缓存
+
+故障日志：\`[Surge Monitor Pro] Can't find variable: timeOf\`。
+
+v3.0.0 最初使用了未定义的 \`timeOf()\`，后来改为现有的 \`clock()\`，但远程脚本配置使用 \`script-update-interval=3600\`，手机在自动更新检查前可能仍执行缓存旧脚本。
+
+v3.0.1 的所有 4 个脚本入口改为全新的独立 URL：
+
+https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.0.1.js
+
+这样更新模块后会下载新文件，不依赖旧 URL 的更新检查到期。今后脚本远程更新检查间隔调整为 **600 秒**；这不是内存采样间隔，Cron 仍然是每 6 分钟。
+
+### 修复安装步骤
+
+1. Surge → **模块** → 找到 Surge Monitor Pro → **更新**。
+2. 进入 Surge 的 **外部资源** → **全部更新**（或主动更新对应外部脚本）。
+3. 关闭策略组弹窗，再打开并点一次右上角刷新；**不需要重启 Surge 引擎**。
+4. 如果继续报 \`timeOf\`，说明还是运行旧缓存：检查本模块内 4 处 \`script-path\` 是否全部使用上面的 \`v3.0.1.js\`，必要时停用旧模块并通过原模块链接重新安装。
+
+> 新增 15 项脚本模拟回归检查，涵盖无样本面板、Cron 采样、点击不污染历史、真实配置重载、指标失败、重启隔离与版本号读取。尚未在用户设备上验证系统真实后台调度。
 
 ## 安装与升级
 
