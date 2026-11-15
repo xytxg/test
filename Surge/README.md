@@ -1,4 +1,4 @@
-# Surge Monitor Pro v2 — 单卡片状态监控
+# Surge Monitor Pro v2.1.1 — 单卡片状态监控
 
 在**同一张 Surge 信息面板**中显示内存、变化趋势、运行时长、连接/DNS 缓存和本模块的配置重载记录。已替换旧版两张独立面板；沿用原安装链接。
 
@@ -22,8 +22,10 @@ https://raw.githubusercontent.com/xytxg/test/main/Surge/Surge-Monitor-Pro.sgmodu
       活跃请求 15  ·  DNS 缓存 191
       上次重载 11-15 09:28
 
-    Surge 6.100.0 (4027)
+    Surge <实际版本号> (实际 Build)
     更新 09:33:38 · 间隔 60 秒
+
+Surge 客户端版本号不是固定值：优先读取引擎的 `surge_build_info{version,build}`，只有取不到时才使用 `$environment["surge-version"]` 与 `$environment["surge-build"]`。示例中的数字均为演示数据。**模块自身的版本为 2.1.1，与 Surge 客户端版本无关。**
 
 仅允许 Surge 文本和图标能力，不支持自定义 HTML/CSS 组件。峰值、最低值、趋势均来自**确实发生过的采样**，并不是后台实时进程记录；脚本最多保留 24 个历史采样点，显示最近 20 个。自动更新间隔为 60 秒，但 Surge 仅在进入面板页面时检查是否需要重新运行脚本，所以“间隔 60 秒”不等于每分钟在后台采样。进程重新启动时重置峰值与趋势。
 
