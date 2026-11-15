@@ -1,5 +1,5 @@
 /*
- * Surge Monitor Pro v2 — one compact dashboard, two data sources.
+ * Surge Monitor Pro v2.1.1 — one compact dashboard, two data sources.
  * Uptime/reload behaviour adapted from fishingworld and Rabbit-Spec SurgePro.js.
  * Metrics: official Surge /v1/metrics API (iOS 5.22+ / Mac 6.9+).
  * No external analytics, dependency, proxy rule or telemetry.
@@ -205,9 +205,22 @@ function hasError(value) {
 }
 function versionText(metrics) {
   const env = typeof $environment === 'object' && $environment ? $environment : {};
-  const v = String(env['surge-version'] || metrics.__version || '').trim();
-  const b = String(env['surge-build'] || metrics.__build || '').trim();
-  return (v || '未知版本') + (b && !v.includes(b) ? ' (' + b + ')' : '');
+  // Prometheus metadata belongs to the running Surge engine. Keep its
+  // version/build paired rather than mixing them with scripting metadata.
+  const monitoredVersion = cleanVersion(metrics && metrics.__version);
+  const monitoredBuild = cleanVersion(metrics && metrics.__build);
+  const envVersion = cleanVersion(env['surge-version']);
+  const envBuild = cleanVersion(env['surge-build']);
+  const version = monitoredVersion || envVersion;
+  const build = monitoredVersion ? monitoredBuild : envBuild;
+  if (!version) return '版本读取失败';
+  return version + (build && !version.includes(build) ? ' (' + build + ')' : '');
+}
+function cleanVersion(value) {
+  if (value === null || value === undefined) return '';
+  const text = String(value).trim();
+  if (!text || text === 'undefined' || text === 'null') return '';
+  return text.replace(/^Surge\s+/i, '').trim();
 }
 function readState() {
   try {
