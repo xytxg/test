@@ -21,7 +21,7 @@ https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pr
 3. 关闭策略组弹窗，再打开并点一次右上角刷新；**不需要重启 Surge 引擎**。
 4. 如果继续报 \`timeOf\`，说明还是运行旧缓存：检查本模块内 4 处 \`script-path\` 是否全部使用上面的 \`v3.0.1.js\`，必要时停用旧模块并通过原模块链接重新安装。
 
-> 新增 15 项脚本模拟回归检查，涵盖无样本面板、Cron 采样、点击不污染历史、真实配置重载、指标失败、重启隔离与版本号读取。尚未在用户设备上验证系统真实后台调度。
+> 已在模拟 Surge 脚本 API 的环境下通过 15 项回归检查，涵盖无样本面板、Cron 采样、点击不污染历史、真实配置重载、指标失败、重启隔离与版本号读取。测试文件已提交至 `Surge/tests/surge-monitor-pro.test.cjs`，开发环境可执行 `node Surge/tests/surge-monitor-pro.test.cjs`。该测试命令尚未在联网容器中实际执行，也尚未在用户设备上验证真实 iOS 后台调度。
 
 ## 安装与升级
 
