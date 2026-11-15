@@ -1,5 +1,5 @@
 /*
- * Surge Monitor Pro v2.2.0 — one compact dashboard, two data sources.
+ * Surge Monitor Pro v2.3.0 — one compact dashboard, two data sources.
  * Uptime/reload behaviour adapted from fishingworld and Rabbit-Spec SurgePro.js.
  * Metrics: official Surge /v1/metrics API (iOS 5.22+ / Mac 6.9+).
  * No external analytics, dependency, proxy rule or telemetry.
@@ -14,7 +14,7 @@ const apiPort = /^\d{1,5}$/.test(String(args.api_port || '')) && +args.api_port 
 // Metrics are sampled at most once per configured interval; the panel itself
 // is rechecked on each policy-page visit (Surge update-interval=1).
 const interval = limitInt(args.refresh, 60, 10, 3600);
-const tapAction = args.restart === '1' ? 'restart' : ['reload', 'refresh', 'restart'].includes(args.tap) ? args.tap : 'reload';
+const tapAction = args.restart === '1' ? 'restart' : ['reload', 'refresh', 'restart'].includes(args.tap) ? args.tap : 'refresh';
 const warnMiB = limitInt(args.warn_mib, 45, 1, 2000);
 
 run().then(value => $done(value)).catch(error => {
@@ -28,17 +28,17 @@ run().then(value => $done(value)).catch(error => {
 });
 
 async function run() {
-  let state = readState();
-  if (!Array.isArray(state.samples)) state.samples = [];
-  state.samples = state.samples.filter(x => x && isValid(x.t) && isValid(x.v)).slice(-24);
+  const state = readState();
+  // Keep only valid records from this script's persistent store.
+  state.samples = Array.isArray(state.samples)
+    ? state.samples.filter(p => p && isValid(p.t) && isValid(p.v) && p.t <= NOW).slice(-24)
+    : [];
 
-  // Surge only evaluates the panel when entering the policy-selection view
-  // or tapping refresh. We fetch lightweight uptime information on each entry.
-  // Prometheus memory metrics are cached for the configured sampling interval.
+  // The panel updates when entering the policy view, not every second while open.
   const traffic = await httpAPI('GET', '/v1/traffic');
   const trafficStart = parseStartTime(traffic && traffic.startTime, null);
   if (trafficStart && isValid(state.epoch) && Math.abs(trafficStart - state.epoch) > 30000) {
-    // Engine restarted. Never reuse metrics or trends from its previous process.
+    // A new Surge engine session must not inherit the old session's peak.
     state.samples = [];
     state.high = null;
     state.low = null;
@@ -48,27 +48,36 @@ async function run() {
     state.lastReload = 0;
     state.pendingRestartUntil = 0;
   }
+
   const cachedAt = Number(state.metricsSampleAt) || 0;
   const useCached = !pressed && cachedAt > 0 && NOW >= cachedAt &&
-    NOW - cachedAt < interval * 1000 && state.metricsCache &&
-    typeof state.metricsCache === 'object';
-  const metrics = useCached ? state.metricsCache : await getMetrics();
-  const sampleAt = useCached ? cachedAt : NOW;
-  if (!useCached) {
+    NOW - cachedAt < interval * 1000 &&
+    metric(state.metricsCache, 'surge_memory_bytes') !== null;
+  let metrics = useCached ? state.metricsCache : await getMetrics();
+  const bytes = metric(metrics, 'surge_memory_bytes');
+  const memoryReady = bytes !== null;
+  const sampleAt = memoryReady ? (useCached ? cachedAt : NOW) : 0;
+
+  // Do not cache failed/missing readings as successful samples.
+  if (!useCached && memoryReady) {
     state.metricsCache = metrics;
     state.metricsSampleAt = NOW;
+  } else if (!useCached && !memoryReady) {
+    state.metricsCache = null;
+    state.metricsSampleAt = 0;
   }
+
   const mUptime = metric(metrics, 'surge_uptime_seconds');
   const start = trafficStart || (isValid(state.epoch) ? state.epoch :
-    (useCached ? null : parseStartTime(null, mUptime)));
+    (mUptime !== null ? parseStartTime(null, mUptime) : null));
   if (start) state.epoch = start;
 
-  const currentBytes = metric(metrics, 'surge_memory_bytes');
-  const current = currentBytes === null ? null : currentBytes / MiB;
-  const last = state.samples.length ? state.samples[state.samples.length - 1] : null;
-  const previous = last ? last.v : null;
+  const current = memoryReady ? bytes / MiB : null;
   if (current !== null && !useCached) {
+    const last = state.samples[state.samples.length - 1];
     if (last && NOW - last.t < 15000) {
+      // A rapid manual refresh replaces one observation rather than
+      // creating many near-identical trend points.
       last.v = current;
       last.t = NOW;
     } else {
@@ -79,6 +88,10 @@ async function run() {
     state.low = isValid(state.low) ? Math.min(state.low, current) : current;
   }
 
+  // Delta always compares two *different* samples, including during cache hits.
+  const n = state.samples.length;
+  const previous = n >= 2 ? state.samples[n - 2].v : null;
+
   let tip = '';
   if (pressed) {
     if (tapAction === 'restart') {
@@ -87,10 +100,10 @@ async function run() {
         state.pendingRestartUntil = 0;
         writeState(state);
         const reply = await httpAPI('POST', '/v1/stop');
-        tip = hasError(reply) ? '停止请求失败，请查看日志' : '已请求停止；仅“始终开启”会自动重启';
+        tip = hasError(reply) ? '停止引擎失败，请查看日志' : '已停止引擎；仅“始终开启”会自动重启';
       } else {
         state.pendingRestartUntil = NOW + 20000;
-        tip = '确认重启：20 秒内再次轻点刷新\n注意：未开启“始终开启”只会停止引擎';
+        tip = '20 秒内再点一次以确认停止引擎\n⚠ 未开启“始终开启”时不会自动恢复';
       }
     } else if (tapAction === 'reload') {
       state.pendingRestartUntil = 0;
@@ -104,10 +117,10 @@ async function run() {
       }
     } else {
       state.pendingRestartUntil = 0;
-      tip = '已手动刷新数据';
+      // A read-only refresh is the normal behavior; no extra status line.
     }
   } else if (tapAction === 'restart' && Number(state.pendingRestartUntil) > NOW) {
-    tip = '等待二次确认：请手动点击刷新';
+    tip = '等待手动确认停止引擎';
   }
   if (Number(state.pendingRestartUntil) <= NOW) state.pendingRestartUntil = 0;
 
@@ -119,34 +132,44 @@ async function run() {
 
 function formatPanel(d) {
   const lines = [];
-  lines.push('▌ 内存 · ' + (d.current === null ? '暂不可用' : toMiB(d.current)) +
-    (d.current === null ? '' : '  ' + delta(d.current, d.previous)));
-  if (d.current !== null) {
-    lines.push('  峰值 ' + toMiB(d.state.high) + '   最低 ' + toMiB(d.state.low));
-    lines.push('  趋势  ' + sparkline(d.state.samples));
+  const available = d.current !== null;
+
+  lines.push('▌ 内存  ' + (available ? toMiB(d.current) : '暂无数据') +
+    (available ? delta(d.current, d.previous) : ''));
+  if (available) {
+    lines.push('  峰值 ' + number(d.state.high) + ' · 最低 ' + toMiB(d.state.low));
+    if (d.state.samples.length >= 2) {
+      lines.push('  趋势  ' + sparkline(d.state.samples));
+    } else {
+      lines.push('  趋势  等待更多采样');
+    }
   } else {
-    const last = d.state.samples.length ? d.state.samples[d.state.samples.length - 1] : null;
-    if (last) lines.push('  上次观测 ' + toMiB(last.v) + '（非实时）');
-    lines.push('  请检查本机 HTTP API 与 api_key');
+    const last = d.state.samples[d.state.samples.length - 1];
+    if (last) lines.push('  最近记录 ' + toMiB(last.v) + ' · ' + clock(last.t));
+    lines.push('  无法读取实时内存，请检查本机 API');
   }
+
   lines.push('');
   const seconds = d.start ? (NOW - d.start) / 1000 : d.uptime;
-  lines.push('▌ 运行 · ' + (seconds === null || seconds < 0 ? '暂不可用' : formatDuration(seconds)));
+  lines.push('▌ 运行  ' + (seconds === null || seconds < 0 ? '暂无数据' : formatDuration(seconds)));
   lines.push('  启动 ' + (d.start ? dateTime(d.start) : '未知') +
-    '  ·  重载 ' + (Number(d.state.reloadCount) || 0) + ' 次');
+    ' · 重载 ' + (Number(d.state.reloadCount) || 0) + ' 次');
   lines.push('  活跃请求 ' + count(metric(d.metrics, 'surge_active_requests')) +
-    '  ·  DNS 缓存 ' + count(metric(d.metrics, 'surge_dns_cache_entries')));
-  if (d.state.lastReload) lines.push('  上次重载 ' + dateTime(d.state.lastReload));
+    ' · DNS ' + count(metric(d.metrics, 'surge_dns_cache_entries')));
+  if (d.state.lastReload) lines.push('  最近重载 ' + dateTime(d.state.lastReload));
+
   lines.push('');
   lines.push('Surge ' + versionText(d.metrics));
-  lines.push('更新 ' + clock(NOW) + ' · 进入面板刷新');
-  lines.push('内存采样 ' + clock(d.sampleAt) + ' · 间隔至少 ' + interval + ' 秒');
+  const samplingIsCurrent = available && d.sampleAt > 0 && Math.abs(NOW - d.sampleAt) < 1000;
+  lines.push('更新 ' + clock(NOW) +
+    (available && !samplingIsCurrent ? ' · 采样 ' + clock(d.sampleAt) : ''));
   if (d.tip) lines.push(d.tip);
+
   return {
     title: 'Surge 状态监控',
     content: lines.join('\n'),
     icon: 'gauge.medium',
-    'icon-color': d.current !== null && d.current >= warnMiB ? '#F59E0B' : '#0A84FF'
+    'icon-color': !available ? '#FF9F0A' : d.current >= warnMiB ? '#F59E0B' : '#0A84FF'
   };
 }
 
@@ -218,7 +241,8 @@ function httpAPI(method, path) {
   });
 }
 function hasError(value) {
-  return value && typeof value === 'object' && !!(value.error || value.success === false);
+  return value === undefined || value === null ||
+    (typeof value === 'object' && !!(value.error || value.success === false));
 }
 function versionText(metrics) {
   const env = typeof $environment === 'object' && $environment ? $environment : {};
@@ -265,10 +289,12 @@ function limitInt(v, fallback, min, max) {
   return Number.isFinite(num) && num >= min && num <= max ? Math.floor(num) : fallback;
 }
 function toMiB(v) { return v.toFixed(1) + ' MiB'; }
+function number(v) { return v.toFixed(1); }
 function delta(v, previous) {
-  if (previous === null) return '· 首次采样';
+  if (previous === null) return '';
   const diff = v - previous;
-  return '· ' + (diff > 0.05 ? '↑' : diff < -0.05 ? '↓' : '→') + Math.abs(diff).toFixed(1) + ' MiB';
+  if (Math.abs(diff) < 0.05) return ' · 持平';
+  return ' · ' + (diff > 0 ? '↑' : '↓') + Math.abs(diff).toFixed(1) + ' MiB';
 }
 function sparkline(samples) {
   const values = samples.map(x => x.v).filter(isValid);
