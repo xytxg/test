@@ -1,5 +1,5 @@
 /*
- * Surge Monitor Pro v2.3.0 — one compact dashboard, two data sources.
+ * Surge Monitor Pro v2.3.1 — one compact dashboard, two data sources.
  * Uptime/reload behaviour adapted from fishingworld and Rabbit-Spec SurgePro.js.
  * Metrics: official Surge /v1/metrics API (iOS 5.22+ / Mac 6.9+).
  * No external analytics, dependency, proxy rule or telemetry.
@@ -74,16 +74,17 @@ async function run() {
 
   const current = memoryReady ? bytes / MiB : null;
   if (current !== null && !useCached) {
+    // Each successful metric request is an independent observation, even if
+    // it happens within 15 seconds of a previous manual refresh. Replacing
+    // the prior value used to destroy trend points while retaining the peak.
+    // Only a truly identical timestamp can replace an earlier observation.
     const last = state.samples[state.samples.length - 1];
-    if (last && NOW - last.t < 15000) {
-      // A rapid manual refresh replaces one observation rather than
-      // creating many near-identical trend points.
+    if (last && last.t === NOW) {
       last.v = current;
-      last.t = NOW;
     } else {
       state.samples.push({ t: NOW, v: current });
-      state.samples = state.samples.slice(-24);
     }
+    state.samples = state.samples.slice(-24);
     state.high = isValid(state.high) ? Math.max(state.high, current) : current;
     state.low = isValid(state.low) ? Math.min(state.low, current) : current;
   }
@@ -141,7 +142,13 @@ function formatPanel(d) {
     if (d.state.samples.length >= 2) {
       lines.push('  趋势  ' + sparkline(d.state.samples));
     } else {
-      lines.push('  趋势  等待更多采样');
+      // In v2.3.0, two quick reads could overwrite one history point
+      // while recording two different extrema. Do not fabricate a chart.
+      const hadLostObservations = isValid(d.state.high) &&
+        isValid(d.state.low) && d.state.high - d.state.low >= 0.05;
+      lines.push(hadLostObservations
+        ? '  趋势  仅存 1 个历史点，请再采样'
+        : '  趋势  等待第 2 次采样');
     }
   } else {
     const last = d.state.samples[d.state.samples.length - 1];
