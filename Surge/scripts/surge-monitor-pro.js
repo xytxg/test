@@ -13,9 +13,6 @@ const MODE = args.mode || 'panel';
 const pressed = typeof $trigger !== 'undefined' && $trigger === 'button';
 const apiKey = String(args.api_key || '').trim();
 const apiPort = /^\d{1,5}$/.test(String(args.api_port || '')) && +args.api_port > 0 && +args.api_port <= 65535 ? +args.api_port : 6171;
-// Metrics are sampled at most once per configured interval; the panel itself
-// is rechecked on each policy-page visit (Surge update-interval=1).
-const interval = limitInt(args.refresh, 60, 10, 3600);
 const tapAction = args.tap === 'reload' ? 'reload' : 'refresh';
 const warnMiB = limitInt(args.warn_mib, 45, 1, 2000);
 
@@ -57,7 +54,7 @@ async function collect() {
   const bytes = metric(metrics,'surge_memory_bytes');
   if (bytes === null) {
     state.lastError = '指标读取失败'; state.lastAttempt = NOW;
-    saveState(state); return;
+    writeState(state); return;
   }
   const value = bytes/MiB;
   const observation={t:NOW,v:value,active:metric(metrics,'surge_active_requests'),
@@ -70,14 +67,14 @@ async function collect() {
   state.low=isValid(state.low)?Math.min(state.low,value):value;
   state.lastSuccess=NOW; state.lastAttempt=NOW; state.lastError='';
   state.metricsCache=metrics;
-  saveState(state);
+  writeState(state);
 }
 async function recordReload() {
   const traffic=await httpAPI('GET','/v1/traffic');
   const state=newSessionIfNeeded(stateRead(),parseStartTime(traffic && traffic.startTime,null));
   state.reloadCount=(Number(state.reloadCount)||0)+1;
   state.lastReload=NOW;
-  saveState(state);
+  writeState(state);
 }
 async function display() {
   // The panel never writes monitoring data, even after manual refresh.
