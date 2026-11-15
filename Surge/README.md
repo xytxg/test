@@ -1,4 +1,4 @@
-# Surge Monitor Pro v2.1.1 — 单卡片状态监控
+# Surge Monitor Pro v2.2.0 — 单卡片状态监控
 
 在**同一张 Surge 信息面板**中显示内存、变化趋势、运行时长、连接/DNS 缓存和本模块的配置重载记录。已替换旧版两张独立面板；沿用原安装链接。
 
@@ -23,11 +23,12 @@ https://raw.githubusercontent.com/xytxg/test/main/Surge/Surge-Monitor-Pro.sgmodu
       上次重载 11-15 09:28
 
     Surge <实际版本号> (实际 Build)
-    更新 09:33:38 · 间隔 60 秒
+    更新 09:33:38 · 进入面板刷新
+    内存采样 09:33:38 · 间隔至少 60 秒
 
-Surge 客户端版本号不是固定值：优先读取引擎的 `surge_build_info{version,build}`，只有取不到时才使用 `$environment["surge-version"]` 与 `$environment["surge-build"]`。示例中的数字均为演示数据。**模块自身的版本为 2.1.1，与 Surge 客户端版本无关。**
+Surge 客户端版本号不是固定值：优先读取引擎的 `surge_build_info{version,build}`，只有取不到时才使用 `$environment["surge-version"]` 与 `$environment["surge-build"]`。示例中的数字均为演示数据。**模块自身的版本为 2.2.0，与 Surge 客户端版本无关。**
 
-仅允许 Surge 文本和图标能力，不支持自定义 HTML/CSS 组件。峰值、最低值、趋势均来自**确实发生过的采样**，并不是后台实时进程记录；脚本最多保留 24 个历史采样点，显示最近 20 个。自动更新间隔为 60 秒，但 Surge 仅在进入面板页面时检查是否需要重新运行脚本，所以“间隔 60 秒”不等于每分钟在后台采样。进程重新启动时重置峰值与趋势。
+仅允许 Surge 文本和图标能力，不支持自定义 HTML/CSS 组件。峰值、最低值、趋势均来自**确实发生过的采样**，并不是后台实时进程记录；脚本最多保留 24 个历史采样点，显示最近 20 个。面板采用 `update-interval=1`，**每次重新进入策略选择页时**都会检查更新（不表示持续每秒刷新）。脚本每次进入页面都重新获取运行时长；内存指标默认至少间隔 60 秒才重新采样，并在卡片上分开显示「面板更新时间」与「内存采样时间」。面板停留在原地不会持续跳秒，也不会后台自动记录每分钟的峰值。进程重新启动时重置峰值与趋势。
 
 ## 内存接口
 
@@ -45,7 +46,7 @@ iOS **5.22.0+** / Mac **6.9.0+** 使用官方 Prometheus 文本接口 `GET /v1/m
 
 - `api_key`：HTTP API 密钥，默认空。
 - `api_port`：本机 HTTP API 端口，默认 6171。
-- `refresh`：面板更新检查间隔，默认 60 秒。
+- `refresh`：**内存指标采样最短间隔**，默认 60 秒；面板进入时的自动更新检查固定为 `update-interval=1`，不受该参数影响。
 - `tap`：点击右上角的操作。默认 `reload`，保留原 Surge Pro 的 `POST /v1/profiles/reload`；改为 `refresh` 只读刷新；`restart` 则第一次点击进入 20 秒确认，第二次点击通过 `POST /v1/stop` 停止引擎。
 - `warn_mib`：内存超出此值时图标由蓝转橙，默认 45 MiB。
 - `restart`：旧版兼容参数；`1` 会覆盖 `tap` 选项启用二次确认停止功能。默认 `0`。
@@ -59,3 +60,7 @@ iOS **5.22.0+** / Mac **6.9.0+** 使用官方 Prometheus 文本接口 `GET /v1/m
 启动时长与配置手动重载交互，参考 [fishingworld](https://github.com/fishingworld/something) 与 [Rabbit-Spec SurgePro.js](https://github.com/Rabbit-Spec/Surge/blob/Master/Module/Panel/Surge-Pro/Moore/SurgePro.js)，原模块入口来自 [QingRex/LoonKissSurge](https://github.com/QingRex/LoonKissSurge)。内存指标与渲染逻辑为本仓库整合实现。
 
 [Surge 官方面板文档](https://manual.nssurge.com/tools/panel.html) · [Surge 官方 HTTP API](https://manual.nssurge.com/tools/http-api.html)
+
+## 为什么秒数不会一直跳？
+
+Surge 的 Panel 返回的是脚本生成的静态文本，不支持在停留页面时启动一个实时跳秒计时器。根据 [官方说明](https://manual.nssurge.com/tools/panel.html)，`update-interval` 是**重新进入面板时**的更新检查间隔。设为 1 秒是为了让每次重新进入时更新，不是持续每秒执行。若要更新当前显示，可退出面板再打开，或者轻点右上角刷新。默认 `tap=reload` 会同时重载配置，如果不需要，请设置为 `tap=refresh`。
