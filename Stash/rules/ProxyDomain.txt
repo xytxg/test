@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-14; re-generate after upstream updates.
+# Snapshot generated 2026-11-15; re-generate after upstream updates.
 
 +.snbforums.com
 +.asuswrt-merlin.net
@@ -2346,6 +2346,7 @@ zod.dev
 +.51luoben.com
 +.51luoli.info
 +.51mh.app
++.51papaya.com
 +.51pincha.cc
 +.51tuqiang.com
 +.520aa.tv
