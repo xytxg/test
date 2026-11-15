@@ -97,7 +97,7 @@ async function display() {
     lines.push('  峰值 '+number(state.high)+' · 最低 '+toMiB(state.low));
     lines.push('  趋势  '+(history.length>=2?sparkline(history):'定时采样积累中'));
     const age=Math.max(0,NOW-latest.t);
-    lines.push('  采样 '+timeOf(latest.t)+' · '+ageText(age)+(age>1080000?'（可能暂停）':''));
+    lines.push('  采样 '+clock(latest.t)+' · '+ageText(age)+(age>1080000?'（可能暂停）':''));
   } else {
     lines.push('▌ 内存  等待自动采样');
     lines.push(sessionChanged?'  引擎已重启，旧采样已隔离':
@@ -111,7 +111,7 @@ async function display() {
   if(state.lastReload)lines.push('  最近重载 '+dateTime(state.lastReload));
   lines.push('');
   lines.push('Surge '+versionText(state.metricsCache||{}));
-  lines.push('面板更新 '+timeOf(NOW));
+  lines.push('面板更新 '+clock(NOW));
   if(note)lines.push(note);
   return {title:'Surge 状态监控',content:lines.join('\n'),icon:'gauge.medium',
     'icon-color':!latest?'#8E8E93':latest.v>=warnMiB?'#FF9500':'#0A84FF'};
