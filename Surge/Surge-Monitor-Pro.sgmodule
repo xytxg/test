@@ -1,9 +1,9 @@
 #!name=Surge Monitor Pro｜状态监控
-#!version=2.2.0
-#!desc=一张面板同时显示 Surge 内存、趋势、运行时长、活动连接、DNS 缓存与配置重载记录。
+#!version=2.3.0
+#!desc=单卡片 Surge 状态监控：内存峰值/最低值与采样趋势、引擎运行时间、活跃请求、DNS 缓存、重载记录。v2.3.0 优化展示和缓存逻辑。
 #!category=Panels
-#!arguments=api_key,api_port:6171,refresh:60,tap:reload,warn_mib:45,restart:0
-#!arguments-desc=api_key：本机 HTTP API 密钥（内置读取失败时必填）；api_port：HTTP API 端口，默认6171；refresh：内存采样最短间隔秒，默认60；tap：点击刷新时的操作，reload重载配置/refresh只刷新/restart二次确认停止引擎；warn_mib：超过该MiB值图标变橙；restart：旧版兼容参数，1强制开启二次确认停止功能，不建议开启。
+#!arguments=api_key,api_port:6171,refresh:60,tap:refresh,warn_mib:45,restart:0
+#!arguments-desc=api_key：本机 HTTP API 密钥（内置读取失败时必填）；api_port：HTTP API 端口，默认6171；refresh：内存采样最短间隔秒，默认60；tap：右上角操作，默认refresh仅刷新数据/reload手动重载配置/restart二次确认停止引擎；warn_mib：超过该MiB值图标变橙；restart：旧版兼容参数，1强制开启二次确认停止功能，不建议开启。
 
 [Panel]
 XY_Surge_Monitor = title="Surge 状态监控",content="正在获取内存与运行信息…",style=info,script-name=XY_Surge_Monitor,update-interval=1
