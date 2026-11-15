@@ -1,41 +1,58 @@
-# Surge Monitor Pro — 内存与运行时长
+# Surge Monitor Pro v2 — 单卡片状态监控
 
-将 [Surge 启动时长](https://raw.githubusercontent.com/QingRex/LoonKissSurge/refs/heads/main/Surge/Official/Surge%20%E5%90%AF%E5%8A%A8%E6%97%B6%E9%95%BF.official.sgmodule) 的启动时间和点击手动重载功能，与 Surge 官方 `/v1/metrics` 引擎监控指标整合为一个 Surge 模块、两张信息面板。
+在**同一张 Surge 信息面板**中显示内存、变化趋势、运行时长、连接/DNS 缓存和本模块的配置重载记录。已替换旧版两张独立面板；沿用原安装链接。
 
-## 安装
+## 安装 / 升级
 
 Surge → 模块 → 安装新模块：
 
 https://raw.githubusercontent.com/xytxg/test/main/Surge/Surge-Monitor-Pro.sgmodule
 
-更新并启用模块，在 Surge 策略选择页查看两张面板。
+已经安装旧版的用户请在 Surge **更新模块与外部脚本**；必要时关闭再启用模块，旧版的两张卡片应变成一张「Surge 状态监控」。脚本的远程更新检查间隔为 60 秒，但实际更新时机仍由 Surge 控制。
 
-## 内存指标准备
+## 页面示例（示例数值，不是你的实时数据）
 
-需要 Surge iOS **5.22.0+** / Surge Mac **6.9.0+**（支持 Prometheus 指标）。
+    Surge 状态监控
+    ▌ 内存 · 26.6 MiB  · →0.0 MiB
+      峰值 26.6 MiB   最低 24.9 MiB
+      趋势  ▁▁▂▄▅█▇
 
-脚本首先尝试内部无鉴权的 `$httpAPI(GET, /v1/metrics)`；由于官方文档说明此接口返回的是**纯文本**，而 `$httpAPI` 只保证解析 JSON，部分版本可能无法直接读取。此时需要在 Surge 自身设置中启用本机 HTTP API，并把**本机 API 密钥和端口**填入本模块的参数 `api_key`、`api_port`（默认 `6171`）。脚本通过 `http://127.0.0.1:<api_port>/v1/metrics` 带 `X-Key` 请求指标，不访问任何外部监控服务器；**不要将密钥写入或提交到 GitHub**。
+    ▌ 运行 · 18 分 4 秒
+      启动 11-15 09:15  ·  重载 6 次
+      连接 15  ·  DNS 缓存 191
+      上次重载 11-15 09:28
 
-本模块不会覆盖或自动修改你现有的 `[General] http-api` 配置。如你当前使用了其他端口，请在模块参数中同步修改。建议仅绑定 `127.0.0.1` 并使用强密钥，不要将 HTTP API 暴露在公网。
+    Surge 6.100.0 (4027) · 09:33:38 更新
 
-## 两个面板
+仅允许 Surge 文本和图标能力，不支持自定义 HTML/CSS 组件。峰值、最低值、趋势均来自**确实发生过的采样**，并不是后台实时进程记录；脚本最多保留 24 个历史采样点，显示最近 20 个。自动更新间隔为 60 秒，但 Surge 仅在进入面板页面时检查是否需要重新运行脚本，所以“间隔 60 秒”不等于每分钟在后台采样。进程重新启动时重置峰值与趋势。
 
-- **Surge 内存监控**：引擎实际物理内存（MiB）、此轮引擎启动以来的观测峰值/低值、最近变化、最多 24 个采样点的趋势、活动请求数、DNS 缓存数量、更新时间。缺失指标时显示“暂不可用”，绝不虚构内存数值。
-- **Surge 运行时长**：当前引擎运行时长、启动时间、版本、仅由此模块发起的配置重载次数、最近一次重载。点击右上角刷新会按原版功能执行一次 `POST /v1/profiles/reload`。该操作不是重启引擎。
+## 内存接口
 
-`refresh` 默认为 60 秒；Surge 在用户打开面板时检查更新，**并非后台持续逐分钟采集**。持久化数据是在脚本真正触发时更新的。离线期间及进程崩溃时的真实峰值无法被本模块观察到。
+iOS **5.22.0+** / Mac **6.9.0+** 使用官方 Prometheus 文本接口 `GET /v1/metrics`，读取以下真实指标：
 
-## 重要安全提示
+- `surge_memory_bytes`：物理内存
+- `surge_active_requests`：活动请求数（不等于 TCP 连接总数）
+- `surge_dns_cache_entries`：DNS 缓存条目
+- `surge_uptime_seconds`：运行时长后备数据
+- `surge_build_info`：版本后备数据
 
-内存面板右上角按钮**默认只刷新数据**，不停止 Surge。若手动将模块参数 `restart` 设为 `1`，第一次点内存面板刷新会进入 20 秒确认状态，第二次点才执行 `POST /v1/stop`。**当 Surge iOS 的“始终开启”未启用时，该接口仅停止引擎，不会自动重启；网络连接可能中断。** 建议普通用户保持默认 `restart=0`。
+脚本先尝试 Surge 内置 `$httpAPI`，但它不保证能正确解析纯文本。如果显示内存“暂不可用”，请在 Surge 设置中启用**本机 HTTP API** 并在模块参数中填 `api_key`（本机密钥）、`api_port`（实际端口，默认 6171）。仅向本机 `127.0.0.1` 发出带 `X-Key` 的请求，不向第三方发送监控数据；**绝对不要把 API 密钥写进仓库**。也不要将 HTTP API 暴露在公网。
 
-- 自动刷新不执行配置重载/重启。
-- 内存“峰值”只指实际采样记录的峰值，不能保证捕获瞬时峰值。
-- “配置重载次数”只统计本模块点击触发的次数，并非 Surge 全局重载次数。
-- 面板脚本使用 WebView 引擎，避免增加 NE 进程的 JSC 内存开销。
+## 模块参数
 
-## 致谢
+- `api_key`：HTTP API 密钥，默认空。
+- `api_port`：本机 HTTP API 端口，默认 6171。
+- `refresh`：面板更新检查间隔，默认 60 秒。
+- `tap`：点击右上角的操作。默认 `reload`，保留原 Surge Pro 的 `POST /v1/profiles/reload`；改为 `refresh` 只读刷新；`restart` 则第一次点击进入 20 秒确认，第二次点击通过 `POST /v1/stop` 停止引擎。
+- `warn_mib`：内存超出此值时图标由蓝转橙，默认 45 MiB。
+- `restart`：旧版兼容参数；`1` 会覆盖 `tap` 选项启用二次确认停止功能。默认 `0`。
 
-启动时长面板行为参考 `fishingworld/something`、`Rabbit-Spec/Surge`（原脚本 `SurgePro.js`）；模块入口参考 `QingRex/LoonKissSurge`。其余整合与内存采样为新实现。
+**重要：** `/v1/stop` 在未开启 iOS Surge“始终开启”时仅会停止，不会自动重启，网络可能中断。因此默认**不**启用此操作。自动刷新（`$trigger=auto-interval`）不会发起配置重载或引擎停止。
 
-文档：[Surge HTTP API](https://manual.nssurge.com/tools/http-api.html) · [Surge 信息面板](https://manual.nssurge.com/tools/panel.html)
+“配置重载次数”**只统计本模块手动点击成功的重载**，不代表 Surge 全局重载总数；重载配置不会重启引擎。新的引擎会话会重置本模块统计。
+
+## 致谢与资料
+
+启动时长与配置手动重载交互，参考 [fishingworld](https://github.com/fishingworld/something) 与 [Rabbit-Spec SurgePro.js](https://github.com/Rabbit-Spec/Surge/blob/Master/Module/Panel/Surge-Pro/Moore/SurgePro.js)，原模块入口来自 [QingRex/LoonKissSurge](https://github.com/QingRex/LoonKissSurge)。内存指标与渲染逻辑为本仓库整合实现。
+
+[Surge 官方面板文档](https://manual.nssurge.com/tools/panel.html) · [Surge 官方 HTTP API](https://manual.nssurge.com/tools/http-api.html)
