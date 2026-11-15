@@ -118,11 +118,12 @@ function formatPanel(d) {
   lines.push('▌ 运行 · ' + (seconds === null || seconds < 0 ? '暂不可用' : formatDuration(seconds)));
   lines.push('  启动 ' + (d.start ? dateTime(d.start) : '未知') +
     '  ·  重载 ' + (Number(d.state.reloadCount) || 0) + ' 次');
-  lines.push('  连接 ' + count(metric(d.metrics, 'surge_active_requests')) +
+  lines.push('  活跃请求 ' + count(metric(d.metrics, 'surge_active_requests')) +
     '  ·  DNS 缓存 ' + count(metric(d.metrics, 'surge_dns_cache_entries')));
   if (d.state.lastReload) lines.push('  上次重载 ' + dateTime(d.state.lastReload));
   lines.push('');
-  lines.push('Surge ' + versionText(d.metrics) + '  ·  ' + clock(NOW) + ' 更新');
+  lines.push('Surge ' + versionText(d.metrics));
+  lines.push('更新 ' + clock(NOW) + '  ·  间隔 ' + interval + ' 秒');
   if (d.tip) lines.push(d.tip);
   return {
     title: 'Surge 状态监控',
