@@ -1,5 +1,5 @@
 /*
- * Surge Monitor Pro v2.1.1 — one compact dashboard, two data sources.
+ * Surge Monitor Pro v2.2.0 — one compact dashboard, two data sources.
  * Uptime/reload behaviour adapted from fishingworld and Rabbit-Spec SurgePro.js.
  * Metrics: official Surge /v1/metrics API (iOS 5.22+ / Mac 6.9+).
  * No external analytics, dependency, proxy rule or telemetry.
@@ -11,6 +11,8 @@ const args = parseArgs(typeof $argument === 'string' ? $argument : '');
 const pressed = typeof $trigger !== 'undefined' && $trigger === 'button';
 const apiKey = String(args.api_key || '').trim();
 const apiPort = /^\d{1,5}$/.test(String(args.api_port || '')) && +args.api_port > 0 && +args.api_port <= 65535 ? +args.api_port : 6171;
+// Metrics are sampled at most once per configured interval; the panel itself
+// is rechecked on each policy-page visit (Surge update-interval=1).
 const interval = limitInt(args.refresh, 60, 10, 3600);
 const tapAction = args.restart === '1' ? 'restart' : ['reload', 'refresh', 'restart'].includes(args.tap) ? args.tap : 'reload';
 const warnMiB = limitInt(args.warn_mib, 45, 1, 2000);
@@ -30,28 +32,42 @@ async function run() {
   if (!Array.isArray(state.samples)) state.samples = [];
   state.samples = state.samples.filter(x => x && isValid(x.t) && isValid(x.v)).slice(-24);
 
-  const [traffic, metrics] = await Promise.all([
-    httpAPI('GET', '/v1/traffic'),
-    getMetrics()
-  ]);
-  const mUptime = metric(metrics, 'surge_uptime_seconds');
-  const start = parseStartTime(traffic && traffic.startTime, mUptime);
-  if (start && isValid(state.epoch) && Math.abs(start - state.epoch) > 30000) {
-    // New engine session: old peak/trend and reload records are not current.
+  // Surge only evaluates the panel when entering the policy-selection view
+  // or tapping refresh. We fetch lightweight uptime information on each entry.
+  // Prometheus memory metrics are cached for the configured sampling interval.
+  const traffic = await httpAPI('GET', '/v1/traffic');
+  const trafficStart = parseStartTime(traffic && traffic.startTime, null);
+  if (trafficStart && isValid(state.epoch) && Math.abs(trafficStart - state.epoch) > 30000) {
+    // Engine restarted. Never reuse metrics or trends from its previous process.
     state.samples = [];
     state.high = null;
     state.low = null;
+    state.metricsCache = null;
+    state.metricsSampleAt = 0;
     state.reloadCount = 0;
     state.lastReload = 0;
     state.pendingRestartUntil = 0;
   }
+  const cachedAt = Number(state.metricsSampleAt) || 0;
+  const useCached = !pressed && cachedAt > 0 && NOW >= cachedAt &&
+    NOW - cachedAt < interval * 1000 && state.metricsCache &&
+    typeof state.metricsCache === 'object';
+  const metrics = useCached ? state.metricsCache : await getMetrics();
+  const sampleAt = useCached ? cachedAt : NOW;
+  if (!useCached) {
+    state.metricsCache = metrics;
+    state.metricsSampleAt = NOW;
+  }
+  const mUptime = metric(metrics, 'surge_uptime_seconds');
+  const start = trafficStart || (isValid(state.epoch) ? state.epoch :
+    (useCached ? null : parseStartTime(null, mUptime)));
   if (start) state.epoch = start;
 
   const currentBytes = metric(metrics, 'surge_memory_bytes');
   const current = currentBytes === null ? null : currentBytes / MiB;
   const last = state.samples.length ? state.samples[state.samples.length - 1] : null;
   const previous = last ? last.v : null;
-  if (current !== null) {
+  if (current !== null && !useCached) {
     if (last && NOW - last.t < 15000) {
       last.v = current;
       last.t = NOW;
@@ -97,7 +113,7 @@ async function run() {
 
   writeState(state);
   return formatPanel({
-    current, previous, state, metrics, start, uptime: mUptime, tip
+    current, previous, state, metrics, start, uptime: mUptime, sampleAt, tip
   });
 }
 
@@ -123,7 +139,8 @@ function formatPanel(d) {
   if (d.state.lastReload) lines.push('  上次重载 ' + dateTime(d.state.lastReload));
   lines.push('');
   lines.push('Surge ' + versionText(d.metrics));
-  lines.push('更新 ' + clock(NOW) + '  ·  间隔 ' + interval + ' 秒');
+  lines.push('更新 ' + clock(NOW) + ' · 进入面板刷新');
+  lines.push('内存采样 ' + clock(d.sampleAt) + ' · 间隔至少 ' + interval + ' 秒');
   if (d.tip) lines.push(d.tip);
   return {
     title: 'Surge 状态监控',
