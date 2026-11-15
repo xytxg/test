@@ -1,0 +1,12 @@
+#!name=Surge Monitor Pro｜内存与运行时长
+#!desc=内存观测/峰值/趋势/连接/DNS；运行时长及手动配置重载。默认只读。iOS 5.22+。
+#!category=Panels
+#!arguments=api_key,api_port:6171,refresh:60,restart:0
+#!arguments-desc=api_key：Surge 本机 HTTP API 密钥（若内置读取可用则可留空）；api_port：本机 HTTP API 端口；refresh：刷新秒数；restart：1 开启内存面板双击停止引擎（仅“始终开启”会自动重启，默认 0 禁用）
+
+[Panel]
+XY_Surge_Memory = title="Surge 内存监控",content="等待首次采样",style=info,script-name=XY_Surge_Monitor,update-interval={{{refresh}}}
+XY_Surge_Uptime = title="Surge 运行时长",content="等待首次采样",style=info,script-name=XY_Surge_Monitor,update-interval={{{refresh}}}
+
+[Script]
+XY_Surge_Monitor = type=generic,engine=webview,timeout=15,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro.js,argument=api_key={{{api_key}}}&api_port={{{api_port}}}&refresh={{{refresh}}}&restart={{{restart}}}
