@@ -1,18 +1,36 @@
-# Surge Monitor Pro v3.0.1 — 自动内存监控
+# Surge Monitor Pro v3.1.0 — 自动内存监控
 
 **一个 Surge 信息面板，三个采集/事件入口。** 这不是“每点一次刷新就增加一个曲线点”的统计面板，而是用 Surge 官方的 Cron + Event + Shared Persistent Store 做尽力而为的定时采样。
 
-## v3.0.1 紧急修复：timeOf 未定义与旧脚本缓存
+## v3.1.0 更新说明（2026-11-17）
+
+- 保留原有单面板、Cron 每 6 分钟采样、启动/重载事件、持久化键 `xy_surge_monitor_pro_v3`，升级**不清空历史**。
+- 增加最近 1 小时样本平均值、最近 24 小时**成功采样中的**观测最高内存；不会声称能看到采样间隔内的峰值。
+- **持续增长预警**：最近 6 个有效且间隔连续的样本覆盖约 30 分钟，每一步不得下降超过 0.15 MiB，总涨幅至少 `growth_mib`（默认 10 MiB）时只在面板显示警告。这是趋势提示，不是内存泄漏诊断。
+- 展示 DNS 缓存项与约 30 分钟前的差值，仅供对照，**不能**据此判断 DNS 故障或内存泄漏。
+- `profile-reloaded` 事件发生时记录最近有效内存作基线，下次成功采样展示重载前后差值。**重载事件不等于配置内容真实改变**。
+- 采样失败累计连续次数，面板提示最近失败或超过 18 分钟没有采样；仍然保留此前有效历史，不使用旧值冒充实时数据。
+- 所有脚本使用新 URL `surge-monitor-pro-v3.1.0.js` 避免 v3.0.1 缓存；仍保持 `script-update-interval=600`。只是脚本更新检查间隔，不是内存采样频率。
+- 参数新增 `growth_mib:10`。全部新功能只读，不通知、不强制停止或重启引擎、不额外发送 HTTP 抓包请求。
+- **模拟测试**可以覆盖数据持久化、重载对比、增长告警和采样失败；不能保证 iOS 实机后台调度会严格执行。
+
+### 升级方法
+
+Surge → 模块 → Surge Monitor Pro → 更新模块，再到外部资源更新脚本。原模块地址保持不变：
+
+https://raw.githubusercontent.com/xytxg/test/main/Surge/Surge-Monitor-Pro.sgmodule
+
+## v3.0.1 历史修复：timeOf 未定义与旧脚本缓存
 
 故障日志：\`[Surge Monitor Pro] Can't find variable: timeOf\`。
 
 v3.0.0 最初使用了未定义的 \`timeOf()\`，后来改为现有的 \`clock()\`，但远程脚本配置使用 \`script-update-interval=3600\`，手机在自动更新检查前可能仍执行缓存旧脚本。
 
-v3.0.1 的所有 4 个脚本入口改为全新的独立 URL：
+v3.0.1 当时的所有 4 个脚本入口改为独立 URL（**历史旧版本**）：
 
 https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.0.1.js
 
-这样更新模块后会下载新文件，不依赖旧 URL 的更新检查到期。今后脚本远程更新检查间隔调整为 **600 秒**；这不是内存采样间隔，Cron 仍然是每 6 分钟。
+这样更新模块后会下载新文件，不依赖旧 URL 的更新检查到期。从 v3.0.1 起脚本远程更新检查间隔调整为 **600 秒**；这不是内存采样间隔，Cron 仍然是每 6 分钟。
 
 ### 修复安装步骤
 
