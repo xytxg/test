@@ -7,7 +7,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const filename = path.resolve(__dirname, "../scripts/surge-monitor-pro-v3.0.1.js");
+const filename = path.resolve(__dirname, "../scripts/surge-monitor-pro-v3.1.0.js");
 const source = fs.readFileSync(filename, "utf8");
 const entry = new vm.Script(source, { filename });
 const CACHE_KEY = "xy_surge_monitor_pro_v3";
@@ -104,12 +104,27 @@ function saved() { return JSON.parse(memory.get(CACHE_KEY) || "null"); }
   fakeClock += 360000;
   await execute("sample");
   assert.equal(saved().samples.length, 2, "Failed response must not create sample");
+  assert.equal(saved().failures, 1, "Failed metric requests must be counted");
+  assert.match((await execute("panel")).content, /采样失败 1 次/);
 
   rejectMetrics = false;
   valueMiB = 42;
   fakeClock += 360000;
   await execute("sample", { key: "test-local-key" });
   assert.equal(saved().samples.length, 3, "Authenticated local metrics must work");
+  assert.equal(saved().failures, 0, "A successful sample resets the failure streak");
+  assert.match((await execute("panel")).content, /最近重载前后/);
+  // Six successive real observations span roughly 30 minutes and exceed 10 MiB.
+  for (let i = 0; i < 6; i++) {
+    fakeClock += 360000;
+    valueMiB += 3;
+    await execute("sample", { key: "test-local-key" });
+  }
+  const growing = await execute("panel");
+  assert.match(growing.content, /持续上涨预警/);
+  assert.match(growing.content, /1小时均值/);
+  assert.match(growing.content, /DNS较30分钟前/);
+  assert.equal(saved().samples.length, 9);
 
   fakeClock += 1000;
   engineStarted += 1200;
@@ -120,5 +135,5 @@ function saved() { return JSON.parse(memory.get(CACHE_KEY) || "null"); }
   assert.equal(saved().reloadCount, 0);
   assert.doesNotMatch(button.content, /Can't find variable:/);
 
-  console.log("Surge Monitor Pro v3.0.1: 15 regression checks passed");
+  console.log("Surge Monitor Pro v3.1.0: regression checks passed");
 })().catch(e => { console.error(e); process.exitCode = 1; });
