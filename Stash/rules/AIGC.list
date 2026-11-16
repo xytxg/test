@@ -1,11 +1,12 @@
 # AIGC.list - Stash compatible rules
 # Classical/text Surge rules with malformed inline comments removed.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-02; re-generate after upstream updates.
+# Snapshot generated 2026-11-16; re-generate after upstream updates.
 DOMAIN-SUFFIX,cursor.com
 DOMAIN-SUFFIX,cursor.sh
 DOMAIN,7h15.ru1353t.1s.m4d3.by.5ukk4w.skk.moe
 DOMAIN,ai.google.dev
+DOMAIN,aicode.googleapis.com
 DOMAIN,aida.googleapis.com
 DOMAIN,aisandbox-pa.googleapis.com
 DOMAIN,alkalicore-pa.clients6.google.com
@@ -17,7 +18,9 @@ DOMAIN,api.jetbrains.ai
 DOMAIN,browser-intake-datadoghq.com
 DOMAIN,cdn.usefathom.com
 DOMAIN,chat.openai.com.cdn.cloudflare.net
+DOMAIN,cloud.zed.dev
 DOMAIN,daily-cloudcode-pa.googleapis.com
+DOMAIN,daily-cloudcode-pa.sandbox.googleapis.com
 DOMAIN,gateway.ai.cloudflare.com
 DOMAIN,inference.codeium.com
 DOMAIN,jules.google.com

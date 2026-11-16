@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-15。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-16。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -115,5 +115,12 @@ Apple 与 GlobalMedia 均新增 187、移除 1 条，分别共 5987、5396 条�
 ### 2026-11-15 规则同步
 
 跟进上游 `57f3a1ff711d792bed6a955eb91cb0d352a1c37a`（07:47）：Proxy 新增后缀 `51papaya.com`，已转换为 `+.51papaya.com` 并更新 domain/text 快照，共 24322 条。91 条 IP 和 70 条其他规则不变，全部 24483 条源规则完整覆盖；AIGC、TikTok、ChinaCIDR 快照及直接引用的远程规则语义不变。Google 移除 41 条 DOMAIN-SUFFIX，但本配置未直接引用该文件；其余 23 个变更文件仅更新时间戳。
+
+主配置、策略组、6 地区筛选、DNS、规则优先级、固定导入链接和本地私有订阅覆写方式保持不变。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 语法、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。
+
+
+### 2026-11-16 AIGC 规则同步
+
+跟进上游 `284920ce3a4333fee0b884fd9d80814d36305d7e`（07:53）：AIGC 新增 3 条精确域名规则：`aicode.googleapis.com`、`cloud.zed.dev`、`daily-cloudcode-pa.sandbox.googleapis.com`，已更新 classical/text 兼容快照，共 105 条。保留原有 `DOMAIN-SUFFIX,aicode.googleapis.com`，不合并或改变上游规则含义。其余 24 个变更文件仅更新时间戳；TikTok、Proxy、ChinaCIDR 快照及直接引用的远程规则语义不变。
 
 主配置、策略组、6 地区筛选、DNS、规则优先级、固定导入链接和本地私有订阅覆写方式保持不变。已通过 YAML 结构、策略引用与循环、RULE-SET、MATCH 兜底、域名/IP/classical 语法、规则完整性与源语义覆盖，以及 19 个公开资源 URL 访问静态校验；未进行 Stash 实机测试。
