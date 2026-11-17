@@ -1,6 +1,6 @@
 #!name=Surge Monitor Pro｜自动内存监控
-#!version=3.2.0
-#!desc=紧凑信息面板：内存、1h均值、24h采样峰值、DNS、30分钟趋势、重载和采样异常；保留v3历史。无需重启引擎。
+#!version=3.2.1
+#!desc=原生标题突出内存数值，正文压缩到约6行；保留24小时统计、增长预警、历史数据和详细模式。
 #!category=Panels
 #!arguments=api_key,api_port:6171,wake:true,tap:refresh,warn_mib:45,growth_mib:10,view:compact
 #!arguments-desc=api_key：本机HTTP API密钥；api_port：端口默认6171；wake：尝试唤醒后台采样，默认true；tap：refresh只读，reload才手动重载配置；warn_mib：内存阈值默认45；growth_mib：30分钟增长阈值默认10；view：compact紧凑或detail详细。
@@ -10,10 +10,10 @@ XY_Surge_Monitor = title="Surge 状态监控",content="等待自动采样…",st
 
 [Script]
 # Panel: read-only. Never modifies sampling history.
-XY_Surge_Monitor = type=generic,engine=webview,timeout=12,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.0.js,script-update-interval=600,argument=mode=panel&view={{{view}}}&tap={{{tap}}}&warn_mib={{{warn_mib}}}&growth_mib={{{growth_mib}}}
+XY_Surge_Monitor = type=generic,engine=webview,timeout=12,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.1.js,script-update-interval=600,argument=mode=panel&view={{{view}}}&tap={{{tap}}}&warn_mib={{{warn_mib}}}&growth_mib={{{growth_mib}}}
 # Cron: 6-minute schedule, 10 executions/hour (Surge warns when >10/hour).
-XY_Surge_Sampler = type=cron,cronexp="*/6 * * * *",wake-system={{{wake}}},engine=webview,timeout=15,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.0.js,script-update-interval=600,argument=mode=sample&api_key={{{api_key}}}&api_port={{{api_port}}}&warn_mib={{{warn_mib}}}
+XY_Surge_Sampler = type=cron,cronexp="*/6 * * * *",wake-system={{{wake}}},engine=webview,timeout=15,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.1.js,script-update-interval=600,argument=mode=sample&api_key={{{api_key}}}&api_port={{{api_port}}}&warn_mib={{{warn_mib}}}
 # Record an initial point at engine startup.
-XY_Surge_OnStart = type=event,event-name=engine-started,engine=webview,timeout=15,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.0.js,script-update-interval=600,argument=mode=start&api_key={{{api_key}}}&api_port={{{api_port}}}
+XY_Surge_OnStart = type=event,event-name=engine-started,engine=webview,timeout=15,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.1.js,script-update-interval=600,argument=mode=start&api_key={{{api_key}}}&api_port={{{api_port}}}
 # Listen for actual Surge profile reload events, not just panel button clicks.
-XY_Surge_OnReload = type=event,event-name=profile-reloaded,engine=webview,timeout=10,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.0.js,script-update-interval=600,argument=mode=reloaded
+XY_Surge_OnReload = type=event,event-name=profile-reloaded,engine=webview,timeout=10,script-path=https://raw.githubusercontent.com/xytxg/test/main/Surge/scripts/surge-monitor-pro-v3.2.1.js,script-update-interval=600,argument=mode=reloaded
