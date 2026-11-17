@@ -126,7 +126,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
             do { reply = ["ok": true, "value": try await self.handle(body)] }
             catch { reply = ["ok": false, "error": error.localizedDescription] }
             guard !Task.isCancelled, self.continuations[operation] != nil else { return }
-            if let json = try? Self.json(reply) { self.webView.evaluateJavaScript("__reply(\(Self.quote(id)),\(json)); void 0") }
+            if let json = try? Self.json(reply) { self.webView.evaluateJavaScript("__reply(\(Self.quote(id)),\(json)); void 0", completionHandler: nil) }
         }
     }
     private func handle(_ body: [String: Any]) async throws -> Any {

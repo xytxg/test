@@ -49,7 +49,8 @@ struct CENCPlan: Decodable {
 // The source supplies a clear moov and a bounded sample map. AVFoundation asks
 // for virtual ranges; only the requested remote bytes and intersecting samples
 // are fetched. No localhost server or full-file decryption is required.
-final class MediaLoader: NSObject, AVAssetResourceLoaderDelegate {
+// Mutable loading-request state is confined to queue; URLSession and NSCache are thread safe.
+final class MediaLoader: NSObject, AVAssetResourceLoaderDelegate, @unchecked Sendable {
     let source: MediaSource
     let plan: CENCPlan
     private let key: Data

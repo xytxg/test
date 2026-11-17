@@ -30,18 +30,18 @@ jobs:
           brew install xcodegen
           xcodegen generate
           xcodebuild -version
-      - name: Select simulator
-        id: sim
-        run: |
-          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for vs in d["devices"].values() for v in vs if "iPhone" in v["name"]))')
-          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
-          xcrun simctl list devices available -j > simulator-devices.json
       - name: Compile simulator app and tests
         run: |
           set -o pipefail
           xcodebuild build-for-testing -project WeBox.xcodeproj -scheme WeBox \
             -destination 'generic/platform=iOS Simulator' -derivedDataPath build/simulator \
             CODE_SIGNING_ALLOWED=NO | tee build-compile.log
+      - name: Select simulator
+        id: sim
+        run: |
+          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for vs in d["devices"].values() for v in vs if "iPhone" in v["name"]))')
+          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl list devices available -j > simulator-devices.json
       - name: Test source runtime and CENC ranges on iOS
         timeout-minutes: 12
         run: |
