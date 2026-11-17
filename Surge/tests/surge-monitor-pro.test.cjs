@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const srcFile = path.resolve(__dirname, '../scripts/surge-monitor-pro-v3.2.1.js');
+const srcFile = path.resolve(__dirname, '../scripts/surge-monitor-pro-v3.3.0.js');
 const source = fs.readFileSync(srcFile, 'utf8');
 const runner = new vm.Script(source, {filename:srcFile});
 const store = new Map();
@@ -80,6 +80,12 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
   check(panel.content.includes('Surge 6.100.0 (4032)'),'Version metadata');
   check(panel.content.split('\n').every(x=>x.length<44),'No excessive line lengths');
   check(panel['icon-color']==='#FF9500','Growth warning changes icon color');
+  const glance=await run('panel',{view:'glance'});
+  check(glance.title.startsWith('内存 '),'Glance uses the actual bold title');
+  check(glance.content.includes('近30分钟'),'Glance shows 30-minute trend');
+  check(glance.content.includes('24h峰'),'Glance still shows observed peak');
+  check(glance.content.split('\n').length <= 5,'Glance has at most five lines, including warning');
+  check(!glance.content.includes('Surge 6.'),'Glance hides secondary version text');
   const len=saved().samples.length;
   await run('reloaded');
   clock+=360000;mib+=1;await run('sample');
@@ -101,5 +107,5 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
   check((await run('panel')).content.includes('旧历史已隔离'),'Restart isolation before new sample');
   await run('start');
   check(saved().samples.length===1&&saved().reloadCount===0,'Restart resets session');
-  console.log('Surge Monitor Pro v3.2.1: '+tests+' regression checks passed');
+  console.log('Surge Monitor Pro v3.3.0: '+tests+' regression checks passed');
 })().catch(err=>{console.error(err);process.exitCode=1;});
