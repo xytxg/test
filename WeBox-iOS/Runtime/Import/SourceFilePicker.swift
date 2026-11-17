@@ -40,8 +40,11 @@ struct SourceFilePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         // The copy is available locally before parsing. Generic file types
         // accommodate Android exports with nonstandard filename extensions.
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.data, .text, .javaScript], asCopy: true)
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
         picker.allowsMultipleSelection = allowsMultipleSelection
+        #if DEBUG
+        if let directory = ScreenshotSupport.importTestDirectory { picker.directoryURL = directory }
+        #endif
         picker.delegate = context.coordinator
         return picker
     }

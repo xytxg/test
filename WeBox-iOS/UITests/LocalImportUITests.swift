@@ -32,23 +32,13 @@ final class LocalImportUITests: XCTestCase {
     }
 
     @MainActor private func choose(_ filename: String, app: XCUIApplication) throws {
-        // Files may reopen the last directory. Otherwise navigate through local storage.
-        if app.staticTexts[filename].waitForExistence(timeout: 3) { app.staticTexts[filename].firstMatch.tap(); finishSelection(app); return }
-        let browse = app.tabBars.buttons["Browse"]
-        if browse.waitForExistence(timeout: 5) { browse.tap(); browse.tap() }
-        for name in ["On My iPhone", "WeBox", "ImportTests", filename] {
-            let element = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", name)).firstMatch
-            if !element.waitForExistence(timeout: 10) {
-                let image = XCTAttachment(screenshot: app.screenshot()); image.name = "picker-failure-" + name; image.lifetime = .keepAlways; add(image)
-                XCTFail("Missing Files entry: \(name)\n\(app.debugDescription)"); return
-            }
-            element.tap()
-        }
-        finishSelection(app)
-    }
-    @MainActor private func finishSelection(_ app: XCUIApplication) {
+        let files = app.collectionViews["File View"]
+        let name = String(filename.dropLast(3))
+        let cell = files.cells.matching(NSPredicate(format: "identifier BEGINSWITH %@ OR label BEGINSWITH %@", name, name)).firstMatch
+        XCTAssertTrue(cell.waitForExistence(timeout: 20), app.debugDescription)
+        // Tap the thumbnail. In icon view the filename can enter text editing.
+        cell.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.24)).tap()
         let open = app.buttons["Open"].firstMatch
-        if open.waitForExistence(timeout: 2) { open.tap() }
-        else if app.buttons["Import"].firstMatch.exists { app.buttons["Import"].firstMatch.tap() }
+        if open.exists { open.tap() }
     }
 }
