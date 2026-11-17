@@ -48,6 +48,7 @@ final class AppModel: ObservableObject {
     @Published var history: [LibraryItem] = []
     @Published var error: String?
     @Published var importing = false
+    @Published var sourceRevision = 0
     let root: URL
     let screenshotMode = ProcessInfo.processInfo.arguments.contains("--screenshots")
     init() {
@@ -69,6 +70,7 @@ final class AppModel: ObservableObject {
     }
     var selected: SourceEntry? { sources.first { $0.id == selectedID } }
     func bootstrap() async {
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
         if screenshotMode {
             if let url = Bundle.main.url(forResource: "demo.webox", withExtension: "js") { await importFile(url, origin: "离线截图演示") }
         } else if sources.isEmpty, let url = Bundle.main.url(forResource: "hongguo.webox", withExtension: "js") { await importFile(url, origin: "内置附件源") }
@@ -122,6 +124,7 @@ final class AppModel: ObservableObject {
             sources.append(SourceEntry(id: id, pluginID: pluginID, name: name, version: metadata["version"] as? String ?? "0", filename: filename, origin: origin))
             selectedID = id
         }
+        sourceRevision += 1
         persist()
     }
     func remove(_ source: SourceEntry) {

@@ -82,6 +82,16 @@ final class WeBoxTests: XCTestCase {
         let detail = try await runtime.invoke("detail", ["id":"7470092475068071998"]) as! [String:Any]
         let groups = detail["groups"] as! [[String:Any]]
         XCTAssertEqual((groups[0]["episodes"] as? [[String:Any]])?.count, 2)
+        let identity = ["device_id":"1234567890123456", "iid":"2345678901234567", "cdid":"12345678-1234-1234-1234-123456789abc"]
+        UserDefaults.standard.set(try JSONSerialization.data(withJSONObject: identity), forKey: "webox.source.tests.device.v1")
+        defer { UserDefaults.standard.removeObject(forKey: "webox.source.tests.device.v1") }
+        MockURLProtocol.response = { request in
+            XCTAssertTrue(request.value(forHTTPHeaderField: "x-medusa")?.isEmpty == false)
+            let json = #"{"code":0,"data":{"cell_view":{"cell_data":[{"video_data":[{"content_type":1,"series_id":"1234","series_name":"目录测试"}]}],"has_more":false}}}"#
+            return (200, ["Content-Type":"application/json"], Data(json.utf8))
+        }
+        let catalog = try await runtime.invoke("list", ["filters":["category":"hot"]]) as! [String:Any]
+        XCTAssertEqual((catalog["items"] as? [[String:Any]])?.first?["title"] as? String, "目录测试")
         MockURLProtocol.response = { _ in (200, [:], Data("{}".utf8)) }
         do { _ = try await runtime.invoke("search", ["query":"test"]); XCTFail("Expected source schema error") }
         catch { XCTAssertTrue(error.localizedDescription.contains("结构")) }

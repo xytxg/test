@@ -35,12 +35,19 @@ jobs:
         run: |
           SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for vs in d["devices"].values() for v in vs if "iPhone" in v["name"]))')
           echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
-          xcrun simctl boot "$SIMULATOR_ID" || true
-          xcrun simctl bootstatus "$SIMULATOR_ID" -b
-      - name: Test source runtime and CENC ranges on iOS
+          xcrun simctl list devices available -j > simulator-devices.json
+      - name: Compile simulator app and tests
         run: |
           set -o pipefail
-          xcodebuild test -project WeBox.xcodeproj -scheme WeBox \
+          xcodebuild build-for-testing -project WeBox.xcodeproj -scheme WeBox \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build/simulator \
+            CODE_SIGNING_ALLOWED=NO | tee build-compile.log
+      - name: Test source runtime and CENC ranges on iOS
+        timeout-minutes: 12
+        run: |
+          set -o pipefail
+          xcrun simctl boot '${{ steps.sim.outputs.id }}' || true
+          xcodebuild test-without-building -project WeBox.xcodeproj -scheme WeBox \
             -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.id }}' \
             -derivedDataPath build/simulator -resultBundlePath build/Tests.xcresult \
             CODE_SIGNING_ALLOWED=NO | tee build-test.log
@@ -103,5 +110,6 @@ jobs:
           name: WeBox-iOS-diagnostics
           path: |
             WeBox-iOS/*.log
+            WeBox-iOS/simulator-devices.json
             WeBox-iOS/build/Tests.xcresult
           retention-days: 7

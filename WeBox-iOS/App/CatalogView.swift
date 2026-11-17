@@ -127,7 +127,7 @@ struct CatalogView: View {
         .searchable(text: $search, prompt: "搜索剧名、关键词")
         .onSubmit(of: .search) { Task { await catalog.load(query: search, reset: true) } }
         .onChange(of: search) { _, value in if value.isEmpty { Task { await catalog.load(query: "", reset: true) } } }
-        .task(id: app.selectedID + (app.selected?.version ?? "") + (app.selected?.origin ?? "")) {
+        .task(id: app.selectedID + (app.selected?.version ?? "") + (app.selected?.origin ?? "") + String(app.sourceRevision)) {
             search = ""
             if let source = app.selected { await catalog.start(source, app: app) }
         }

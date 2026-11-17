@@ -164,7 +164,9 @@ final class MediaLoader: NSObject, AVAssetResourceLoaderDelegate {
             throw WeBoxError("媒体服务器未返回正确的 Range，或地址已过期")
         }
         if let validator = plan.validator {
-            let actual = http.value(forHTTPHeaderField: "ETag") ?? http.value(forHTTPHeaderField: "Last-Modified")
+            let etag = http.value(forHTTPHeaderField: "ETag")
+            let modified = http.value(forHTTPHeaderField: "Last-Modified")
+            let actual = etag?.hasPrefix("W/") == true ? modified : (etag ?? modified)
             if let actual, actual != validator { throw WeBoxError("媒体内容已变化，请重新播放") }
         }
         var data = Data()
