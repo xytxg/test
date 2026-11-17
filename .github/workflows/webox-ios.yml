@@ -30,21 +30,6 @@ jobs:
           grep -q 'iphoneos27' sdks.log
           brew install xcodegen
           xcodegen generate
-      - name: Select iOS 27 simulator
-        id: sim
-        run: |
-          xcrun simctl list devices available -j > simulator-devices.json
-          SIMULATOR_ID=$(python3 - <<'PY'
-          import json
-          d=json.load(open('simulator-devices.json'))
-          rows=[v for key,vs in d['devices'].items() if 'iOS-27' in key for v in vs if 'iPhone' in v['name']]
-          assert rows,'iOS 27 iPhone simulator is required'
-          rows.sort(key=lambda v:('Pro Max' not in v['name'],'Pro' not in v['name'],v['name']))
-          print(rows[0]['udid'])
-          PY
-          )
-          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
-          xcrun simctl boot "$SIMULATOR_ID" || true
       - name: Compile simulator app and tests
         run: |
           set -o pipefail
@@ -70,6 +55,21 @@ jobs:
                   if attempt==19: raise
                   time.sleep(.2)
           PY
+      - name: Select iOS 27 simulator
+        id: sim
+        run: |
+          xcrun simctl list devices available -j > simulator-devices.json
+          SIMULATOR_ID=$(python3 - <<'PY'
+          import json
+          d=json.load(open('simulator-devices.json'))
+          rows=[v for key,vs in d['devices'].items() if 'iOS-27' in key for v in vs if 'iPhone' in v['name']]
+          assert rows,'iOS 27 iPhone simulator is required'
+          rows.sort(key=lambda v:('Pro Max' not in v['name'],'Pro' not in v['name'],v['name']))
+          print(rows[0]['udid'])
+          PY
+          )
+          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$SIMULATOR_ID" || true
       - name: Test imports, source contracts, media cache and actual AVPlayer playback
         timeout-minutes: 18
         run: |

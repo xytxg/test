@@ -5,7 +5,6 @@ enum ScreenshotSupport {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--import-test-document") {
             return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("ImportTests", isDirectory: true)
         }
         #endif
         return nil

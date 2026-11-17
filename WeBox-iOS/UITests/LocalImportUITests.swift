@@ -34,11 +34,32 @@ final class LocalImportUITests: XCTestCase {
     @MainActor private func choose(_ filename: String, app: XCUIApplication) throws {
         let files = app.collectionViews["File View"]
         let name = String(filename.dropLast(3))
-        let cell = files.cells.matching(NSPredicate(format: "identifier BEGINSWITH %@ OR label BEGINSWITH %@", name, name)).firstMatch
-        XCTAssertTrue(cell.waitForExistence(timeout: 20), app.debugDescription)
-        // Tap the thumbnail. In icon view the filename can enter text editing.
-        cell.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.24)).tap()
+        let file = files.cells.matching(NSPredicate(format: "identifier BEGINSWITH %@ OR label BEGINSWITH %@", name, name)).firstMatch
+        let container = files.cells["WeBox, Container"]
+        if !file.exists {
+            if !container.waitForExistence(timeout: 5) {
+                let browse = app.tabBars.buttons["Browse"]
+                XCTAssertTrue(browse.waitForExistence(timeout: 10), app.debugDescription)
+                browse.tap()
+                let local = app.cells["DOC.sidebar.item.On My iPhone"]
+                if !local.exists { browse.tap() }
+                XCTAssertTrue(local.waitForExistence(timeout: 10), app.debugDescription)
+                local.tap()
+            }
+            XCTAssertTrue(container.waitForExistence(timeout: 15), app.debugDescription)
+            tapThumbnail(container, in: files)
+        }
+        XCTAssertTrue(file.waitForExistence(timeout: 15), app.debugDescription)
+        tapThumbnail(file, in: files)
         let open = app.buttons["Open"].firstMatch
         if open.exists { open.tap() }
+    }
+
+    @MainActor private func tapThumbnail(_ cell: XCUIElement, in files: XCUIElement) {
+        if files.value as? String == "Icon Mode" {
+            cell.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.24)).tap()
+        } else {
+            cell.tap()
+        }
     }
 }
