@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const srcFile = path.resolve(__dirname, '../scripts/surge-monitor-pro-v3.3.0.js');
+const srcFile = path.resolve(__dirname, '../scripts/surge-monitor-pro-v3.4.0.js');
 const source = fs.readFileSync(srcFile, 'utf8');
 const runner = new vm.Script(source, {filename:srcFile});
 const store = new Map();
@@ -12,6 +12,9 @@ let start = Math.floor((clock - 600000) / 1000);
 let mib = 30.0;
 let dns = 200;
 let badMetrics = false;
+let metricStatus = 200;
+let trafficUnavailable = false;
+let startupMetricFailures = 0;
 let metricsRequests = 0;
 let reloads = 0;
 let tests = 0;
@@ -38,14 +41,14 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
       $environment:{'surge-version':'6.100.0','surge-build':'4032'},
       $persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>{store.set(k,v);return true;}},
       $httpAPI:(method,url,body,cb)=>{
-        if(url==='/v1/traffic') cb({startTime:start});
-        else if(url==='/v1/metrics'){metricsRequests++;cb(badMetrics?{error:'failed'}:metrics());}
+        if(url==='/v1/traffic') cb(trafficUnavailable?{error:'timeout'}:{startTime:start});
+        else if(url==='/v1/metrics'){metricsRequests++;cb(badMetrics || startupMetricFailures-- > 0 ? {error:'failed'} : metrics());}
         else if(url==='/v1/profiles/reload'){reloads++;cb({success:true});}
         else cb({error:'Unknown path'});
       },
       $httpClient:{get:(opts,cb)=>{
         assert.equal(opts.url,'http://127.0.0.1:6171/v1/metrics');
-        cb(null,{status:200},badMetrics?'':metrics());
+        cb(null,{status:metricStatus},badMetrics || startupMetricFailures-- > 0 ? '' : metrics());
       }},
       $done:end
     };
@@ -107,5 +110,22 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
   check((await run('panel')).content.includes('旧历史已隔离'),'Restart isolation before new sample');
   await run('start');
   check(saved().samples.length===1&&saved().reloadCount===0,'Restart resets session');
-  console.log('Surge Monitor Pro v3.3.0: '+tests+' regression checks passed');
+  badMetrics=true;clock+=360000;await run('sample',{key:'local-only'});
+  check(saved().failures===1 && saved().outageSince===clock,'Outage time recorded');
+  badMetrics=false;metricStatus=403;clock+=360000;await run('sample',{key:'local-only'});
+  check(saved().failures===2 && saved().lastError.includes('密钥'),'403 classified safely');
+  metricStatus=200;clock+=360000;await run('sample',{key:'local-only'});
+  check(saved().lastRecovered===clock && saved().recoveryCount===1,'Recovery observed and counted');
+  check((await run('panel',{view:'glance'})).content.includes('采样已恢复'),'Recovery in glance');
+  check((await run('panel',{view:'detail'})).content.includes('采样恢复 '),'Recovery in detail');
+  trafficUnavailable=true;
+  check((await run('panel',{view:'glance'})).content.includes('引擎信息暂不可读'),'Traffic API partial outage');
+  trafficUnavailable=false;clock+=1140000;
+  check(!(await run('panel',{view:'glance'})).content.includes('采样已恢复'),'Recovery reminder expires');
+  check((await run('panel',{view:'glance'})).title.startsWith('历史内存 '),'Stale value explicitly historical');
+  start=Math.floor(clock/1000)-60;clock+=360000;startupMetricFailures=1;
+  await run('start',{key:'local-only'});
+  check(saved().samples.length===1 && saved().failures===0,'Startup metrics retry before failure');
+  
+  console.log('Surge Monitor Pro v3.4.0: '+tests+' regression checks passed');
 })().catch(err=>{console.error(err);process.exitCode=1;});
