@@ -1,60 +1,64 @@
-# WeBox iOS
+# WeBox iOS 0.2
 
-独立重写的 SwiftUI iOS 客户端，适配附件 `红果短剧.webox.js` 使用的 WeBox 基础源协议。不是 APK 格式转换，也不是原 Android 应用全部功能的移植。
+固定 iOS 界面、多源数据驱动的原生播放器。首次启动没有内容源，用户导入自己的 JS 文件。iOS 17+，iPhone / iPad；使用 Xcode 27 和 iOS 27 SDK 构建，系统 TabView、工具栏与分层菜单采用原生 Liquid Glass，旧系统自然回退。
 
-最低 iOS 17，iPhone / iPad。界面支持系统深浅色和动态字体。正式启动默认导入附件源，不自动加载演示源。
+## 下载与使用
 
-## 下载和安装
+从本仓库 [Releases](https://github.com/xytxg/test/releases) 下载最新 **WeBox iOS 0.2** 的 `WeBox-iOS-unsigned.ipa`，先使用自己的证书签名，再安装。保持 `com.xylyra.webox` 标识可保留旧版用户数据。
 
-1. 在本仓库 [Releases](https://github.com/xytxg/test/releases) 找到 `WeBox iOS`，下载 `WeBox-iOS-unsigned.ipa`。
-2. 使用自己的证书和描述文件，通过侧载/签名工具签名后安装。未签名 IPA 无法直接安装。
-3. 首次进入「发现」会自动安装内置红果源。等待目录加载；如果上游返回错误，页面会展示错误和重试按钮。
-4. 「源管理」→「从文件导入」选择 `.webox.js`，或「从链接导入」输入 HTTPS 文件直链。导入同一插件 ID 会更新已安装源。
-5. 点击内容 → 选集 → 播放，播放结束自动进入下一集。收藏和播放记录保存在设备本地，退出详情页时保存进度；再次进入后点「继续观看」。
+1. 首页左上角 → 添加内容源，或「设置 → 内容源」。
+2. 从「文件」App 选择一个或多个 JS 文件，也可填写 HTTP(S) 文件链接；GitHub `/blob/` 链接会转成 Raw。
+3. 源需要配置时，点击其配置按钮填写。配置界面由脚本的字段定义生成，支持文本、网址、私密字段、选项、数值、开关和条件显示。
+4. 左上角源选择面板切换浏览；当前播放器保持运行。搜索可选择当前源或所有已启用源。
+5. 详情页切换线路、分集；超过 50 集会分段显示。播放器内也能切换资源、线路和选集；切换线路会尽量按集名/集号匹配并保留进度。
+6. 收起播放器后，可从底栏上方的小播放器继续。倍速、缓冲策略、预热下一集和片头/片尾跳过见播放设置。
 
-每个成功构建的 Release 还提供四张原生模拟器截图、截图 ZIP 和 IPA 的 SHA-256。截图使用显式启用的离线样例，便于复现 UI，不展示或声称实时源站数据。Release 工作流必须先通过 iOS 模拟器测试才发布 IPA。
+导入同一源 ID 会更新文件并保留配置、收藏和记录。普通配置本地保存；标记为 `secret` / `sensitive` 的字段使用设备钥匙串。只迁移移除旧版自动内置的红果源，用户自行导入的源保留；之后手动导入相同 ID 可重新关联记录。
 
-## 支持范围
+## 协议与能力
 
-| 接口 / 功能 | 当前支持 |
+| 源协议 | 接入路径 |
 | --- | --- |
-| `WeBox.define` | `api: 1.0` 至 `1.5` 的基础接口（不保证所有版本扩展） |
-| `filters/list/search/detail/play` | 单值筛选、字符串游标、卡片、分组和分集；播放选择返回的第一条媒体地址 |
-| `ctx.http.get/post` | headers、bytes(Base64)、json、body；text/base64/json 响应；有大小和超时限制 |
-| `ctx.store` | get/set/remove，每个安装源独立存储；单条 1 MiB |
-| `ctx.crypto` | MD5、SHA-1/256/384/512、AES-CBC/ECB/CTR、gzip；UTF-8/hex/Base64 |
-| 随机数 / JS | 原生安全随机数、BigInt、TypedArray、Promise |
-| 普通媒体 | AVFoundation 支持的 MP4 / HLS 与编解码器；源 headers 传递给播放器 |
-| 附件源的 `cencMp4` | 源生成的重建 moov、Range 映射、8 字节 IV / AES-CTR 全样本处理；不提供 DRM 许可证或 FairPlay |
-| 收藏、播放记录 | 本地保存，最多 200 条播放记录 |
-| 下载 / mpv / ByteVC2 | 未实现；附件源本身也不允许下载 |
-| DOM、compute、任意 Node / 其它 WeBox 扩展 | 未实现；声明不支持的 requires 会拒绝导入 |
+| WeBox API 1.0–1.5 | `WeBox.define`，settings / filters / list / search / detail / play |
+| Widget | `WidgetMetadata`、modules、globalParams、loadDetail、stream 函数 |
+| XPTV 常用接口 | getConfig / getCards / getTracks / getPlayinfo，含 JSON 文本返回值 |
 
-默认请求为 HTTPS。仅源明确声明 `allowHttp: true` 时基础 HTTP 桥允许 HTTP；加密视频 Range 要求 HTTPS。允许 HTTP 的系统配置是为了兼容用户导入源，不代表网络请求没有检查。不要导入不信任的脚本。
+| 能力 | 实现 |
+| --- | --- |
+| HTTP | 带响应上限的分块接收、连接复用、超时与取消；headers / query / text / JSON / Base64 |
+| HTML / 加密 | Cheerio、兼容 CryptoJS、原生哈希/HMAC/AES/RSA/gzip，URL 工具 |
+| 计算 / DOM | 限时 Worker 与无网络沙盒 iframe；独立于显示 UI |
+| 二进制 / 封面 | 有界句柄读取/切片/写入/拼接、声明式 AES-CBC 封面解码、图片请求合并与内存缓存 |
+| 播放 | AVFoundation 支持的 MP4/HLS/音频；原生字幕、音轨、AirPlay、画中画控件 |
+| CENC MP4 | 源生成的 moov/分段计划、8 字节 IV 的整样本 AES-CTR、32 MiB 范围缓存预算；不提供 DRM 许可证 |
+| 源切换 | 浏览选择与播放会话分离；资料库按源 ID 隔离 |
 
-## 红果说明与实际验证边界
+**不支持的扩展**：browserSession、memoryHls、mediaProcessor、任意 Node / ES Module、离线下载。要求这些能力的源会明确提示，不能宣称所有 JS 都兼容。部分 Widget 自定义宿主接口也可能尚未实现。
 
-附件脚本原样保留在 `Resources/hongguo.webox.js`，其上游声明为 GPL-3.0-only，引用 `zfdang/hongguo-open-player` 的协议实现、`N3urda/hongguoTV` / drpys 的签名代码。原始附件没有包含注释提到的「红果接入说明.md」。没有反编译或复用 APK 中 mpv / FFmpeg 的二进制。
+不包含任何内容站点的算法、密钥、地址或源文件。运行 SDK 参考并复用了用户提供 Android APK 中的协议适配器，站点源仅保留于测试夹具。原附件来源与许可见 [docs/PROVENANCE.md](docs/PROVENANCE.md)。
 
-自动化测试覆盖：原附件元数据和筛选、超长 ID 保真、搜索翻页、详情分集；真实 WKWebView 中的同步加密桥和异步存储；AES 官方已知向量、gzip 标头；CENC 跨分段 / 跨样本范围重建和错误 Range 拒绝。网络测试使用固定 HTTP fixture，避免注册设备、上游限流和目录变化造成不稳定。
+## 播放实现
 
-**尚需设备验证**：红果实际设备注册、签名接口可用性、CDN 视频播放、拖动与锁屏；此项目不能承诺源站永久可用。接口测试和界面截图不能代替这些验证。单个加密样本最多 16 MiB，元数据最多 4 MiB，缓存最多 24 MiB；碎片化 MP4、子样本加密等由附件源拒绝。
+播放控制器长期持有会话，不随详情页退出或浏览源切换销毁。状态区分解析、缓冲、播放、暂停、失败和结束。每 8 秒及暂停/后台时保存进度；下一集接近片尾时才预解析并 preroll，取消旧预加载，过期预加载不复用。失败先尝试未用过的返回资源，再刷新解析一次；不会无限重试。
 
-## 本地构建
+CENC 使用单一 HTTPClient 保持连接。相邻样本从同一 512 KiB 块读取，重复并发范围共享任务；采样索引使用二分查找，内联 moov 只解码一次。原始块缓存 24 MiB，解密样本缓存 8 MiB，校验 Content-Range 和实体标识，取消旧播放时清理任务。
 
-需要 macOS、Xcode 16+、Homebrew 的 `xcodegen` 和 Node 22+：
+不以固定夹具代替真实网络结论。AVPlayer 实测证明本地合成 H.264/AAC 可播放、续播、切换浏览源后会话不变；仍需用户设备验证源站限流、长视频、后台锁屏、AirPlay、画中画及各类编码。附带红果源的目录/搜索/详情/播放签名和 MP4 计划测试使用模拟 HTTP，无需联系真实注册接口。
+
+## 构建与测试
 
 ```bash
 cd WeBox-iOS
 node Scripts/check-source.mjs
 brew install xcodegen
 xcodegen generate
-xcodebuild test -project WeBox.xcodeproj -scheme WeBox -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO
+python3 Scripts/fixture-server.py &
+xcodebuild test -project WeBox.xcodeproj -scheme WeBox -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' CODE_SIGNING_ALLOWED=NO
 xcodebuild build -project WeBox.xcodeproj -scheme WeBox -configuration Release -destination 'generic/platform=iOS' -derivedDataPath build/device CODE_SIGNING_ALLOWED=NO
 ```
 
-GitHub Actions `.github/workflows/webox-ios.yml` 会测试、截图、构建设备 arm64 应用、检查无签名及无描述文件，再打包为 `Payload/WeBox.app` 的 IPA 并发布 Release。完全不需要 Apple 证书或仓库签名 secrets。
+工作流使用 `xcode-27` Runner，先验证 SDK，再编译、运行模拟器测试和截图，最后构建设备 IPA。Release 包检查 JS 白名单，拒绝把 `.webox.js`、样例视频和测试资源放进正式应用。
 
-## 许可
+截图夹具只在 Debug + `--screenshots --fixtures=…` 下从模拟器 Documents 临时载入。正式 Release 不包含此加载分支或测试源。截图有空源首页、内容首页、详情、源切换、资料库、设置与真实合成视频播放器。
 
-本目录代码 GPL-3.0-only，完整许可见 [LICENSE](LICENSE)。附件来源与 SHA-256 见 [docs/PROVENANCE.md](docs/PROVENANCE.md)。
+第三方浏览器库可复现构建：`cd Tools/vendor && npm ci && npm run build`。版本和依赖锁定，许可证随库重新生成。GPL-3.0-only，完整许可与第三方声明同时包含在应用与源码中。

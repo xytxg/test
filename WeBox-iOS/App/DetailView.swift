@@ -1,189 +1,130 @@
 import SwiftUI
-import AVKit
 
 @MainActor
-final class PlaybackModel: ObservableObject {
-    @Published var player: AVPlayer?
-    @Published var resolving = false
-    @Published var error: String?
-    @Published var episodeID: String?
-    private var loader: MediaLoader?
-    private var runtime: SourceRuntime?
-    private var task: Task<Void, Never>?
-    private var observer: NSKeyValueObservation?
-    private var finished: NSObjectProtocol?
-    private var generation = UUID()
-    var onFinished: (() -> Void)?
-    var position: Double { player?.currentTime().seconds ?? 0 }
-    func play(card: Card, source: SourceEntry, group: EpisodeGroup, episode: Episode, app: AppModel, resume: Double = 0) {
-        task?.cancel(); runtime?.close(); runtime = nil
-        stopPlayer()
-        let gen = UUID(); generation = gen
-        resolving = true; error = nil; episodeID = episode.id
-        task = Task {
-            do {
-                let engine = try await app.makeRuntime(source)
-                guard generation == gen, !Task.isCancelled else { engine.close(); return }
-                runtime = engine
-                let value = try await engine.invoke("play", ["contentId": card.id, "groupId": group.id, "episodeId": episode.id, "purpose": "play"])
-                let response = try JSONDecoder().decode(PlayResponse.self, from: JSONSerialization.data(withJSONObject: value))
-                guard generation == gen, !Task.isCancelled else { return }
-                guard let media = response.sources.first, let url = URL(string: media.url), ["https", "http"].contains(url.scheme ?? ""), url.host != nil else { throw WeBoxError("此源没有返回可播放地址") }
-                let item: AVPlayerItem
-                if media.cenc != nil {
-                    let loader = try MediaLoader(source: media); self.loader = loader
-                    item = AVPlayerItem(asset: loader.asset())
-                } else {
-                    let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": media.headers ?? [:]])
-                    item = AVPlayerItem(asset: asset)
-                }
-                item.preferredForwardBufferDuration = 8
-                let player = AVPlayer(playerItem: item); self.player = player
-                observer = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
-                    Task { @MainActor in
-                        guard let self, self.generation == gen else { return }
-                        if item.status == .failed { self.error = item.error?.localizedDescription ?? "播放器无法解码此视频"; self.resolving = false }
-                    }
-                }
-                finished = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { [weak self] _ in Task { @MainActor in self?.onFinished?() } }
-                resolving = false
-                if resume.isFinite && resume > 1 { await player.seek(to: CMTime(seconds: resume, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) }
-                try AVAudioSession.sharedInstance().setActive(true)
-                player.play()
-                app.record(card, source: source, episode: episode.id, seconds: resume)
-            } catch { if generation == gen, !Task.isCancelled { self.error = error.localizedDescription; resolving = false } }
-        }
-    }
-    private func stopPlayer() {
-        player?.pause(); player?.replaceCurrentItem(with: nil); player = nil
-        observer = nil
-        if let finished { NotificationCenter.default.removeObserver(finished); self.finished = nil }
-        loader?.stop(); loader = nil
-    }
-    func close() {
-        generation = UUID(); task?.cancel(); task = nil
-        runtime?.close(); runtime = nil; stopPlayer(); resolving = false
+final class DetailModel:ObservableObject{
+    @Published var detail:ContentDetail?
+    @Published var error:String?
+    @Published var busy=false
+    private var engine:SourceRuntime?
+    func load(_ card:Card,source:SourceEntry,app:AppModel)async{
+        guard !busy else{return};busy=true;error=nil;defer{busy=false;engine?.close();engine=nil}
+        do{
+            let runtime=try await app.makeRuntime(source);engine=runtime
+            let raw=try await runtime.invoke("detail",["id":card.id,"link":card.link ?? "","title":card.title])
+            try Task.checkCancellation()
+            detail=try JSONDecoder().decode(ContentDetail.self,from:JSONSerialization.data(withJSONObject:raw))
+            if detail?.title.isEmpty==true{detail?.title=card.title}
+        }catch{if !(error is CancellationError){self.error=error.localizedDescription}}
     }
 }
-
-struct DetailView: View {
-    let card: Card
-    let source: SourceEntry
-    @EnvironmentObject var app: AppModel
-    @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var playback = PlaybackModel()
-    @State private var detail: ContentDetail?
-    @State private var error: String?
-    @State private var groupID = ""
-    @State private var ascending = true
-    private var group: EpisodeGroup? { detail?.groups.first { $0.id == groupID } ?? detail?.groups.first }
-    private var saved: LibraryItem? { app.history.first { $0.sourceID == source.id && $0.card.id == card.id } }
-    private var isFavorite: Bool { app.favorites.contains { $0.sourceID == source.id && $0.card.id == card.id } }
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                playerView
+struct DetailView:View{
+    let card:Card
+    let source:SourceEntry
+    @EnvironmentObject private var app:AppModel
+    @EnvironmentObject private var playback:PlaybackController
+    @StateObject private var model=DetailModel()
+    @State private var groupID=""
+    @State private var ascending=true
+    @State private var page=0
+    @State private var expanded=false
+    @State private var search=false
+    private var saved:LibraryItem?{app.saved(card,source:source)}
+    private var group:EpisodeGroup?{model.detail?.groups.first{$0.id==groupID} ?? model.detail?.groups.first}
+    private var orderedEpisodes:[Episode]{guard let group else{return []};return ascending ? group.episodes:Array(group.episodes.reversed())}
+    private var visibleEpisodes:[Episode]{let values=orderedEpisodes,start=min(page*50,values.count);return Array(values[start..<min(start+50,values.count)])}
+    private var currentEpisodeID:String?{playback.context?.source.id==source.id && playback.context?.card.id==card.id ? playback.context?.episode.id:saved?.episodeID}
+    var body:some View{
+        ScrollView{
+            VStack(alignment:.leading,spacing:26){
                 introduction
-                if let message = playback.error { Label(message, systemImage: "exclamationmark.circle").font(.subheadline).foregroundStyle(.red).textSelection(.enabled) }
-                summaryView
-                episodesSection
-            }.padding(20)
+                primaryActions
+                summary
+                if let detail=model.detail{groupPicker(detail);episodesSection}
+                else if model.busy{ProgressView("读取详情…").frame(maxWidth:.infinity).padding(30)}
+                else if let message=model.error{VStack(spacing:14){Text(message).font(.subheadline).foregroundStyle(.secondary);Button("重试"){Task{await model.load(card,source:source,app:app)}}}.frame(maxWidth:.infinity).padding()}
+            }.padding(.horizontal,22).padding(.top,20).padding(.bottom,30)
         }
-        .navigationTitle("内容详情").navigationBarTitleDisplayMode(.inline)
-        .task { await load() }
-        .onAppear { playback.onFinished = playNext }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { savePosition() } }
-        .onDisappear { savePosition(); playback.close() }
-    }
-    @ViewBuilder private var playerView: some View {
-        if let player = playback.player {
-            VideoPlayer(player: player).frame(height: 290).background(.black).clipShape(RoundedRectangle(cornerRadius: 16))
-        } else if playback.resolving {
-            ZStack { Color.black; ProgressView("正在解析播放地址…").tint(.white).foregroundStyle(.white) }
-                .frame(height: 240).clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-    }
-    private var introduction: some View {
-        HStack(alignment: .top, spacing: 18) {
-            PosterImage(url: detail?.poster ?? card.poster, title: card.title)
-                .frame(width: 100, height: 144).clipShape(RoundedRectangle(cornerRadius: 12))
-            VStack(alignment: .leading, spacing: 10) {
-                Text(detail?.title ?? card.title).font(.title2.bold())
-                Text(source.name).font(.caption.weight(.medium)).padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(Color(uiColor: .secondarySystemBackground), in: Capsule())
-                Text(card.subtitle ?? "共 \(group?.episodes.count ?? 0) 集").font(.subheadline).foregroundStyle(.secondary)
-                Button { app.toggleFavorite(card, source: source) }
-                label: { Label(isFavorite ? "已收藏" : "收藏", systemImage: isFavorite ? "heart.fill" : "heart") }.buttonStyle(.bordered)
-            }.frame(maxWidth: .infinity, alignment: .leading)
+        .background{ZStack(alignment:.top){Color(uiColor:.systemGroupedBackground);ArtworkView(reference:model.detail?.poster ?? card.poster).frame(height:300).blur(radius:45).opacity(0.18);LinearGradient(colors:[.clear,Color(uiColor:.systemGroupedBackground)],startPoint:.top,endPoint:.bottom).frame(height:350)}.ignoresSafeArea()}
+        .navigationTitle("").navigationBarTitleDisplayMode(.inline)
+        .toolbar{ToolbarItem(placement:.topBarTrailing){Menu{Button("搜索其它内容源",systemImage:"magnifyingglass"){search=true};Button("复制名称",systemImage:"doc.on.doc"){UIPasteboard.general.string=card.title};if playback.context?.card.id==card.id{Button("打开播放器",systemImage:"play.rectangle"){playback.showPlayer=true}}}label:{Image(systemName:"ellipsis")}}}
+        .sheet(isPresented:$search){NavigationStack{SearchView(initialQuery:card.title,initiallyAll:true)}}
+        .task{if model.detail==nil{await model.load(card,source:source,app:app)};if let savedID=saved?.groupID{groupID=savedID};if let index=group?.episodes.firstIndex(where:{$0.id==currentEpisodeID}){page=index/50}}
+        .onChange(of:model.detail?.groups.count){_,_ in
+            ScreenshotSupport.mark("detail")
+            if groupID.isEmpty{groupID=saved?.groupID ?? model.detail?.groups.first?.id ?? ""}
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--screen-player"),let group,let episode=group.episodes.first{start(group,episode,resume:0)}
+            #endif
         }
     }
-    @ViewBuilder private var summaryView: some View {
-        if let summary = detail?.summary ?? card.summary, !summary.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("剧情简介").font(.headline)
-                Text(summary).font(.subheadline).foregroundStyle(.secondary).lineSpacing(5).textSelection(.enabled)
+    private var introduction:some View{
+        HStack(alignment:.center,spacing:20){
+            ArtworkView(reference:model.detail?.poster ?? card.poster).frame(width:112,height:168).clipShape(RoundedRectangle(cornerRadius:16))
+            VStack(alignment:.leading,spacing:12){
+                Text(model.detail?.title ?? card.title).font(.system(size:25,weight:.semibold)).lineLimit(3)
+                if let subtitle=card.subtitle{Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)}
+                Text(source.name).font(.subheadline.weight(.medium)).foregroundStyle(.tint)
+                if let rating=card.rating,!rating.isEmpty{Label(rating,systemImage:"star.fill").font(.caption).foregroundStyle(.secondary)}
+            }.frame(maxWidth:.infinity,alignment:.leading)
+        }.accessibilityElement(children:.combine)
+    }
+    private var primaryActions:some View{
+        HStack(spacing:12){
+            Button{continuePlayback()}label:{Label(continueTitle,systemImage:"play.fill").font(.headline).frame(maxWidth:.infinity).padding(.vertical,17)}.buttonStyle(.plain).foregroundStyle(.white).background(Color.accentColor,in:RoundedRectangle(cornerRadius:20)).disabled(group?.episodes.isEmpty != false)
+            Button{app.toggleFavorite(card,source:source)}label:{Image(systemName:app.favorite(card,source:source) ? "heart.fill":"heart").font(.system(size:22)).frame(width:64,height:58)}.buttonStyle(.plain).glassPill().accessibilityLabel("收藏")
+        }
+    }
+    private var continueTitle:String{
+        guard let group,let saved,let episode=group.episodes.first(where:{$0.id==saved.episodeID}) else{return "开始观看"}
+        return "继续 · "+episode.name
+    }
+    @ViewBuilder private var summary:some View{
+        if let description=model.detail?.summary ?? card.summary,!description.isEmpty{
+            VStack(alignment:.leading,spacing:14){
+                Text("剧情简介").font(.title3.bold())
+                Text(description).font(.subheadline).foregroundStyle(.secondary).lineSpacing(6).lineLimit(expanded ? nil:4).textSelection(.enabled)
+                if description.count>100{Button(expanded ? "收起简介 ⌃":"展开简介 ⌄"){withAnimation(.easeInOut(duration:0.2)){expanded.toggle()}}.font(.subheadline)}
             }
         }
     }
-    @ViewBuilder private var episodesSection: some View {
-        if let detail {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Text("选集").font(.headline); Spacer()
-                    Text("\(group?.episodes.count ?? 0) 集").font(.caption).foregroundStyle(.secondary)
-                    Button { ascending.toggle() } label: { Image(systemName: "arrow.up.arrow.down") }.accessibilityLabel("切换选集顺序")
-                }
-                if detail.groups.count > 1 {
-                    Picker("播放线路", selection: $groupID) { ForEach(detail.groups) { group in Text(group.name).tag(group.id) } }.pickerStyle(.menu)
-                }
-                if let group { episodeControls(group) }
-            }
-        } else if let message = error {
-            ContentUnavailableView { Label("分集暂不可用", systemImage: "exclamationmark.circle") }
-            description: { Text(message) } actions: { Button("重试") { Task { await load() } } }
-        } else { ProgressView("加载分集…").frame(maxWidth: .infinity) }
-    }
-    private func episodeControls(_ group: EpisodeGroup) -> some View {
-        let episodes = ascending ? group.episodes : Array(group.episodes.reversed())
-        let current = group.episodes.first { $0.id == saved?.episodeID } ?? group.episodes.first
-        return VStack(spacing: 16) {
-            if let current {
-                Button { play(group, current, resume: saved?.episodeID == current.id ? saved?.seconds ?? 0 : 0) }
-                label: { Label(saved == nil ? "立即播放" : "继续观看 · \(current.name)", systemImage: "play.fill").frame(maxWidth: .infinity).padding(.vertical, 8) }
-                    .buttonStyle(.borderedProminent).disabled(playback.resolving)
-            }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 85), spacing: 10)], spacing: 10) {
-                ForEach(episodes) { episode in episodeButton(group, episode) }
+    private func groupPicker(_ detail:ContentDetail)->some View{
+        VStack(alignment:.leading,spacing:15){
+            HStack{Text("播放线路").font(.title3.bold());Spacer();if detail.groups.count>1{Text("\(detail.groups.count) 条").font(.caption).foregroundStyle(.secondary)}}
+            ScrollView(.horizontal,showsIndicators:false){
+                HStack(spacing:10){ForEach(detail.groups){value in
+                    Button{groupID=value.id;page=0;if playback.context?.source.id==source.id && playback.context?.card.id==card.id{playback.selectGroup(value)}}label:{
+                        VStack(spacing:4){Text(value.name).font(.subheadline.weight(.medium)).lineLimit(1);Text("\(value.episodes.count) 集").font(.caption2).opacity(0.75)}.padding(.horizontal,22).padding(.vertical,11)
+                            .background(group?.id==value.id ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:Capsule()).foregroundStyle(group?.id==value.id ? Color.white:Color.primary)
+                    }.buttonStyle(.plain)
+                }}
             }
         }
     }
-    private func episodeButton(_ group: EpisodeGroup, _ episode: Episode) -> some View {
-        let selected = playback.episodeID == episode.id
-        return Button { play(group, episode) } label: {
-            Text(episode.name).font(.subheadline).lineLimit(1).frame(maxWidth: .infinity).padding(.vertical, 13)
-                .background(selected ? Color.accentColor : Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 9))
-                .foregroundStyle(selected ? Color.white : Color.primary)
+    private var episodesSection:some View{
+        VStack(alignment:.leading,spacing:18){
+            HStack{Text("选集 · 共 \(orderedEpisodes.count) 集").font(.title3.bold());Spacer();Button{ascending.toggle();page=0}label:{Label(ascending ? "逆序":"正序",systemImage:"arrow.up.arrow.down")}.font(.subheadline)}
+            if orderedEpisodes.count>50{
+                ScrollView(.horizontal,showsIndicators:false){HStack(spacing:10){ForEach(0..<Int(ceil(Double(orderedEpisodes.count)/50)),id:\.self){index in
+                    Button{page=index}label:{Text("\(index*50+1)–\(min((index+1)*50,orderedEpisodes.count))").font(.subheadline).padding(.horizontal,18).padding(.vertical,12).background(page==index ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:RoundedRectangle(cornerRadius:13)).foregroundStyle(page==index ? Color.white:Color.primary)}.buttonStyle(.plain)
+                }}}
+            }
+            LazyVGrid(columns:Array(repeating:GridItem(.flexible(),spacing:10),count:4),spacing:12){ForEach(visibleEpisodes){episode in episodeButton(episode)}}
+        }
+    }
+    private func episodeButton(_ episode:Episode)->some View{
+        let selected=episode.id==currentEpisodeID
+        return Button{if let group{start(group,episode,resume:0)}}label:{
+            Text(episode.name).font(.subheadline).lineLimit(1).minimumScaleFactor(0.8).frame(maxWidth:.infinity).padding(.vertical,16)
+                .background(selected ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:RoundedRectangle(cornerRadius:16)).foregroundStyle(selected ? Color.white:Color.primary)
         }.buttonStyle(.plain)
     }
-    private func playNext() {
-        guard let group, let index = group.episodes.firstIndex(where: { $0.id == playback.episodeID }), index + 1 < group.episodes.count else { return }
-        play(group, group.episodes[index + 1])
+    private func continuePlayback(){
+        guard let group,let episode=group.episodes.first(where:{$0.id==saved?.episodeID}) ?? group.episodes.first else{return}
+        if playback.context?.source.id==source.id,playback.context?.card.id==card.id,playback.context?.episode.id==episode.id{playback.showPlayer=true;return}
+        start(group,episode,resume:saved?.episodeID==episode.id ? saved?.seconds ?? 0:0)
     }
-    private func savePosition() {
-        if let episode = playback.episodeID, playback.player != nil { app.record(card, source: source, episode: episode, seconds: playback.position) }
-    }
-    private func play(_ group: EpisodeGroup, _ episode: Episode, resume: Double = 0) {
-        savePosition(); playback.play(card: card, source: source, group: group, episode: episode, app: app, resume: resume)
-    }
-    private func load() async {
-        error = nil
-        var engine: SourceRuntime?
-        defer { engine?.close() }
-        do {
-            let runtime = try await app.makeRuntime(source); engine = runtime
-            let value = try await runtime.invoke("detail", ["id": card.id])
-            detail = try JSONDecoder().decode(ContentDetail.self, from: JSONSerialization.data(withJSONObject: value))
-            groupID = detail?.groups.first?.id ?? ""
-        } catch { if !(error is CancellationError) { self.error = error.localizedDescription } }
+    private func start(_ group:EpisodeGroup,_ episode:Episode,resume:Double){
+        guard let detail=model.detail else{return}
+        playback.play(PlaybackContext(source:source,card:card,detail:detail,group:group,episode:episode),app:app,resume:resume)
     }
 }

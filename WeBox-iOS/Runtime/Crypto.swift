@@ -22,6 +22,8 @@ enum SourceCrypto {
                 guard let byte = UInt8(value[i..<end], radix: 16) else { throw WeBoxError("Hex 数据无效") }
                 result.append(byte); i = end
             }; return result
+        case "latin1", "ascii":
+            guard let data = value.data(using: .isoLatin1) else { throw WeBoxError("Latin-1 编码无效") }; return data
         case "utf8", "utf-8": return Data(value.utf8)
         default: throw WeBoxError("不支持的字符编码：\(encoding)")
         }
@@ -30,13 +32,14 @@ enum SourceCrypto {
         switch encoding.lowercased() {
         case "hex": return data.map { String(format: "%02x", $0) }.joined()
         case "base64": return data.base64EncodedString()
+        case "latin1", "ascii": return String(data: data, encoding: .isoLatin1) ?? ""
         case "utf8", "utf-8":
             guard let s = String(data: data, encoding: .utf8) else { throw WeBoxError("UTF-8 数据无效") }; return s
         default: throw WeBoxError("不支持的字符编码")
         }
     }
     static func hash(_ algorithm: String, _ data: Data) throws -> Data {
-        let lengths = ["md5":16, "sha1":20, "sha256":32, "sha384":48, "sha512":64]
+        let lengths = ["md5":16, "sha1":20, "sha224":28, "sha256":32, "sha384":48, "sha512":64]
         let name = algorithm.lowercased().replacingOccurrences(of: "-", with: "")
         guard let length = lengths[name] else { throw WeBoxError("不支持的哈希：\(algorithm)") }
         var result = [UInt8](repeating: 0, count: length)
@@ -44,6 +47,7 @@ enum SourceCrypto {
             switch name {
             case "md5": _ = CC_MD5(bytes.baseAddress, CC_LONG(data.count), &result)
             case "sha1": _ = CC_SHA1(bytes.baseAddress, CC_LONG(data.count), &result)
+            case "sha224": _ = CC_SHA224(bytes.baseAddress, CC_LONG(data.count), &result)
             case "sha256": _ = CC_SHA256(bytes.baseAddress, CC_LONG(data.count), &result)
             case "sha384": _ = CC_SHA384(bytes.baseAddress, CC_LONG(data.count), &result)
             default: _ = CC_SHA512(bytes.baseAddress, CC_LONG(data.count), &result)

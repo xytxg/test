@@ -1,0 +1,13 @@
+WeBox iOS 0.2.0 beta · iOS 17+ / iPhone & iPad · Xcode 27 / iOS 27 SDK
+
+- 固定的原生首页、详情、资料库和设置，分类与内容跟随导入源变化。
+- 移除内置源；支持 WeBox API 1.0–1.5、WidgetMetadata 与 XPTV 常用 JS 接口。
+- 修复文件类型限制、BOM / UTF-16、iCloud 协调读取；支持批量导入、GitHub 文件链接、分源配置与更新保留配置。
+- 系统 Liquid Glass 底栏、快速源选择、跨源搜索；切换浏览源不打断播放。
+- 系统播放器、倍速、资源/线路/选集切换、断点续播、下一集预解析与预热、缓冲策略、有限回退、耳机拔出暂停及来电恢复。
+- CENC 媒体改为持久连接 + 512 KiB 分块缓存，共享并发请求，减少重复 Range 与样本请求。
+- 构建前通过源协议检查与 iOS 模拟器测试；测试包含合成视频的真实 AVPlayer 起播、续播和切换浏览源时保持播放。
+
+IPA **未签名**，需使用自己的证书签名后安装。首次启动为空，请自行导入脚本。截图使用临时装入模拟器的离线测试源与原创测试图像/视频，**这些源与媒体不包含在发布 IPA 中**。
+
+当前不支持 browserSession、memoryHls、mediaProcessor、任意 Node / ES Module；这些扩展会明确提示不兼容。AVFoundation 不能解码所有格式，不承诺所有网络、CDN、脚本和编解码器下均可无缓冲；真实影视源、AirPlay 和画中画还需设备验证。详见仓库 WeBox-iOS/README.md。

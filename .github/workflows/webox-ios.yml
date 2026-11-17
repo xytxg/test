@@ -2,9 +2,7 @@ name: WeBox iOS unsigned IPA
 on:
   push:
     branches: [main]
-    paths:
-      - 'WeBox-iOS/**'
-      - '.github/workflows/webox-ios.yml'
+    paths: ['WeBox-iOS/**', '.github/workflows/webox-ios.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
-    runs-on: macos-15
-    timeout-minutes: 40
+    runs-on: xcode-27
+    timeout-minutes: 50
     defaults:
       run:
         working-directory: WeBox-iOS
@@ -22,39 +20,66 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - name: Check uploaded source contract
+          node-version: 24
+      - name: Check all three source protocols
         run: node Scripts/check-source.mjs
-      - name: Generate Xcode project
+      - name: Verify iOS 27 SDK and generate project
         run: |
+          xcodebuild -version
+          xcodebuild -showsdks | tee sdks.log
+          grep -q 'iphoneos27' sdks.log
           brew install xcodegen
           xcodegen generate
-          xcodebuild -version
       - name: Compile simulator app and tests
         run: |
           set -o pipefail
           xcodebuild build-for-testing -project WeBox.xcodeproj -scheme WeBox \
             -destination 'generic/platform=iOS Simulator' -derivedDataPath build/simulator \
             CODE_SIGNING_ALLOWED=NO | tee build-compile.log
-          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/bridge.js
-          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/hongguo.webox.js
-          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/demo.webox.js
-      - name: Select simulator
+          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/source-adapter.js
+          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/sdk-webox.js
+          test ! -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/hongguo.webox.js
+      - name: Start local media fixtures
+        run: |
+          python3 Scripts/fixture-server.py > fixture-server.log 2>&1 &
+          echo "$!" > build/fixture-server.pid
+          python3 - <<'PY'
+          import urllib.request,time
+          for attempt in range(20):
+              try:
+                  req=urllib.request.Request('http://127.0.0.1:8765/sample.mp4',headers={'Range':'bytes=0-15'})
+                  with urllib.request.urlopen(req,timeout=2) as r:
+                      assert r.status==206 and len(r.read())==16
+                  break
+              except Exception:
+                  if attempt==19: raise
+                  time.sleep(.2)
+          PY
+      - name: Select iOS 27 simulator
         id: sim
         run: |
-          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for vs in d["devices"].values() for v in vs if "iPhone" in v["name"]))')
-          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
           xcrun simctl list devices available -j > simulator-devices.json
-      - name: Test source runtime and CENC ranges on iOS
-        timeout-minutes: 12
+          SIMULATOR_ID=$(python3 - <<'PY'
+          import json
+          d=json.load(open('simulator-devices.json'))
+          rows=[v for key,vs in d['devices'].items() if 'iOS-27' in key for v in vs if 'iPhone' in v['name']]
+          assert rows,'iOS 27 iPhone simulator is required'
+          rows.sort(key=lambda v:('Pro Max' not in v['name'],'Pro' not in v['name'],v['name']))
+          print(rows[0]['udid'])
+          PY
+          )
+          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$SIMULATOR_ID" || true
+      - name: Test imports, source contracts, media cache and actual AVPlayer playback
+        timeout-minutes: 18
         run: |
           set -o pipefail
-          xcrun simctl boot '${{ steps.sim.outputs.id }}' || true
           xcodebuild test-without-building -project WeBox.xcodeproj -scheme WeBox \
             -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.id }}' \
-            -derivedDataPath build/simulator -resultBundlePath build/Tests.xcresult \
-            CODE_SIGNING_ALLOWED=NO | tee build-test.log
-      - name: Capture native UI screenshots
+            -parallel-testing-enabled NO -derivedDataPath build/simulator \
+            -resultBundlePath build/Tests.xcresult CODE_SIGNING_ALLOWED=NO | tee build-test.log
+      - name: Capture iOS 27 glass UI and player screenshots
+        timeout-minutes: 12
         run: bash Scripts/screenshots.sh '${{ steps.sim.outputs.id }}' build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app build/screenshots
       - name: Build unsigned device app
         run: |
@@ -62,21 +87,30 @@ jobs:
           xcodebuild build -project WeBox.xcodeproj -scheme WeBox -configuration Release \
             -destination 'generic/platform=iOS' -derivedDataPath build/device \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' | tee build-device.log
-      - name: Package and verify IPA
+      - name: Verify source-free app and package IPA
         run: |
           mkdir -p build/package/Payload
           cp -R build/device/Build/Products/Release-iphoneos/WeBox.app build/package/Payload/
           test ! -d build/package/Payload/WeBox.app/_CodeSignature
           test ! -f build/package/Payload/WeBox.app/embedded.mobileprovision
           file build/package/Payload/WeBox.app/WeBox | grep arm64
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('build/package/Payload/WeBox.app')
+          allowed={'bridge.js','source-adapter.js','compute-worker.js','sdk-cheerio.js','sdk-cryptojs.js','sdk-webox.js','sdk-widget.js','sdk-xptv.js'}
+          actual={p.name for p in root.rglob('*.js')}
+          assert actual==allowed,actual
+          assert not list(root.rglob('*.webox.js'))
+          assert not list(root.rglob('sample.mp4'))
+          print('PASS: runtime libraries only; no bundled content source or test media')
+          PY
           cd build/package
           /usr/bin/zip -qry ../WeBox-iOS-unsigned.ipa Payload
           cd ..
           unzip -t WeBox-iOS-unsigned.ipa
           shasum -a 256 WeBox-iOS-unsigned.ipa > SHA256SUMS.txt
           /usr/bin/zip -qry WeBox-iOS-screenshots.zip screenshots
-      - name: Upload build outputs
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: WeBox-iOS-unsigned
           path: |
@@ -85,28 +119,15 @@ jobs:
             WeBox-iOS/build/screenshots/*.png
             WeBox-iOS/build/WeBox-iOS-screenshots.zip
           retention-days: 30
-      - name: Publish downloadable release
+      - name: Publish downloadable beta
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="webox-ios-0.1.0-${GITHUB_RUN_NUMBER}"
-          cat > build/release-notes.md <<'NOTES'
-          WeBox iOS 0.1.0 beta · iOS 17+ / iPhone & iPad
-
-          - SwiftUI 客户端，支持导入 WeBox API 1.0–1.5 的基础接口源。
-          - 内置用户提供的红果短剧源，支持分类、搜索、分集、收藏及播放记录。
-          - AES / 哈希 / gzip 运行桥接与 CENC MP4 Range 处理。
-          - IPA 未签名，请用自己的证书签名后安装。
-          - 截图来自离线演示源，不代表红果实时目录或真实播放验证。
-          - 不包含 Android 的 mpv、任意 Node 模块、DOM/compute 扩展及离线下载。
-
-          接口和模拟数据测试通过并不代表上游红果服务在所有网络中均可用。源码、兼容范围及使用说明见仓库 WeBox-iOS/。
-          NOTES
-          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.1.0 beta · build ${GITHUB_RUN_NUMBER}" \
-            --notes-file build/release-notes.md --prerelease \
-            build/WeBox-iOS-unsigned.ipa build/SHA256SUMS.txt \
-            build/WeBox-iOS-screenshots.zip build/screenshots/*.png
-      - name: Upload diagnostics on failure
+          TAG="webox-ios-0.2.0-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.0 · 多源与播放器 · build ${GITHUB_RUN_NUMBER}" \
+            --notes-file docs/RELEASE-0.2.0.md --prerelease \
+            build/WeBox-iOS-unsigned.ipa build/SHA256SUMS.txt build/WeBox-iOS-screenshots.zip build/screenshots/*.png
+      - name: Save diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -115,4 +136,5 @@ jobs:
             WeBox-iOS/*.log
             WeBox-iOS/simulator-devices.json
             WeBox-iOS/build/Tests.xcresult
+            WeBox-iOS/build/screenshots/*.png
           retention-days: 7

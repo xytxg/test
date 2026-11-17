@@ -1,100 +1,126 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct SourcesView: View {
-    @EnvironmentObject var app: AppModel
-    @State private var filePicker = false
-    @State private var showURL = false
-    @State private var sourceURL = ""
-    @State private var toRemove: SourceEntry?
-    var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 9) {
-                    Image(systemName: "externaldrive.badge.plus").font(.largeTitle).foregroundStyle(.tint)
-                    Text("连接你的内容").font(.title3.bold())
-                    Text("导入 WeBox JavaScript 内容源，分类、搜索和播放都在这里接续。").font(.subheadline).foregroundStyle(.secondary).lineSpacing(3)
-                }.padding(.vertical, 12)
-                Button { filePicker = true } label: { Label("从文件导入", systemImage: "folder") }.disabled(app.importing)
-                Button { showURL = true } label: { Label("从链接导入", systemImage: "link") }.disabled(app.importing)
-                if app.importing { HStack { ProgressView(); Text("正在验证内容源…").foregroundStyle(.secondary) } }
-            }
-            Section("已添加 · \(app.sources.count)") {
-                ForEach(app.sources) { source in
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "square.stack.3d.up.fill").font(.title2).foregroundStyle(.tint).frame(width: 32).padding(.top, 3)
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(source.name).font(.headline)
-                            Text("v\(source.version) · WeBox 源").font(.caption).foregroundStyle(.secondary)
-                            if let origin = source.origin { Text(origin).font(.caption2).foregroundStyle(.tertiary).lineLimit(1) }
+struct SourcePickerView:View{
+    @EnvironmentObject private var app:AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var query=""
+    @State private var configure:SourceEntry?
+    @State private var manage=false
+    var visible:[SourceEntry]{app.enabledSources.filter{query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) || $0.kindLabel.contains(query)}}
+    var body:some View{
+        NavigationStack{
+            List{
+                if app.sources.isEmpty{Section{VStack(alignment:.leading,spacing:8){Text("添加你的第一个源").font(.headline);Text("支持 WeBox、Widget 与 XPTV JS 接口。内容源由你自行提供。").font(.subheadline).foregroundStyle(.secondary)}.padding(.vertical,8);SourceImportActions()}}
+                else{
+                    Section("内容源"){
+                        ForEach(visible){source in
+                            HStack(spacing:12){
+                                Button{app.select(source);dismiss()}label:{SourceRow(source:source,selected:app.selectedID==source.id,needsConfiguration:app.needsConfiguration(source))}.buttonStyle(.plain)
+                                if !(source.manifest?.settings.isEmpty ?? true){Button{configure=source}label:{Image(systemName:"slider.horizontal.3").padding(8)}.buttonStyle(.borderless).accessibilityLabel("配置 "+source.name)}
+                            }
                         }
-                        Spacer()
-                        if app.selectedID == source.id { Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint) }
-                    }.padding(.vertical, 6).contentShape(Rectangle())
-                    .onTapGesture { app.selectedID = source.id; app.persist() }
-                    .swipeActions { Button("删除", role: .destructive) { toRemove = source } }
+                    }
+                    Section{Button{manage=true}label:{Label("管理与导入内容源",systemImage:"externaldrive.badge.plus")}}
                 }
-                if app.sources.isEmpty { Text("暂无内容源").foregroundStyle(.secondary) }
             }
-            Section("接口支持") {
-                Label("WeBox API 1.0–1.5 基础源接口", systemImage: "checkmark.circle")
-                Label("HTTP、源存储、AES / 哈希 / gzip", systemImage: "checkmark.circle")
-                Label("MP4 / HLS · CENC MP4 分段处理", systemImage: "checkmark.circle")
-            }.font(.subheadline)
-            Section {
-                Text("仅导入你信任的源。源脚本可发起网络请求并在设备保存自己的数据。内容由源站提供，设备不会上传收藏和播放记录。")
-                    .font(.footnote).foregroundStyle(.secondary)
-                Text("WeBox iOS 0.1.0 · GPL-3.0-only").font(.caption).foregroundStyle(.tertiary)
-            }
-        }
-        .navigationTitle("源管理")
-        .fileImporter(isPresented: $filePicker, allowedContentTypes: [.javaScript, .plainText, .data]) { result in
-            switch result { case .success(let url): Task { await app.importFile(url) }; case .failure(let error): app.error = error.localizedDescription }
-        }
-        .alert("导入源链接", isPresented: $showURL) {
-            TextField("https://example.com/source.webox.js", text: $sourceURL).textInputAutocapitalization(.never).autocorrectionDisabled()
-            Button("取消", role: .cancel) {}
-            Button("导入") { Task { await app.importURL(sourceURL) } }
-        } message: { Text("输入 .webox.js 文件的 HTTPS 直达链接。") }
-        .confirmationDialog("删除内容源及其设备缓存？", isPresented: Binding(get: { toRemove != nil }, set: { if !$0 { toRemove = nil } }), titleVisibility: .visible) {
-            Button("删除源", role: .destructive) { if let source = toRemove { app.remove(source) }; toRemove = nil }
-        }
+            .navigationTitle("切换内容源").navigationBarTitleDisplayMode(.inline)
+            .searchable(text:$query,prompt:"搜索名称、视频或电台")
+            .toolbar{ToolbarItem(placement:.topBarTrailing){Button("完成"){dismiss()}}}
+            .navigationDestination(isPresented:$manage){SourcesView()}
+            .sheet(item:$configure){source in NavigationStack{SourceConfigurationView(source:source)}}
+        }.onAppear{ScreenshotSupport.mark("sources")}.presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
     }
 }
-
-struct LibraryView: View {
-    @EnvironmentObject var app: AppModel
-    @State private var section = 0
-    var items: [LibraryItem] { section == 0 ? app.favorites : app.history }
-    var body: some View {
-        List {
-            Section {
-                Picker("资料库", selection: $section) { Text("我的收藏").tag(0); Text("播放记录").tag(1) }.pickerStyle(.segmented)
-            }.listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-            if items.isEmpty {
-                ContentUnavailableView(section == 0 ? "收藏喜欢的故事" : "还没有播放记录", systemImage: section == 0 ? "heart" : "clock", description: Text(section == 0 ? "在详情页点一下收藏，之后就能快速找到。" : "开始播放后，会自动记录分集与进度。"))
-                    .listRowBackground(Color.clear)
+struct SourceRow:View{
+    let source:SourceEntry
+    var selected=false
+    var needsConfiguration=false
+    var body:some View{
+        HStack(spacing:13){
+            ZStack{RoundedRectangle(cornerRadius:11).fill(Color.accentColor.opacity(0.08));if let icon=source.icon,!icon.isEmpty{ArtworkView(reference:icon).clipShape(RoundedRectangle(cornerRadius:11))}else{Image(systemName:source.kindLabel=="视频" ? "play.rectangle":"waveform").font(.title3).foregroundStyle(.tint)}}.frame(width:44,height:44)
+            VStack(alignment:.leading,spacing:5){Text(source.name).font(.subheadline.weight(.semibold)).foregroundStyle(.primary).lineLimit(1);Text(needsConfiguration ? "需要配置":source.kindLabel+" · "+source.formatLabel+" · "+source.version).font(.caption).foregroundStyle(needsConfiguration ? Color.orange:Color.secondary).lineLimit(1)}
+            Spacer(minLength:8)
+            if selected{Image(systemName:"checkmark.circle.fill").foregroundStyle(.tint)}
+        }.padding(.vertical,5).frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
+    }
+}
+struct SourceImportActions:View{
+    @EnvironmentObject private var app:AppModel
+    @State private var files=false
+    @State private var link=false
+    @State private var address=""
+    @State private var owner=UUID()
+    var body:some View{
+        Group{
+            Button{files=true}label:{Label("从文件导入 JS",systemImage:"folder")}.disabled(app.importing)
+            Button{link=true}label:{Label("从链接导入",systemImage:"link")}.disabled(app.importing)
+            if app.importing{HStack{ProgressView().controlSize(.small);Text("正在读取并解析脚本…").font(.subheadline).foregroundStyle(.secondary)}}
+        }
+        .fileImporter(isPresented:$files,allowedContentTypes:[.item],allowsMultipleSelection:true){result in
+            switch result{case .success(let urls):Task{await app.importFiles(urls,owner:owner)};case .failure(let error):app.error=error.localizedDescription}
+        }
+        .sheet(isPresented:Binding(get:{!app.importResults.isEmpty && app.importOwner == owner},set:{if !$0{app.importResults=[]}})){ImportResultsView()}
+        .alert("导入脚本链接",isPresented:$link){TextField("https://…/source.js",text:$address).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL);Button("取消",role:.cancel){};Button("导入"){Task{await app.importURL(address,owner:owner)}}}message:{Text("填写 JS 直链，也可粘贴 GitHub 文件链接。")}
+    }
+}
+struct SourcesView:View{
+    @EnvironmentObject private var app:AppModel
+    @State private var configure:SourceEntry?
+    @State private var remove:SourceEntry?
+    var body:some View{
+        List{
+            Section("添加内容源"){SourceImportActions()}
+            Section("已添加 · \(app.sources.count)"){
+                ForEach(app.sources){source in
+                    Button{if !(source.manifest?.settings.isEmpty ?? true){configure=source}else{app.select(source)}}label:{SourceRow(source:source,selected:app.selectedID==source.id,needsConfiguration:app.needsConfiguration(source)).opacity(source.isEnabled ? 1:0.45)}.buttonStyle(.plain)
+                        .swipeActions(edge:.trailing){Button("删除",role:.destructive){remove=source};Button(source.isEnabled ? "停用":"启用"){app.toggleEnabled(source)}.tint(.gray)}
+                        .contextMenu{Button("设为当前源"){app.select(source)};if !(source.manifest?.settings.isEmpty ?? true){Button("配置"){configure=source}};Button(source.isEnabled ? "停用":"启用"){app.toggleEnabled(source)}}
+                }
+                if app.sources.isEmpty{Text("尚未导入内容源").foregroundStyle(.secondary)}
             }
-            ForEach(items) { item in
-                if let source = app.sources.first(where: { $0.id == item.sourceID }) {
-                    NavigationLink {
-                        DetailView(card: item.card, source: source)
-                    } label: {
-                        HStack(spacing: 14) {
-                            PosterImage(url: item.card.poster, title: item.card.title).frame(width: 58, height: 82).clipShape(RoundedRectangle(cornerRadius: 8))
-                            VStack(alignment: .leading, spacing: 7) {
-                                Text(item.card.title).font(.headline)
-                                Text(source.name).font(.caption).foregroundStyle(.secondary)
-                                if section == 1 { Text("进度 \(Int((item.seconds ?? 0).isFinite ? max(0, item.seconds ?? 0) : 0)) 秒").font(.caption).foregroundStyle(.secondary) }
-                            }
-                        }.padding(.vertical, 4)
-                    }
-                } else { Label(item.card.title + " · 源已移除", systemImage: "externaldrive.badge.xmark").foregroundStyle(.secondary) }
-            }.onDelete { indices in
-                let ids = Set(indices.map { items[$0].id })
-                if section == 0 { app.favorites.removeAll { ids.contains($0.id) } } else { app.history.removeAll { ids.contains($0.id) } }
-                app.persist()
+            Section{Text("源脚本定义数据、分类和播放地址；界面保持一致。源仅在本机运行，导入同一 ID 会更新脚本并保留原配置。仅导入你信任的脚本。").font(.footnote).foregroundStyle(.secondary)}
+        }.navigationTitle("内容源").navigationBarTitleDisplayMode(.inline)
+            .sheet(item:$configure){source in NavigationStack{SourceConfigurationView(source:source)}}
+            .confirmationDialog("删除这个源及其配置？",isPresented:Binding(get:{remove != nil},set:{if !$0{remove=nil}}),titleVisibility:.visible){Button("删除源",role:.destructive){if let remove{app.remove(remove)};remove=nil}}
+    }
+}
+struct SourceConfigurationView:View{
+    let source:SourceEntry
+    @EnvironmentObject private var app:AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var values:[String:JSONValue]=[:]
+    @State private var error:String?
+    var body:some View{
+        Form{
+            Section{SourceRow(source:source)}
+            ForEach(source.manifest?.settings ?? []){field in
+                if field.visible(in:values){Section{editor(field)}footer:{if let help=field.help,!help.isEmpty{Text(help)}}}
             }
-        }.listStyle(.insetGrouped).navigationTitle("资料库")
+            if let error{Section{Text(error).foregroundStyle(.red).font(.subheadline)}}
+            if source.manifest?.settings.isEmpty != false{Section{Text("这个源不需要额外配置。").foregroundStyle(.secondary)}}
+            Section{LabeledContent("协议",value:source.formatLabel);LabeledContent("版本",value:source.version);if let origin=source.origin{Text(origin).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)}}
+        }.navigationTitle("源配置").navigationBarTitleDisplayMode(.inline)
+            .toolbar{ToolbarItem(placement:.topBarLeading){Button("取消"){dismiss()}};ToolbarItem(placement:.topBarTrailing){Button("保存"){do{try app.saveConfiguration(values,source:source);dismiss()}catch{self.error=error.localizedDescription}}.fontWeight(.semibold)}}
+            .onAppear{values=app.configuration(source)}
+    }
+    @ViewBuilder private func editor(_ field:SourceField)->some View{
+        let label=field.label+(field.required==true ? " *":"")
+        if field.type=="boolean"{Toggle(label,isOn:Binding(get:{values[field.key] == .bool(true)},set:{values[field.key] = .bool($0)}))}
+        else if field.type=="select"{Picker(label,selection:Binding(get:{values[field.key]?.text ?? ""},set:{values[field.key] = .string($0)})){ForEach(field.options ?? []){option in Text(option.label).tag(option.value)}}}
+        else if field.type=="secret" || field.sensitive==true{SecureField(label,text:stringBinding(field)).textInputAutocapitalization(.never).autocorrectionDisabled()}
+        else{TextField(label,text:stringBinding(field),prompt:Text(field.placeholder ?? "")).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(field.type=="number" ? .decimalPad:field.type=="url" ? .URL:.default)}
+    }
+    private func stringBinding(_ field:SourceField)->Binding<String>{Binding(get:{values[field.key]?.text ?? ""},set:{value in
+        if field.type=="number"{values[field.key]=Double(value).map(JSONValue.number)}else{values[field.key] = .string(String(value.prefix(field.maxLength ?? 8192)))}
+    })}
+}
+struct ImportResultsView:View{
+    @EnvironmentObject private var app:AppModel
+    var body:some View{
+        NavigationStack{List{ForEach(app.importResults){item in
+            HStack(alignment:.top,spacing:12){Image(systemName:item.error==nil ? "checkmark.circle.fill":"exclamationmark.circle").foregroundStyle(item.error==nil ? Color.green:Color.orange);VStack(alignment:.leading,spacing:6){Text(item.sourceName ?? item.filename).font(.headline);Text(item.error ?? (item.updated ? "脚本已更新，原配置已保留":"已添加到内容源")).font(.subheadline).foregroundStyle(.secondary).textSelection(.enabled)}}.padding(.vertical,6)
+        }}.navigationTitle("导入结果").navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.topBarTrailing){Button("完成"){app.importResults=[]}}}}
+            .presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
     }
 }
