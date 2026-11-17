@@ -47,7 +47,7 @@ targets:
           - CFBundleTypeName: WeBox Source
             CFBundleTypeRole: Viewer
             LSHandlerRank: Alternate
-            LSItemContentTypes: [public.javascript, public.plain-text, public.data]
+            LSItemContentTypes: [com.netscape.javascript-source, public.plain-text, public.data]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.xylyra.webox

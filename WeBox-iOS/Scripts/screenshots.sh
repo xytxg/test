@@ -25,7 +25,12 @@ for PAGE in empty discover detail sources library settings player; do
     if [ -f "$CONTAINER_PATH/Documents/UIReady-$PAGE" ]; then READY=1; break; fi
     sleep 1
   done
-  test "$READY" = 1 || { echo "UI did not become ready: $PAGE"; exit 1; }
+  if [ "$READY" != 1 ]; then
+    xcrun simctl io "$SIMULATOR_ID" screenshot "$OUTPUT_PATH/failed-$PAGE.png" || true
+    xcrun simctl spawn "$SIMULATOR_ID" log show --last 3m --style compact --predicate 'process == "WeBox"' > "ui-$PAGE.log" || true
+    echo "UI did not become ready: $PAGE"
+    exit 1
+  fi
   sleep 2
   xcrun simctl io "$SIMULATOR_ID" screenshot "$OUTPUT_PATH/$PAGE.png"
 done

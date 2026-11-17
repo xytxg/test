@@ -1,5 +1,7 @@
 import SwiftUI
 
+struct DetailRoute:Hashable { let source:SourceEntry;let card:Card }
+
 struct CatalogSection: Identifiable {
     let id: String
     let title: String
@@ -9,6 +11,7 @@ struct CatalogSection: Identifiable {
 @MainActor
 final class HomeCatalogModel: ObservableObject {
     @Published var sections:[CatalogSection]=[]
+    @Published private(set) var sourceID=""
     @Published var filters:[SourceFilter]=[]
     @Published var busy=false
     @Published var error:String?
@@ -17,7 +20,7 @@ final class HomeCatalogModel: ObservableObject {
     private var cache:[String:(Date,[CatalogSection],[SourceFilter])]=[:]
     var hero:[Card]{Array(sections.first?.cards.prefix(6) ?? [])}
     func start(_ source:SourceEntry,app:AppModel,force:Bool=false) async {
-        engine?.close();engine=nil;generation=UUID();let token=generation
+        engine?.close();engine=nil;generation=UUID();let token=generation;sourceID=source.id
         error=nil;sections=[];filters=[];busy=true
         let key=source.id+String(app.sourceRevision)+(source.fingerprint ?? "")
         if !force,let cached=cache[key],Date().timeIntervalSince(cached.0)<90 {sections=cached.1;filters=cached.2;busy=false;return}
@@ -27,6 +30,7 @@ final class HomeCatalogModel: ObservableObject {
             guard token==generation,!Task.isCancelled else{runtime.close();return};engine=runtime
             defer {runtime.close();if token==generation{engine=nil}}
             let value=try await runtime.invoke("filters")
+            guard token==generation,!Task.isCancelled else{return}
             filters=try JSONDecoder().decode([SourceFilter].self,from:JSONSerialization.data(withJSONObject:value))
             var defaults:[String:String]=[:];for filter in filters{defaults[filter.key]=filter.default ?? filter.options.first?.value ?? ""}
             let primary=filters.first
@@ -36,15 +40,16 @@ final class HomeCatalogModel: ObservableObject {
                 for option in choices {
                     try Task.checkCancellation();guard token==generation else{return}
                     var selected=defaults;selected[primary.key]=option.value
-                    let raw=try await runtime.invoke("list",["filters":selected,"surface":"home","page":1])
+                    let raw=try await runtime.invoke("list",["filters":selected,"surface":"home","page":1,"refresh":force])
                     let page=try JSONDecoder().decode(CatalogPage.self,from:JSONSerialization.data(withJSONObject:raw))
                     guard token==generation else{return}
                     if !page.items.isEmpty{sections.append(CatalogSection(id:option.value,title:option.label,filters:selected,cards:Array(page.items.prefix(12))))}
                     if !sections.isEmpty{busy=false}
                 }
             } else {
-                let raw=try await runtime.invoke("list",["filters":defaults,"surface":"home","page":1])
+                let raw=try await runtime.invoke("list",["filters":defaults,"surface":"home","page":1,"refresh":force])
                 let page=try JSONDecoder().decode(CatalogPage.self,from:JSONSerialization.data(withJSONObject:raw))
+                guard token==generation,!Task.isCancelled else{return}
                 sections=[CatalogSection(id:"main",title:source.name,filters:defaults,cards:Array(page.items.prefix(12)))]
             }
             guard token==generation else{return};cache[key]=(Date(),sections,filters)
@@ -60,21 +65,17 @@ struct CatalogView: View {
     @State private var sourcePicker=false
     @State private var search=false
     @State private var configure:SourceEntry?
-    @State private var fixtureDetail=false
+    @State private var fixtureDetail:DetailRoute?
+    @State private var fixtureOpened=false
     private var key:String{app.selectedID+String(app.sourceRevision)}
     var body:some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26){
-                if let source=app.selected {
-                    if !home.hero.isEmpty{hero(source)}
-                    categories(source)
-                    ForEach(home.sections){section in sectionView(section,source:source)}
-                    status(source)
-                }else{emptyState}
+                if let source=app.selected {sourceContent(source)}else{emptyState}
             }.padding(.bottom,24)
         }
         .background(Color(uiColor:.systemGroupedBackground))
-        .ignoresSafeArea(edges:home.hero.isEmpty ? [] : .top)
+        .ignoresSafeArea(edges:home.hero.isEmpty || home.sourceID != app.selectedID ? [] : .top)
         .navigationTitle("").navigationBarTitleDisplayMode(.inline)
         .toolbar{toolbar}
         .toolbarBackground(.hidden,for:.navigationBar)
@@ -85,11 +86,21 @@ struct CatalogView: View {
         .sheet(item:$configure){source in NavigationStack{SourceConfigurationView(source:source)}}
         .onChange(of:home.sections.count){_,count in
             if count>0 {ScreenshotSupport.mark("discover")}
-            if count>0 && ProcessInfo.processInfo.arguments.contains("--screen-detail") || count>0 && ProcessInfo.processInfo.arguments.contains("--screen-player"){fixtureDetail=true}
+            #if DEBUG
+            if count>0,!fixtureOpened,(ProcessInfo.processInfo.arguments.contains("--screen-detail") || ProcessInfo.processInfo.arguments.contains("--screen-player")),let source=app.selected,let card=home.hero.first { fixtureOpened=true;fixtureDetail=DetailRoute(source:source,card:card) }
+            #endif
             if count>0 && ProcessInfo.processInfo.arguments.contains("--screen-sources"){sourcePicker=true}
         }
         .onAppear{if app.sources.isEmpty && ProcessInfo.processInfo.arguments.contains("--screen-empty"){ScreenshotSupport.mark("empty")}}
-        .navigationDestination(isPresented:$fixtureDetail){if let source=app.selected,let card=home.hero.first{DetailView(card:card,source:source)}}
+        .navigationDestination(item:$fixtureDetail){route in DetailView(card:route.card,source:route.source)}
+    }
+    @ViewBuilder private func sourceContent(_ source:SourceEntry)->some View {
+        if home.sourceID==source.id {
+            if !home.hero.isEmpty{hero(source)}
+            categories(source)
+            ForEach(home.sections){section in sectionView(section,source:source)}
+            status(source)
+        }else{ProgressView("正在切换内容源…").frame(maxWidth:.infinity).padding(60)}
     }
     @ToolbarContentBuilder private var toolbar:some ToolbarContent {
         ToolbarItem(placement:.topBarLeading){

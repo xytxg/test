@@ -1,6 +1,6 @@
 // Normalize the Android host's three script contracts to the fixed iOS UI models.
 (() => {
- let definition=null,format='',settings={},hint='',pageMemory=new Map();
+ let definition=null,format='',settings={},hint='',configured=false;
  const original=WeBox.define;
  globalThis.WeBox=Object.freeze({define(value){original(value);definition=value;format='webox';}});
  const parse=value=>typeof value==='string'?JSON.parse(value):value;
@@ -22,8 +22,9 @@
   return {id:String(m.id||'script.'+hint.slice(0,24)),name:String(m.title||m.name||'JS 内容源'),version:String(m.version||'0'),api:'compat',format,category:m.sourceCategory||'js',icon:m.icon||null,requires:[],allowHttp:true,settings:format==='xptv'?[{key:'__xptv_config',label:'脚本配置',type:'text',default:'{}',help:'仅在脚本需要时填写 JSON 配置'}]:fields(m.globalParams),supportsSearch:!!m.search};
  }
  async function configure(){
-  if(format==='webox'){__wbSetSettings(JSON.stringify(settings));const result=await __wbConfigure();globalThis.WidgetMetadata=result;return result;}
+  if(format==='webox'){__wbSetSettings(JSON.stringify(settings));if(!configured){globalThis.WidgetMetadata=await __wbConfigure();configured=true;}return WidgetMetadata;}
   if(format==='xptv')return await __weboxXptvConfigure({...settings,__xptv_config:settings.__xptv_config||'{}'});
+  for(const p of WidgetMetadata.globalParams||[])if(settings[p.name]===undefined&&p.value!==undefined)settings[p.name]=p.value;
   return WidgetMetadata;
  }
  function filter(p){const f=field(p);return {key:f.key,label:f.label,type:'select',default:f.default===undefined?null:String(f.default),options:(f.options||[]).map(o=>({value:String(o.value),label:String(o.label),home:o.home}))};}
@@ -34,7 +35,7 @@
  async function list(req,search){
   await configure();const page=Number(req.cursor||req.page||1),params={...settings,...req.filters,page,offset:(page-1)*30,__wb_page:page,__wb_surface:req.surface||'browse',keyword:req.query||''};
   let result;
-  if(format==='webox')result=await(search?__wbSearch:__wbList)(params);
+  if(format==='webox'){__wbSetRefresh(!!req.refresh);result=await(search?__wbSearch:__wbList)(params);}
   else {
    const modules=listingModules(),module=search?WidgetMetadata.search:modules.find(m=>m.id===req.filters?.__module)||modules[0];
    if(!module||typeof globalThis[module.functionName]!=='function')throw Error(search?'此源未提供搜索':'此源没有列表入口');
@@ -58,7 +59,11 @@
  async function detail(req){
   await configure();let value;
   if(format==='webox')value=await __wbDetail(req.link||'webox:content:'+encodeURIComponent(req.id));
-  else {
+  else if(format==='xptv'){
+   const raw=parse(await getTracks(argsify(req.link||req.id))),groups=Array.isArray(raw)?raw:raw?.list;
+   if(!Array.isArray(groups))throw Error('播放线路返回格式无效');
+   return {id:req.id,title:req.title||'',kind:'series',groups:groups.map((g,index)=>({id:String(g.id||index),name:String(g.title||g.name||'线路 '+(index+1)),episodes:(g.tracks||[]).map((t,i)=>({id:JSON.stringify(t.ext||{index:i}),name:String(t.name||t.title||'播放'),link:'compat-play:'+JSON.stringify(t.ext||{index:i})}))}))};
+  } else {
    if(typeof loadDetail!=='function')throw Error('此源没有 loadDetail 详情接口');
    value=parse(await loadDetail(req.link||req.id));
   }
@@ -82,7 +87,7 @@
   if(rows.every(x=>x.processor||x.manifest)&&rows.length)throw Error('该资源需要尚未支持的媒体处理器或内存 HLS');
   return {sources:rows.map((x,i)=>({...x,id:String(x.sourceId||x.id||i),name:String(x.name||'线路 '+(i+1)),url:x.url||null,mime:x.mimeType||x.mime||null,headers:x.headers||{}}))};
  }
- globalThis.__configureHost=(value,id)=>{settings=value||{};hint=id;};
+ globalThis.__configureHost=(value,id)=>{settings=value||{};hint=id;configured=false;};
  globalThis.__invoke=async(id,method,req={})=>{
   __iosOperation=id;
   try{

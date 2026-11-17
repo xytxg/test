@@ -1,6 +1,7 @@
 import XCTest
 import AVFoundation
 import CommonCrypto
+import UniformTypeIdentifiers
 @testable import WeBox
 
 final class MockURLProtocol: URLProtocol {
@@ -27,6 +28,10 @@ final class WeBoxTests:XCTestCase{
         XCTAssertEqual(try SDKCrypto.call("crypto.encode",["text":"中文","from":"utf8","to":"base64"]) as? String,"5Lit5paH")
         XCTAssertEqual(try SDKCrypto.gunzip(SourceCrypto.gzip(Data("hello".utf8))),Data("hello".utf8))
         XCTAssertThrowsError(try SourceCrypto.decode("0g","hex"))
+    }
+    func testFileOpenRegistrationUsesSystemJavaScriptType()throws{
+        let declarations = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey:"CFBundleDocumentTypes") as? [[String:Any]])
+        XCTAssertTrue(declarations.contains{($0["LSItemContentTypes"] as? [String])?.contains(UTType.javaScript.identifier)==true})
     }
     func testFileEncodingsAndDownloadedHTML()throws{
         let source="WeBox.define({name:'中文'});"
@@ -72,6 +77,14 @@ final class WeBoxTests:XCTestCase{
         let bad=try MediaLoader(source:source,client:MockURLProtocol.client());defer{bad.stop()}
         do{_ = try await bad.bytes(0..<16);XCTFail("bad Range accepted")}catch{}
     }
+    @MainActor func testOpaquePaginationStateSurvivesRepeatedCalls()async throws{
+        let runtime=SourceRuntime(namespace:"paging-tests");defer{runtime.close()}
+        _ = try await runtime.load(script:script("paging.webox"));_ = try await runtime.invoke("filters")
+        let first=try await runtime.invoke("list",["filters":[:]]) as! [String:Any]
+        let second=try await runtime.invoke("list",["filters":[:],"cursor":first["nextCursor"]!]) as! [String:Any]
+        XCTAssertEqual((second["items"] as? [[String:Any]])?.first?["id"] as? String,"second")
+        XCTAssertTrue(second["nextCursor"] is NSNull)
+    }
     @MainActor func testThreeScriptProtocolsShareOneUIContract()async throws{
         for(name,format)in[("01-cinema.webox","webox"),("02-documents.widget","widget"),("03-xptv","xptv")]{
             let runtime=SourceRuntime(namespace:"test-"+format);defer{runtime.close()}
@@ -85,6 +98,7 @@ final class WeBoxTests:XCTestCase{
             let card=try XCTUnwrap(page.items.first)
             let detailRaw=try await runtime.invoke("detail",["id":card.id,"link":card.link ?? "","title":card.title])
             let detail=try JSONDecoder().decode(ContentDetail.self,from:JSONSerialization.data(withJSONObject:detailRaw))
+            if format=="xptv"{XCTAssertEqual(detail.groups.count,2)}
             let group=try XCTUnwrap(detail.groups.first),episode=try XCTUnwrap(group.episodes.first)
             let playRaw=try await runtime.invoke("play",["contentId":card.id,"groupId":group.id,"episodeId":episode.id,"episodeLink":episode.link ?? ""])
             let play=try JSONDecoder().decode(PlayResponse.self,from:JSONSerialization.data(withJSONObject:playRaw))

@@ -16,6 +16,8 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     private var network: [String: Task<Void, Never>] = [:]
     private var loadContinuation: CheckedContinuation<Void, Error>?
     private var loadTimer: Task<Void, Never>?
+    private var evaluationContinuation: CheckedContinuation<Void, Error>?
+    private var evaluationTimer: Task<Void, Never>?
     private let namespace: String
     private var permitsHTTP = true
     private var closed = false
@@ -34,11 +36,15 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     func close() {
         guard !closed else { return }; closed = true
         for task in network.values { task.cancel() }; network.removeAll()
-        for task in timers.values { task.cancel() }; timers.removeAll(); loadTimer?.cancel()
+        for task in timers.values { task.cancel() }; timers.removeAll(); loadTimer?.cancel(); evaluationTimer?.cancel()
+        evaluationContinuation?.resume(throwing: CancellationError()); evaluationContinuation = nil
         let pending = Array(continuations.values); continuations.removeAll()
         for continuation in pending { continuation.resume(throwing: CancellationError()) }
         loadContinuation?.resume(throwing: CancellationError()); loadContinuation = nil
-        webView.stopLoading(); client.close()
+        let view = webView; webView = nil
+        view?.stopLoading(); view?.uiDelegate = nil; view?.navigationDelegate = nil
+        view?.configuration.userContentController.removeAllScriptMessageHandlers()
+        client.close()
     }
     func load(script: String, settings: [String: Any] = [:], hint: String = "source") async throws -> [String: Any] {
         guard script.utf8.count <= ScriptDocument.limit else { throw WeBoxError("源文件超过 8 MB") }
@@ -55,8 +61,9 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
             let worker = try resource("compute-worker")
             _ = try await webView.evaluateJavaScript("globalThis.__computeWorkerSource=\(Self.quote(worker)); void 0")
             for name in ["sdk-cheerio", "sdk-cryptojs", "sdk-widget", "sdk-webox", "sdk-xptv", "source-adapter"] { try await evaluate(resource: name) }
+            guard !closed else { throw CancellationError() }
             _ = try await webView.evaluateJavaScript("__configureHost(\(try Self.json(settings)),\(Self.quote(hint))); void 0")
-            _ = try await webView.evaluateJavaScript(script)
+            try await evaluateUserScript(script)
             let metadata = try await invoke("metadata") as? [String: Any] ?? [:]
             permitsHTTP = metadata["allowHttp"] as? Bool ?? true
             let requirements = metadata["requires"] as? [String] ?? []
@@ -70,7 +77,23 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         guard let url = Bundle.main.url(forResource: name, withExtension: "js") else { throw WeBoxError("应用资源缺失：\(name).js") }
         return try String(contentsOf: url, encoding: .utf8)
     }
-    private func evaluate(resource name: String) async throws { _ = try await webView.evaluateJavaScript(resource(name)) }
+    private func evaluate(resource name: String) async throws { guard !closed else { throw CancellationError() }; _ = try await webView.evaluateJavaScript(resource(name)) }
+    private func evaluateUserScript(_ script: String) async throws {
+        guard !closed else { throw CancellationError() }
+        try await withCheckedThrowingContinuation { continuation in
+            evaluationContinuation = continuation
+            evaluationTimer = Task { [weak self] in
+                do { try await Task.sleep(for:.seconds(12)) } catch { return }
+                self?.finishEvaluation(WeBoxError("脚本初始化超过 12 秒，可能含有阻塞的顶层代码"))
+            }
+            webView.evaluateJavaScript(script) { [weak self] _, error in self?.finishEvaluation(error) }
+        }
+    }
+    private func finishEvaluation(_ error: Error?) {
+        evaluationTimer?.cancel(); evaluationTimer = nil
+        let pending = evaluationContinuation; evaluationContinuation = nil
+        if let error { pending?.resume(throwing:error) } else { pending?.resume() }
+    }
     func invoke(_ method: String, _ request: [String: Any] = [:]) async throws -> Any {
         await gate.acquire(); defer { Task { await gate.release() } }
         try Task.checkCancellation(); guard !closed else { throw CancellationError() }
@@ -92,6 +115,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         } onCancel: { Task { @MainActor [weak self] in self?.cancel(id, error: CancellationError()) } }
     }
     private func cancel(_ id: String, error: Error) {
+        guard !closed else { return }
         webView.evaluateJavaScript("__cancel(\(Self.quote(id)))", completionHandler: nil)
         for (key, task) in network where key.hasPrefix(id + ":") { task.cancel() }; finish(id, result: .failure(error))
     }
@@ -145,7 +169,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         }
     }
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.frameInfo.isMainFrame, let body = message.body as? [String: Any], let id = body["id"] as? String else { return }
+        guard !closed, message.frameInfo.isMainFrame, let body = message.body as? [String: Any], let id = body["id"] as? String else { return }
         if message.name == "result" {
             if body["ok"] as? Bool == true { finish(id, result: .success(body["value"] ?? NSNull())) }
             else {

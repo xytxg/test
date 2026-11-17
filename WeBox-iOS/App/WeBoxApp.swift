@@ -30,9 +30,9 @@ struct RootView:View{
     @State private var tab=0
     var body:some View{
         Group{
-            if #available(iOS 26.0,*){
+            if #available(iOS 26.1,*){
                 tabs.tabBarMinimizeBehavior(.onScrollDown)
-                    .tabViewBottomAccessory{if playback.context != nil{MiniPlayerView()}}
+                    .tabViewBottomAccessory(isEnabled:playback.context != nil){MiniPlayerView()}
             }else{
                 tabs.safeAreaInset(edge:.bottom,spacing:0){if playback.context != nil{MiniPlayerView().padding(10).background(.bar)}}
             }

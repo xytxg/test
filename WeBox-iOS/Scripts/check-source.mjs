@@ -30,6 +30,7 @@ for(const [filename,format] of [['Screenshots/01-cinema.webox.js','webox'],['Scr
  const filters=await call('filters'),selection=Object.fromEntries(filters.map(f=>[f.key,f.default||f.options[0]?.value]));
  const page=await call('list',{filters:selection,page:1});assert.ok(page.items.length>0);
  const card=page.items[0],detail=await call('detail',{id:card.id,link:card.link,title:card.title}),group=detail.groups[0],episode=group.episodes[0];
+ if(format==='xptv')assert.equal(detail.groups.length,2);
  const play=await call('play',{contentId:card.id,groupId:group.id,episodeId:episode.id,episodeLink:episode.link});assert.ok(play.sources[0].url.endsWith('sample.mp4'));
  console.log(`PASS ${format}: manifest → filters → catalog → detail → playback variants`);
 }
@@ -38,6 +39,7 @@ const filters=await original('filters');assert.equal(filters[0].options.length,4
 const search=await original('search',{query:'test',filters:{}});assert.equal(search.items[0].id,'7470092475068071998');
 const detail=await original('detail',{id:search.items[0].id});assert.equal(detail.groups[0].episodes.length,2);
 console.log('PASS attachment compatibility and 64-bit identities');
+const paging=await engine('paging.webox.js');await paging('metadata');await paging('filters');const first=await paging('list',{filters:{}});const second=await paging('list',{filters:{},cursor:first.nextCursor});assert.equal(second.items[0].id,'second');assert.equal(second.nextCursor,null);console.log('PASS opaque cursor survives adapter calls');
 for(const filename of ['bridge','source-adapter','compute-worker'])new vm.Script(fs.readFileSync(new URL(`Resources/${filename}.js`,root),'utf8'));
 const bundleFiles=fs.readdirSync(new URL('Resources',root));assert.ok(!bundleFiles.some(n=>n.endsWith('.webox.js')));
 console.log('PASS no bundled content source');
