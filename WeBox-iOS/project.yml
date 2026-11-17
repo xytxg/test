@@ -33,6 +33,8 @@ targets:
           - CFBundleURLName: com.xylyra.webox.import
             CFBundleURLSchemes: [webox]
         CFBundleDisplayName: WeBox
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

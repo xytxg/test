@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct SourcePickerView:View{
     @EnvironmentObject private var app:AppModel
@@ -11,6 +10,7 @@ struct SourcePickerView:View{
     var body:some View{
         NavigationStack{
             List{
+                SourceImportStatus()
                 if app.sources.isEmpty{Section{VStack(alignment:.leading,spacing:8){Text("添加你的第一个源").font(.headline);Text("支持 WeBox、Widget 与 XPTV JS 接口。内容源由你自行提供。").font(.subheadline).foregroundStyle(.secondary)}.padding(.vertical,8);SourceImportActions()}}
                 else{
                     Section("内容源"){
@@ -51,6 +51,7 @@ struct SourceImportActions:View{
     var body:some View{
         Group{
             Button{importer.openFiles()}label:{Label("从文件导入 JS",systemImage:"folder")}.disabled(app.importing).accessibilityIdentifier("import-local-js")
+                .contextMenu { Button("批量导入 JS", systemImage: "document.on.document") { importer.openFiles(allowsMultipleSelection: true) } }
             Button{importer.link=true}label:{Label("从链接导入",systemImage:"link")}.disabled(app.importing)
         }
     }
@@ -61,6 +62,7 @@ struct SourcesView:View{
     @State private var remove:SourceEntry?
     var body:some View{
         List{
+            SourceImportStatus()
             Section("添加内容源"){SourceImportActions()}
             Section("已添加 · \(app.sources.count)"){
                 ForEach(app.sources){source in
@@ -107,12 +109,29 @@ struct SourceConfigurationView:View{
         if field.type=="number"{values[field.key]=Double(value).map(JSONValue.number)}else{values[field.key] = .string(String(value.prefix(field.maxLength ?? 8192)))}
     })}
 }
-struct ImportResultsView:View{
-    @EnvironmentObject private var app:AppModel
-    var body:some View{
-        NavigationStack{List{ForEach(app.importResults){item in
-            HStack(alignment:.top,spacing:12){Image(systemName:item.error==nil ? "checkmark.circle.fill":"exclamationmark.circle").foregroundStyle(item.error==nil ? Color.green:Color.orange);VStack(alignment:.leading,spacing:6){Text(item.sourceName ?? item.filename).font(.headline);Text(item.error ?? (item.updated ? "脚本已更新，原配置已保留":"已添加到内容源")).font(.subheadline).foregroundStyle(.secondary).textSelection(.enabled)}}.padding(.vertical,6)
-        }}.navigationTitle("导入结果").navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.topBarTrailing){Button("完成"){app.importResults=[]}}}}
-            .presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
+struct ImportResultRow: View {
+    let item: ImportItem
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: item.error == nil ? "checkmark.circle.fill" : "exclamationmark.circle")
+                .foregroundStyle(item.error == nil ? Color.green : Color.orange)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.sourceName ?? item.filename).font(.headline)
+                Text(item.error ?? (item.updated ? "脚本已更新，原配置已保留" : "已添加到内容源"))
+                    .font(.subheadline).foregroundStyle(.secondary).textSelection(.enabled)
+            }
+        }.padding(.vertical, 6)
+    }
+}
+
+struct ImportResultsView: View {
+    @EnvironmentObject private var app: AppModel
+    var body: some View {
+        NavigationStack {
+            List(app.importResults) { ImportResultRow(item: $0) }
+                .navigationTitle("导入结果")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("完成") { app.importResults = [] } } }
+        }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
     }
 }
