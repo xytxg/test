@@ -29,7 +29,7 @@ struct SourcePickerView:View{
             .toolbar{ToolbarItem(placement:.topBarTrailing){Button("完成"){dismiss()}}}
             .navigationDestination(isPresented:$manage){SourcesView()}
             .sheet(item:$configure){source in NavigationStack{SourceConfigurationView(source:source)}}
-        }.onAppear{ScreenshotSupport.mark("sources")}.presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
+        }.sourceImportPresentation().onAppear{ScreenshotSupport.mark("sources")}.presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
     }
 }
 struct SourceRow:View{
@@ -47,21 +47,12 @@ struct SourceRow:View{
 }
 struct SourceImportActions:View{
     @EnvironmentObject private var app:AppModel
-    @State private var files=false
-    @State private var link=false
-    @State private var address=""
-    @State private var owner=UUID()
+    @EnvironmentObject private var importer:SourceImportCoordinator
     var body:some View{
         Group{
-            Button{files=true}label:{Label("从文件导入 JS",systemImage:"folder")}.disabled(app.importing)
-            Button{link=true}label:{Label("从链接导入",systemImage:"link")}.disabled(app.importing)
-            if app.importing{HStack{ProgressView().controlSize(.small);Text("正在读取并解析脚本…").font(.subheadline).foregroundStyle(.secondary)}}
+            Button{importer.openFiles()}label:{Label("从文件导入 JS",systemImage:"folder")}.disabled(app.importing).accessibilityIdentifier("import-local-js")
+            Button{importer.link=true}label:{Label("从链接导入",systemImage:"link")}.disabled(app.importing)
         }
-        .fileImporter(isPresented:$files,allowedContentTypes:[.item],allowsMultipleSelection:true){result in
-            switch result{case .success(let urls):Task{await app.importFiles(urls,owner:owner)};case .failure(let error):app.error=error.localizedDescription}
-        }
-        .sheet(isPresented:Binding(get:{!app.importResults.isEmpty && app.importOwner == owner},set:{if !$0{app.importResults=[]}})){ImportResultsView()}
-        .alert("导入脚本链接",isPresented:$link){TextField("https://…/source.js",text:$address).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL);Button("取消",role:.cancel){};Button("导入"){Task{await app.importURL(address,owner:owner)}}}message:{Text("填写 JS 直链，也可粘贴 GitHub 文件链接。")}
     }
 }
 struct SourcesView:View{
@@ -81,6 +72,7 @@ struct SourcesView:View{
             }
             Section{Text("源脚本定义数据、分类和播放地址；界面保持一致。源仅在本机运行，导入同一 ID 会更新脚本并保留原配置。仅导入你信任的脚本。").font(.footnote).foregroundStyle(.secondary)}
         }.navigationTitle("内容源").navigationBarTitleDisplayMode(.inline)
+            .sourceImportPresentation()
             .sheet(item:$configure){source in NavigationStack{SourceConfigurationView(source:source)}}
             .confirmationDialog("删除这个源及其配置？",isPresented:Binding(get:{remove != nil},set:{if !$0{remove=nil}}),titleVisibility:.visible){Button("删除源",role:.destructive){if let remove{app.remove(remove)};remove=nil}}
     }

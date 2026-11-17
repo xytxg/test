@@ -9,7 +9,7 @@ settings:
     SWIFT_VERSION: '5.0'
     CODE_SIGNING_ALLOWED: NO
     MARKETING_VERSION: '0.2.0'
-    CURRENT_PROJECT_VERSION: '2'
+    CURRENT_PROJECT_VERSION: '3'
     TARGETED_DEVICE_FAMILY: '1,2'
     IPHONEOS_DEPLOYMENT_TARGET: '17.0'
 targets:
@@ -68,11 +68,21 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+  WeBoxImportUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: WeBox
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   WeBox:
     build:
       targets:
         WeBox: all
         WeBoxTests: [test]
+        WeBoxImportUITests: [test]
     test:
-      targets: [WeBoxTests]
+      targets: [WeBoxTests, WeBoxImportUITests]

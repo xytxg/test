@@ -5,7 +5,7 @@ import AVFoundation
 struct WeBoxApp: App {
     @StateObject private var app=AppModel()
     @Environment(\.scenePhase) private var scenePhase
-    init(){try? AVAudioSession.sharedInstance().setCategory(.playback,mode:.moviePlayback)}
+    init(){try? AVAudioSession.sharedInstance().setCategory(.playback,mode:.moviePlayback);ScreenshotSupport.prepareImportTestFiles()}
     var body:some Scene{
         WindowGroup{
             RootView().environmentObject(app).environmentObject(app.playback)
