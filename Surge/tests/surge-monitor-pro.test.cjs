@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const srcFile = path.resolve(__dirname, '../scripts/surge-monitor-pro-v3.2.0.js');
+const srcFile = path.resolve(__dirname, '../scripts/surge-monitor-pro-v3.2.1.js');
 const source = fs.readFileSync(srcFile, 'utf8');
 const runner = new vm.Script(source, {filename:srcFile});
 const store = new Map();
@@ -72,6 +72,10 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
   panel=await run('panel');
   check(panel.content.includes('预警 持续上涨'),'Sustained memory growth alert');
   check(panel.content.includes('24h峰'),'24 hour peak in compact view');
+  check(panel.title.includes('Surge 内存 · ') && panel.title.includes('MiB'),
+    'Native bold title contains the headline memory metric');
+  check(panel.content.split('\n').length <= 7,
+    'Default layout stays within seven lines including warning');
   check(panel.content.includes('DNS '),'DNS stats');
   check(panel.content.includes('Surge 6.100.0 (4032)'),'Version metadata');
   check(panel.content.split('\n').every(x=>x.length<44),'No excessive line lengths');
@@ -82,6 +86,8 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
   check(saved().reloadCount===1,'Reload count event-based');
   const detailed=await run('panel',{view:'detail'});
   check(detailed.content.includes('重载前后 +1.0 MiB'),'Detail reload comparison');
+  check(detailed.content.includes('本次最低 ') && detailed.content.includes('有效样本 '),
+    'Detailed view retains minimum and sample count');
   await run('panel',{button:true,tap:'reload'});
   check(reloads===1&&saved().reloadCount===1,'Manual reload avoids double count');
   badMetrics=true;clock+=360000;await run('sample');
@@ -95,5 +101,5 @@ function run(mode, {key='',tap='refresh',view='compact',button=false}={}) {
   check((await run('panel')).content.includes('旧历史已隔离'),'Restart isolation before new sample');
   await run('start');
   check(saved().samples.length===1&&saved().reloadCount===0,'Restart resets session');
-  console.log('Surge Monitor Pro v3.2.0: '+tests+' regression checks passed');
+  console.log('Surge Monitor Pro v3.2.1: '+tests+' regression checks passed');
 })().catch(err=>{console.error(err);process.exitCode=1;});
