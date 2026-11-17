@@ -1,0 +1,107 @@
+name: WeBox iOS unsigned IPA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'WeBox-iOS/**'
+      - '.github/workflows/webox-ios.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: webox-ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: WeBox-iOS
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check uploaded source contract
+        run: node Scripts/check-source.mjs
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild -version
+      - name: Select simulator
+        id: sim
+        run: |
+          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for vs in d["devices"].values() for v in vs if "iPhone" in v["name"]))')
+          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+      - name: Test source runtime and CENC ranges on iOS
+        run: |
+          set -o pipefail
+          xcodebuild test -project WeBox.xcodeproj -scheme WeBox \
+            -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.id }}' \
+            -derivedDataPath build/simulator -resultBundlePath build/Tests.xcresult \
+            CODE_SIGNING_ALLOWED=NO | tee build-test.log
+      - name: Capture native UI screenshots
+        run: bash Scripts/screenshots.sh '${{ steps.sim.outputs.id }}' build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app build/screenshots
+      - name: Build unsigned device app
+        run: |
+          set -o pipefail
+          xcodebuild build -project WeBox.xcodeproj -scheme WeBox -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath build/device \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' | tee build-device.log
+      - name: Package and verify IPA
+        run: |
+          mkdir -p build/package/Payload
+          cp -R build/device/Build/Products/Release-iphoneos/WeBox.app build/package/Payload/
+          test ! -d build/package/Payload/WeBox.app/_CodeSignature
+          test ! -f build/package/Payload/WeBox.app/embedded.mobileprovision
+          file build/package/Payload/WeBox.app/WeBox | grep arm64
+          cd build/package
+          /usr/bin/zip -qry ../WeBox-iOS-unsigned.ipa Payload
+          cd ..
+          unzip -t WeBox-iOS-unsigned.ipa
+          shasum -a 256 WeBox-iOS-unsigned.ipa > SHA256SUMS.txt
+          /usr/bin/zip -qry WeBox-iOS-screenshots.zip screenshots
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: WeBox-iOS-unsigned
+          path: |
+            WeBox-iOS/build/WeBox-iOS-unsigned.ipa
+            WeBox-iOS/build/SHA256SUMS.txt
+            WeBox-iOS/build/screenshots/*.png
+            WeBox-iOS/build/WeBox-iOS-screenshots.zip
+          retention-days: 30
+      - name: Publish downloadable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="webox-ios-0.1.0-${GITHUB_RUN_NUMBER}"
+          cat > build/release-notes.md <<'NOTES'
+          WeBox iOS 0.1.0 beta · iOS 17+ / iPhone & iPad
+
+          - SwiftUI 客户端，支持导入 WeBox API 1.0–1.5 的基础接口源。
+          - 内置用户提供的红果短剧源，支持分类、搜索、分集、收藏及播放记录。
+          - AES / 哈希 / gzip 运行桥接与 CENC MP4 Range 处理。
+          - IPA 未签名，请用自己的证书签名后安装。
+          - 截图来自离线演示源，不代表红果实时目录或真实播放验证。
+          - 不包含 Android 的 mpv、任意 Node 模块、DOM/compute 扩展及离线下载。
+
+          接口和模拟数据测试通过并不代表上游红果服务在所有网络中均可用。源码、兼容范围及使用说明见仓库 WeBox-iOS/。
+          NOTES
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.1.0 beta · build ${GITHUB_RUN_NUMBER}" \
+            --notes-file build/release-notes.md --prerelease \
+            build/WeBox-iOS-unsigned.ipa build/SHA256SUMS.txt \
+            build/WeBox-iOS-screenshots.zip build/screenshots/*.png
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WeBox-iOS-diagnostics
+          path: |
+            WeBox-iOS/*.log
+            WeBox-iOS/build/Tests.xcresult
+          retention-days: 7

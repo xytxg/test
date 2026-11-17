@@ -1,0 +1,63 @@
+name: WeBox
+options:
+  bundleIdPrefix: com.xylyra
+  deploymentTarget:
+    iOS: '17.0'
+  xcodeVersion: '16.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    CODE_SIGNING_ALLOWED: NO
+    MARKETING_VERSION: '0.1.0'
+    CURRENT_PROJECT_VERSION: '1'
+    TARGETED_DEVICE_FAMILY: '1,2'
+    IPHONEOS_DEPLOYMENT_TARGET: '17.0'
+targets:
+  WeBox:
+    type: application
+    platform: iOS
+    sources: [App, Runtime]
+    resources: [Resources]
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: WeBox
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIBackgroundModes: [audio]
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UIFileSharingEnabled: true
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: WeBox Source
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [public.javascript]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.xylyra.webox
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - sdk: libz.tbd
+  WeBoxTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: WeBox
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  WeBox:
+    build:
+      targets:
+        WeBox: all
+        WeBoxTests: [test]
+    test:
+      targets: [WeBoxTests]
