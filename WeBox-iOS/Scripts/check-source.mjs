@@ -26,7 +26,7 @@ async function engine(filename){
  return async(method,request={})=>{const id=String(++counter);const promise=new Promise((resolve,reject)=>waiting.set(id,{resolve,reject}));context.__invoke(id,method,request);return promise;};
 }
 for(const [filename,format] of [['Screenshots/01-cinema.webox.js','webox'],['Screenshots/02-documents.widget.js','widget'],['Screenshots/03-xptv.js','xptv']]){
- const call=await engine(filename),metadata=await call('metadata');assert.equal(metadata.format,format);
+ const call=await engine(filename),metadata=await call('metadata');assert.equal(metadata.format,format);if(format==='widget')assert.equal(metadata.settings[0].sensitive,true);
  const filters=await call('filters'),selection=Object.fromEntries(filters.map(f=>[f.key,f.default||f.options[0]?.value]));
  const page=await call('list',{filters:selection,page:1});assert.ok(page.items.length>0);
  const card=page.items[0],detail=await call('detail',{id:card.id,link:card.link,title:card.title}),group=detail.groups[0],episode=group.episodes[0];

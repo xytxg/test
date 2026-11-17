@@ -4,7 +4,7 @@
  const original=WeBox.define;
  globalThis.WeBox=Object.freeze({define(value){original(value);definition=value;format='webox';}});
  const parse=value=>typeof value==='string'?JSON.parse(value):value;
- const field=p=>p.nativeField||{key:p.name,label:p.title||p.name,type:p.type==='enumeration'?'select':p.type==='input'?'text':p.type==='constant'?'text':p.type,default:p.value,required:!!p.required,help:p.description||'',options:(p.enumOptions||[]).map(o=>({label:String(o.title||o.value),value:String(o.value)}))};
+ const field=p=>p.nativeField||{key:p.name,label:p.title||p.name,type:p.type==='enumeration'?'select':p.type==='input'?'text':p.type==='constant'?'text':p.type,default:p.value,required:!!p.required,sensitive:!!p.sensitive,placeholder:p.placeholder||'',help:p.description||'',options:(p.enumOptions||[]).map(o=>({label:String(o.title||o.value),value:String(o.value)}))};
  const fields=ps=>(ps||[]).filter(p=>!['page','offset','constant'].includes(p.type)).map(field);
  function seed(){try{if(typeof $app==='object')return $app;if(typeof app==='object')return app;}catch(_){}return {};}
  function detect(){

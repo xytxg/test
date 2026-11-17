@@ -1,4 +1,4 @@
-WidgetMetadata={id:'test.widget.documents',title:'原野纪录',version:'1.1.0',modules:[{id:'films',title:'自然与远方',functionName:'catalog',params:[]},{id:'play',title:'播放',functionName:'loadResource',type:'stream',params:[]}],search:{id:'search',functionName:'search',params:[{name:'keyword',type:'input'}]}};
+WidgetMetadata={id:'test.widget.documents',title:'原野纪录',version:'1.1.0',globalParams:[{name:'apiKey',title:'访问令牌',type:'input',sensitive:true,required:false}],modules:[{id:'films',title:'自然与远方',functionName:'catalog',params:[]},{id:'play',title:'播放',functionName:'loadResource',type:'stream',params:[]}],search:{id:'search',functionName:'search',params:[{name:'keyword',type:'input'}]}};
 const rows=[{id:'one',type:'url',title:'山海之间',posterPath:'http://127.0.0.1:8765/poster-2.png',description:'自然 · 纪录片',link:'documentary:one'}];
 async function catalog(){return rows}
 async function search(p){return rows.filter(x=>x.title.includes(p.keyword))}
