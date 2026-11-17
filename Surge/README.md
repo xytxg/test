@@ -1,44 +1,24 @@
-# Surge Monitor Pro v3.3.0 — 极简原生面板
+# Surge Monitor Pro v3.4.0 — Beta API 恢复优化
 
-根据 iPhone 真实截图对 Surge 信息面板进行第三次 UI 整理。**默认改为极简视图 `view:glance`**：系统粗体标题用于内存数值，其余只保留四行核心指标。以前的 `compact` 和 `detail` 仍可选择，所有采样历史保留。
+Surge 本次 Beta 修复了**自动重启后 HTTP API 等服务可能未恢复**的问题。v3.4.0 针对监控脚本的采样链路做了补强，**不声称模块自己能修好 Surge 服务**。
 
-## 重要界面限制
+## 本次优化
 
-Surge 原生 [Information Panel](https://manual.nssurge.com/tools/panel.html) 仅支持 `title`、`content`、`style`、`icon` 和 `icon-color`。不能自定义字号、放大数字、CSS、图表或内部网格。之前的网页四宫格示意无法在 Surge 原生策略组面板中真实实现。
+- 启动采样如遇指标暂不可读，等待约 **650 毫秒后仅重试一次**；普通 Cron 仍每 6 分钟只采样一次。
+- 区分本地 HTTP API 无响应、HTTP 401/403 密钥/权限错误、5xx 服务异常、指标缺失等状态。不会显示、记录或上传本地 API Key。
+- 采样失败后必须真正获得**成功指标**才能记录恢复，极简视图显示 15 分钟内的“采样已恢复”，详细视图显示恢复时间与本次引擎会话累计恢复次数。
+- **超过 18 分钟未成功采样，标题变为“历史内存 xx MiB”**，避免旧数字被误认成实时占用。
+- 保留 `glance`（默认四行）、`compact` 和 `detail`，平时不增加冗余行，只有异常时增加状态。
+- 不通过 DNS 缓存数量猜测 Split DNS 或 Tailscale 的解析是否成功；继续仅展示官方实际提供的 `surge_dns_cache_entries`。
 
-## 原生显示样例（数字仅是展示样例）
-
-系统粗体标题：
-
-**内存 30.7 MiB**
-
-普通正文：
-
-```text
-近30分钟  ↓ 0.3 MiB
-1h均 30.6  ·  24h峰 31.9
-请求 59  ·  DNS 200
-运行 10时45分  ·  采样1分前
-```
-
-只有发生持续增长、采样异常或样本过期时，才增加警告内容。不会假装为实时连续采样。
-
-## 安装与更新
-
-原安装地址不变：
+## 安装链接
 
 https://raw.githubusercontent.com/xytxg/test/main/Surge/Surge-Monitor-Pro.sgmodule
 
-更新模块，再到 Surge 外部资源更新脚本；确认所有远程脚本已使用 `surge-monitor-pro-v3.3.0.js`。保留本机已有 API Key，不必重新配置。
+更新模块及外部资源，确认脚本 URL 是 `Surge/scripts/surge-monitor-pro-v3.4.0.js`。
 
-## 可调整的视图
+## 与旧版兼容
 
-- `view:glance`：默认极简，约四行正文
-- `view:compact`：之前的完整概要，额外显示采样及版本等
-- `view:detail`：最低值、配置重载、DNS 变化、重载前后内存对比等
+存储键仍为 `xy_surge_monitor_pro_v3`；已有历史不主动删除。继续使用六分钟 Cron、`engine-started` 和 `profile-reloaded` 事件、最多 240 个有效样本。没有 MITM、后台测速、主动 DNS 测试或自动重启引擎。iOS 后台调度仍取决于系统实际执行情况。
 
-## 性能和隐私
-
-继续每 6 分钟 Cron 采样、引擎启动采样、配置重载事件统计，不增加额外 Cron 或网络拦截。使用原 `xy_surge_monitor_pro_v3` 存储键，不主动清空历史数据。30 分钟上涨预警阈值默认 10 MiB，内存阈值默认 45 MiB，均只改变显示。保留本机 API Key，不提交公开仓库。
-
-运行测试：`node Surge/tests/surge-monitor-pro.test.cjs`。测试使用模拟 Surge 运行环境，不能替代 iPhone 实机 UI 验证。
+测试命令：`node Surge/tests/surge-monitor-pro.test.cjs`；模拟测试不能替代 iPhone 实机。官方指标来源：[Surge HTTP API](https://manual.nssurge.com/tools/http-api.html)。
