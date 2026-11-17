@@ -82,67 +82,92 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                if let player = playback.player {
-                    VideoPlayer(player: player).frame(height: 290).background(.black).clipShape(RoundedRectangle(cornerRadius: 16))
-                } else if playback.resolving {
-                    ZStack { Color.black; ProgressView("正在解析播放地址…").tint(.white).foregroundStyle(.white) }.frame(height: 240).clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                HStack(alignment: .top, spacing: 18) {
-                    PosterImage(url: detail?.poster ?? card.poster, title: card.title).frame(width: 100, height: 144).clipShape(RoundedRectangle(cornerRadius: 12))
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(detail?.title ?? card.title).font(.title2.bold())
-                        Text(source.name).font(.caption.weight(.medium)).padding(.horizontal, 10).padding(.vertical, 5).background(Color(uiColor: .secondarySystemBackground), in: Capsule())
-                        Text(card.subtitle ?? "共 \(group?.episodes.count ?? 0) 集").font(.subheadline).foregroundStyle(.secondary)
-                        Button { app.toggleFavorite(card, source: source) } label: { Label(isFavorite ? "已收藏" : "收藏", systemImage: isFavorite ? "heart.fill" : "heart") }.buttonStyle(.bordered)
-                    }.frame(maxWidth: .infinity, alignment: .leading)
-                }
-                if let error = playback.error { Label(error, systemImage: "exclamationmark.circle").font(.subheadline).foregroundStyle(.red).textSelection(.enabled) }
-                if let summary = detail?.summary ?? card.summary, !summary.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) { Text("剧情简介").font(.headline); Text(summary).font(.subheadline).foregroundStyle(.secondary).lineSpacing(5).textSelection(.enabled) }
-                }
-                if let detail {
-                    HStack {
-                        Text("选集").font(.headline)
-                        Spacer()
-                        Text("\(group?.episodes.count ?? 0) 集").font(.caption).foregroundStyle(.secondary)
-                        Button { ascending.toggle() } label: { Image(systemName: "arrow.up.arrow.down") }.accessibilityLabel("切换选集顺序")
-                    }
-                    if detail.groups.count > 1 {
-                        Picker("播放线路", selection: $groupID) { ForEach(detail.groups) { group in Text(group.name).tag(group.id) } }.pickerStyle(.menu)
-                    }
-                    if let group {
-                        let episodes = ascending ? group.episodes : group.episodes.reversed().map { $0 }
-                        let current = group.episodes.first { $0.id == saved?.episodeID } ?? group.episodes.first
-                        if let current {
-                            Button { play(group, current, resume: saved?.episodeID == current.id ? saved?.seconds ?? 0 : 0) } label: {
-                                Label(saved == nil ? "立即播放" : "继续观看 · \(current.name)", systemImage: "play.fill").frame(maxWidth: .infinity).padding(.vertical, 8)
-                            }.buttonStyle(.borderedProminent).disabled(playback.resolving)
-                        }
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 85), spacing: 10)], spacing: 10) {
-                            ForEach(episodes) { episode in
-                                Button { play(group, episode) } label: {
-                                    Text(episode.name).font(.subheadline).lineLimit(1).frame(maxWidth: .infinity).padding(.vertical, 13)
-                                        .background(playback.episodeID == episode.id ? Color.accentColor : Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 9))
-                                        .foregroundStyle(playback.episodeID == episode.id ? Color.white : Color.primary)
-                                }.buttonStyle(.plain)
-                            }
-                        }
-                    }
-                } else if let error {
-                    ContentUnavailableView { Label("分集暂不可用", systemImage: "exclamationmark.circle") } description: { Text(error) } actions: { Button("重试") { Task { await load() } } }
-                } else { ProgressView("加载分集…").frame(maxWidth: .infinity) }
+                playerView
+                introduction
+                if let message = playback.error { Label(message, systemImage: "exclamationmark.circle").font(.subheadline).foregroundStyle(.red).textSelection(.enabled) }
+                summaryView
+                episodesSection
             }.padding(20)
         }
         .navigationTitle("内容详情").navigationBarTitleDisplayMode(.inline)
         .task { await load() }
-        .onAppear {
-            playback.onFinished = {
-                guard let group, let index = group.episodes.firstIndex(where: { $0.id == playback.episodeID }), index + 1 < group.episodes.count else { return }
-                play(group, group.episodes[index + 1])
-            }
-        }
+        .onAppear { playback.onFinished = playNext }
         .onChange(of: scenePhase) { _, phase in if phase != .active { savePosition() } }
         .onDisappear { savePosition(); playback.close() }
+    }
+    @ViewBuilder private var playerView: some View {
+        if let player = playback.player {
+            VideoPlayer(player: player).frame(height: 290).background(.black).clipShape(RoundedRectangle(cornerRadius: 16))
+        } else if playback.resolving {
+            ZStack { Color.black; ProgressView("正在解析播放地址…").tint(.white).foregroundStyle(.white) }
+                .frame(height: 240).clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+    }
+    private var introduction: some View {
+        HStack(alignment: .top, spacing: 18) {
+            PosterImage(url: detail?.poster ?? card.poster, title: card.title)
+                .frame(width: 100, height: 144).clipShape(RoundedRectangle(cornerRadius: 12))
+            VStack(alignment: .leading, spacing: 10) {
+                Text(detail?.title ?? card.title).font(.title2.bold())
+                Text(source.name).font(.caption.weight(.medium)).padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(Color(uiColor: .secondarySystemBackground), in: Capsule())
+                Text(card.subtitle ?? "共 \(group?.episodes.count ?? 0) 集").font(.subheadline).foregroundStyle(.secondary)
+                Button { app.toggleFavorite(card, source: source) }
+                label: { Label(isFavorite ? "已收藏" : "收藏", systemImage: isFavorite ? "heart.fill" : "heart") }.buttonStyle(.bordered)
+            }.frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+    @ViewBuilder private var summaryView: some View {
+        if let summary = detail?.summary ?? card.summary, !summary.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("剧情简介").font(.headline)
+                Text(summary).font(.subheadline).foregroundStyle(.secondary).lineSpacing(5).textSelection(.enabled)
+            }
+        }
+    }
+    @ViewBuilder private var episodesSection: some View {
+        if let detail {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("选集").font(.headline); Spacer()
+                    Text("\(group?.episodes.count ?? 0) 集").font(.caption).foregroundStyle(.secondary)
+                    Button { ascending.toggle() } label: { Image(systemName: "arrow.up.arrow.down") }.accessibilityLabel("切换选集顺序")
+                }
+                if detail.groups.count > 1 {
+                    Picker("播放线路", selection: $groupID) { ForEach(detail.groups) { group in Text(group.name).tag(group.id) } }.pickerStyle(.menu)
+                }
+                if let group { episodeControls(group) }
+            }
+        } else if let message = error {
+            ContentUnavailableView { Label("分集暂不可用", systemImage: "exclamationmark.circle") }
+            description: { Text(message) } actions: { Button("重试") { Task { await load() } } }
+        } else { ProgressView("加载分集…").frame(maxWidth: .infinity) }
+    }
+    private func episodeControls(_ group: EpisodeGroup) -> some View {
+        let episodes = ascending ? group.episodes : Array(group.episodes.reversed())
+        let current = group.episodes.first { $0.id == saved?.episodeID } ?? group.episodes.first
+        return VStack(spacing: 16) {
+            if let current {
+                Button { play(group, current, resume: saved?.episodeID == current.id ? saved?.seconds ?? 0 : 0) }
+                label: { Label(saved == nil ? "立即播放" : "继续观看 · \(current.name)", systemImage: "play.fill").frame(maxWidth: .infinity).padding(.vertical, 8) }
+                    .buttonStyle(.borderedProminent).disabled(playback.resolving)
+            }
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 85), spacing: 10)], spacing: 10) {
+                ForEach(episodes) { episode in episodeButton(group, episode) }
+            }
+        }
+    }
+    private func episodeButton(_ group: EpisodeGroup, _ episode: Episode) -> some View {
+        let selected = playback.episodeID == episode.id
+        return Button { play(group, episode) } label: {
+            Text(episode.name).font(.subheadline).lineLimit(1).frame(maxWidth: .infinity).padding(.vertical, 13)
+                .background(selected ? Color.accentColor : Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 9))
+                .foregroundStyle(selected ? Color.white : Color.primary)
+        }.buttonStyle(.plain)
+    }
+    private func playNext() {
+        guard let group, let index = group.episodes.firstIndex(where: { $0.id == playback.episodeID }), index + 1 < group.episodes.count else { return }
+        play(group, group.episodes[index + 1])
     }
     private func savePosition() {
         if let episode = playback.episodeID, playback.player != nil { app.record(card, source: source, episode: episode, seconds: playback.position) }
