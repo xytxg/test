@@ -16,8 +16,11 @@ targets:
   WeBox:
     type: application
     platform: iOS
-    sources: [App, Runtime]
-    resources: [Resources]
+    sources:
+      - path: App
+      - path: Runtime
+      - path: Resources
+        buildPhase: resources
     info:
       path: Info.plist
       properties:

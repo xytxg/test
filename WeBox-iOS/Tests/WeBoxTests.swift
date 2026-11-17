@@ -61,7 +61,8 @@ final class WeBoxTests: XCTestCase {
     @MainActor
     func testProvidedSourceMetadataFiltersSearchAndDetail() async throws {
         let runtime = SourceRuntime(namespace: "tests", session: MockURLProtocol.session()); defer { runtime.close() }
-        let script = try String(contentsOf: Bundle.main.url(forResource: "hongguo.webox", withExtension: "js")!, encoding: .utf8)
+        let sourceURL = try XCTUnwrap(Bundle.main.url(forResource: "hongguo.webox", withExtension: "js"))
+        let script = try String(contentsOf: sourceURL, encoding: .utf8)
         let metadata = try await runtime.load(script: script)
         XCTAssertEqual(metadata["id"] as? String, "dev.webox.hongguo")
         let filters = try await runtime.invoke("filters") as? [[String:Any]]

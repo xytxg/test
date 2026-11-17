@@ -45,7 +45,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
             loadContinuation = continuation
             webView.loadHTMLString("<html><head><meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; connect-src 'none'\"></head><body></body></html>", baseURL: nil)
         }
-        let bridgeURL = Bundle.main.url(forResource: "bridge", withExtension: "js")!
+        guard let bridgeURL = Bundle.main.url(forResource: "bridge", withExtension: "js") else { throw WeBoxError("应用缺少源运行桥接资源，请重新安装完整 IPA") }
         try await webView.evaluateJavaScript(String(contentsOf: bridgeURL, encoding: .utf8))
         try await webView.evaluateJavaScript(script)
         let metadata = try await invoke("metadata") as? [String: Any] ?? [:]

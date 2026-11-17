@@ -36,6 +36,9 @@ jobs:
           xcodebuild build-for-testing -project WeBox.xcodeproj -scheme WeBox \
             -destination 'generic/platform=iOS Simulator' -derivedDataPath build/simulator \
             CODE_SIGNING_ALLOWED=NO | tee build-compile.log
+          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/bridge.js
+          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/hongguo.webox.js
+          test -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/demo.webox.js
       - name: Select simulator
         id: sim
         run: |
