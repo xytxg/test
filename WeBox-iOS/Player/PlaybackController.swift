@@ -99,6 +99,7 @@ final class PlaybackController: ObservableObject {
     private var lastSaved: Double = -100
     private var pendingSeek: Double = 0
     private var seeking = false
+    private var userSeek: UUID?
     private var advanced = false
     private var remoteTokens: [(MPRemoteCommand, Any)] = []
 
@@ -117,18 +118,24 @@ final class PlaybackController: ObservableObject {
     }
     deinit { for observer in notifications { NotificationCenter.default.removeObserver(observer) };for (command,token) in remoteTokens { command.removeTarget(token) } }
     var isBusy: Bool { phase == .resolving || phase == .buffering }
+    var canSeek: Bool { player != nil && duration > 0 && duration.isFinite && phase != .resolving && phase != .failed }
+    var hasNextEpisode: Bool {
+        guard let context else { return false }
+        return context.index + 1 < context.group.episodes.count
+    }
     var title: String { context?.card.title ?? "尚未播放" }
     var subtitle: String { guard let context else { return "" };return [context.source.name,context.episode.name].joined(separator:" · ") }
-    func play(_ value: PlaybackContext, app: AppModel, resume: Double = 0, present: Bool = true) {
+    func play(_ value: PlaybackContext, app: AppModel, resume: Double = 0, present: Bool = true, autoplay: Bool = true) {
         saveProgress(); clearObservers(); self.app=app;preferences=app.preferences;rate=preferences.rate
         if let prepared=prefetched,prepared.context.source.id==value.source.id,prepared.context.card.id==value.card.id,prepared.context.group.id==value.group.id,prepared.context.episode.id==value.episode.id,Date().timeIntervalSince(prepared.created)<120 {
             preloader?.cancel();preloader=nil;prefetched=nil;nextReady=false
-            generation=UUID();resolver?.cancel();context=value;attempted=[];refreshed=false;wantsPlayback=true
+            generation=UUID();resolver?.cancel();context=value;attempted=[];refreshed=false;wantsPlayback=autoplay
             adopt(prepared,resume:resume);if present{showPlayer=true};return
         }
         generation=UUID();let currentGeneration=generation
         resolver?.cancel();cancelPrefetch();stallTimer?.cancel()
-        context=value;phase = .resolving;error=nil;attempted=[];refreshed=false;wantsPlayback=true;advanced=false
+        context=value;phase = .resolving;error=nil;attempted=[];refreshed=false;wantsPlayback=autoplay;advanced=false
+        variants=[];selectedVariantID=nil;bufferSeconds=0
         // Pause the old item immediately, while keeping its last frame until resolution finishes.
         handle?.player.pause();elapsed=max(0,resume.isFinite ? resume : 0);duration=0
         if present { showPlayer=true }
@@ -174,7 +181,7 @@ final class PlaybackController: ObservableObject {
         value.warmObservation=nil;value.player.cancelPendingPrerolls()
         player=value.player;context=value.context;variants=value.variants;selectedVariantID=value.variants[value.selected].id
         attempted.insert(value.variants[value.selected].id)
-        error=nil;phase = .buffering;elapsed=max(0,resume.isFinite ? resume : 0);duration=0;advanced=false
+        error=nil;phase = .buffering;elapsed=max(0,resume.isFinite ? resume : 0);duration=0;bufferSeconds=0;advanced=false
         lastSaved = -100;pendingSeek=max(elapsed,preferences.skipIntro);seeking=false
         let currentGeneration=generation
         observations.append(value.item.observe(\.status,options:[.initial,.new]) { [weak self] item,_ in
@@ -186,7 +193,7 @@ final class PlaybackController: ObservableObject {
         })
         observations.append(value.player.observe(\.timeControlStatus,options:[.new]) { [weak self] player,_ in
             Task { @MainActor in
-                guard let self,self.generation==currentGeneration,self.player === player,self.phase != .failed else { return }
+                guard let self,self.generation==currentGeneration,self.player === player,self.phase != .failed,self.phase != .ended else { return }
                 switch player.timeControlStatus {
                 case .playing: self.phase = .playing;self.stallTimer?.cancel()
                 case .waitingToPlayAtSpecifiedRate: self.phase = .buffering;self.monitorStall()
@@ -194,7 +201,12 @@ final class PlaybackController: ObservableObject {
                 };self.updateNowPlaying()
             }
         })
-        periodic=value.player.addPeriodicTimeObserver(forInterval:CMTime(seconds:1,preferredTimescale:600),queue:.main) { [weak self] _ in Task { @MainActor in self?.tick() } }
+        periodic=value.player.addPeriodicTimeObserver(forInterval:CMTime(seconds:0.5,preferredTimescale:600),queue:.main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self,self.generation==currentGeneration else { return }
+                self.tick()
+            }
+        }
         try? AVAudioSession.sharedInstance().setActive(true)
         monitorStall()
     }
@@ -207,32 +219,64 @@ final class PlaybackController: ObservableObject {
         }
         guard generation==currentGeneration,handle === value else { return }
         pendingSeek=0;seeking=false
+        duration = total.isFinite ? max(0, total) : 0
+        let position=value.player.currentTime().seconds
+        if position.isFinite { elapsed=max(0,position) }
         if wantsPlayback { value.player.play();value.player.rate=rate } else { phase = .paused }
         updateNowPlaying()
     }
     func pause() { wantsPlayback=false;player?.pause();phase = .paused;stallTimer?.cancel();saveProgress();updateNowPlaying() }
     func resume() {
         guard context != nil else { return }
-        if phase == .failed || phase == .ended { retry();return }
+        if phase == .failed { retry();return }
+        if phase == .ended {
+            if canSeek {
+                advanced=false
+                phase = .buffering
+                seek(to:0)
+            } else if let context, let app {
+                play(context,app:app,present:false)
+                return
+            }
+        }
         wantsPlayback=true;player?.play();player?.rate=rate;monitorStall();updateNowPlaying()
     }
     func toggle() { phase == .playing || phase == .buffering ? pause() : resume() }
     func setRate(_ value: Float) { rate=min(3,max(0.5,value));if wantsPlayback{player?.rate=rate};if let app {app.preferences.rate=rate};updateNowPlaying() }
     func seek(to seconds: Double) {
-        guard duration.isFinite,duration>0,let player else { return }
-        let target=min(duration,max(0,seconds));player.seek(to:CMTime(seconds:target,preferredTimescale:600),toleranceBefore:.zero,toleranceAfter:.zero)
-        elapsed=target;saveProgress()
+        guard canSeek,seconds.isFinite,let player else { return }
+        let target=min(duration,max(0,seconds))
+        let seekID=UUID()
+        userSeek=seekID
+        elapsed=target
+        if phase == .ended && target < duration {
+            phase = .paused
+            advanced=false
+        }
+        let time=CMTime(seconds:target,preferredTimescale:600)
+        let tolerance=CMTime(seconds:0.15,preferredTimescale:600)
+        player.seek(to:time,toleranceBefore:tolerance,toleranceAfter:tolerance) { [weak self] _ in
+            Task { @MainActor in
+                guard let self,self.userSeek==seekID else { return }
+                self.userSeek=nil
+                let actual=self.player?.currentTime().seconds ?? target
+                if actual.isFinite { self.elapsed=max(0,actual) }
+                self.saveProgress()
+                self.updateNowPlaying()
+            }
+        }
     }
     func seek(by seconds: Double) { seek(to:elapsed+seconds) }
     func selectVariant(_ id: String) {
-        guard let context,let index=variants.firstIndex(where:{$0.id==id}),let app else { return }
-        saveProgress();let position=elapsed;generation=UUID();resolver?.cancel();cancelPrefetch();attempted=[];refreshed=false;wantsPlayback=true
+        guard let context,(id != selectedVariantID || phase == .failed),let index=variants.firstIndex(where:{$0.id==id}),let app else { return }
+        saveProgress();let position=elapsed;generation=UUID();resolver?.cancel();cancelPrefetch();attempted=[];refreshed=false
+        wantsPlayback = wantsPlayback || phase == .failed
         do { let value=try PlaybackHandle(context:context,variants:variants,selected:index,preferences:app.preferences);adopt(value,resume:position) }
         catch { fail(error.localizedDescription) }
     }
     func selectGroup(_ group: EpisodeGroup) {
         guard let context,let app,group.id != context.group.id,let episode=EpisodeMatcher.match(context.episode,index:context.index,in:group) else { return }
-        play(context.replacing(group:group,episode:episode),app:app,resume:elapsed,present:false)
+        play(context.replacing(group:group,episode:episode),app:app,resume:elapsed,present:false,autoplay:wantsPlayback || phase == .failed)
     }
     func selectEpisode(_ episode: Episode, group: EpisodeGroup? = nil) {
         guard let context,let app else { return };let group=group ?? context.group
@@ -253,19 +297,20 @@ final class PlaybackController: ObservableObject {
     }
     func saveProgress() { if let context { onProgress?(context,elapsed,duration) } }
     func applyPreferences(_ value:PlayerPreferences) { preferences=value;rate=value.rate;if wantsPlayback && phase == .playing{player?.rate=rate};handle?.item.preferredForwardBufferDuration=value.forwardBuffer;if !value.prefetchNext{cancelPrefetch()} }
-    private func clearObservers() { observations.removeAll();if let periodic,let player {player.removeTimeObserver(periodic)};periodic=nil;stallTimer?.cancel() }
+    private func clearObservers() { observations.removeAll();if let periodic,let player {player.removeTimeObserver(periodic)};periodic=nil;userSeek=nil;stallTimer?.cancel() }
     private func tick() {
         guard let player,let context,let item=handle?.item else { return }
         let position=player.currentTime().seconds,total=item.duration.seconds
+        guard !seeking,userSeek==nil else { return }
         if position.isFinite { elapsed=max(0,position) };if phase == .playing && elapsed>0.5{ScreenshotSupport.mark("player")};duration=total.isFinite ? max(0,total) : 0
         if let range=item.loadedTimeRanges.first?.timeRangeValue {bufferSeconds=max(0,CMTimeGetSeconds(CMTimeRangeGetEnd(range))-elapsed)}
         if abs(elapsed-lastSaved)>=8 {lastSaved=elapsed;saveProgress();updateNowPlaying()}
-        if preferences.autoNext,preferences.skipOutro>0,duration>preferences.skipOutro+5,elapsed>=duration-preferences.skipOutro {ended();return}
+        if phase == .playing,preferences.autoNext,preferences.skipOutro>0,duration>preferences.skipOutro+5,elapsed>=duration-preferences.skipOutro {ended();return}
         if phase == .playing,preferences.prefetchNext,duration>0,duration-elapsed<=45,context.index+1<context.group.episodes.count {prefetch()}
     }
     private func ended() {
         guard !advanced else {return};advanced=true;saveProgress()
-        guard preferences.autoNext,let context,context.index+1<context.group.episodes.count else {wantsPlayback=false;phase = .ended;return}
+        guard preferences.autoNext,hasNextEpisode else {wantsPlayback=false;phase = .ended;player?.pause();updateNowPlaying();return}
         next()
     }
     private func prefetch() {
@@ -298,7 +343,7 @@ final class PlaybackController: ObservableObject {
     private func recover(_ message: String) {
         guard let context else {return};let position=elapsed
         if let next=variants.indices.first(where:{!attempted.contains(variants[$0].id)}) {
-            cancelPrefetch();generation=UUID();wantsPlayback=true
+            cancelPrefetch();generation=UUID()
             do {adopt(try PlaybackHandle(context:context,variants:variants,selected:next,preferences:preferences),resume:position)}catch{attempted.insert(variants[next].id);recover(error.localizedDescription)};return
         }
         guard !refreshed else {fail(message);return};refreshed=true;phase = .resolving;let currentGeneration=generation

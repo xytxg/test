@@ -1,120 +1,473 @@
 import SwiftUI
 import AVKit
 
-struct NativePlayerView:UIViewControllerRepresentable{
-    let player:AVPlayer
-    let fit:Bool
-    func makeUIViewController(context:Context)->AVPlayerViewController{
-        let controller=AVPlayerViewController();controller.player=player
-        controller.showsPlaybackControls=true;controller.allowsPictureInPicturePlayback=true
-        controller.canStartPictureInPictureAutomaticallyFromInline=true
-        controller.updatesNowPlayingInfoCenter=false
-        return controller
+private struct PlayerVideoSurface: UIViewRepresentable {
+    let player: AVPlayer?
+    let fit: Bool
+    let surface: PlayerSurface
+
+    func makeUIView(context: Context) -> PlayerSurfaceView {
+        PlayerSurfaceView(videoLayer: surface.layer)
     }
-    func updateUIViewController(_ controller:AVPlayerViewController,context:Context){
-        if controller.player !== player{controller.player=player}
-        controller.videoGravity=fit ? .resizeAspect:.resizeAspectFill
+
+    func updateUIView(_ view: PlayerSurfaceView, context: Context) {
+        if surface.layer.player !== player { surface.layer.player = player }
+        surface.layer.videoGravity = fit ? .resizeAspect : .resizeAspectFill
     }
-    static func dismantleUIViewController(_ controller:AVPlayerViewController,coordinator:()){controller.player=nil}
+
 }
-struct RoutePicker:UIViewRepresentable{
-    func makeUIView(context:Context)->AVRoutePickerView{let view=AVRoutePickerView();view.tintColor = .white;view.activeTintColor = .systemBlue;view.prioritizesVideoDevices=true;return view}
-    func updateUIView(_ view:AVRoutePickerView,context:Context){}
+
+private final class PlayerSurfaceView: UIView {
+    private let videoLayer: AVPlayerLayer
+
+    init(videoLayer: AVPlayerLayer) {
+        self.videoLayer = videoLayer
+        super.init(frame: .zero)
+        backgroundColor = .black
+        isUserInteractionEnabled = false
+        layer.addSublayer(videoLayer)
+    }
+
+    required init?(coder: NSCoder) { return nil }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        videoLayer.frame = bounds
+        CATransaction.commit()
+    }
 }
-struct PlaybackScreen:View{
-    @EnvironmentObject private var playback:PlaybackController
-    @State private var tracks=false
-    @State private var episodes=false
-    @State private var findSource=false
+
+@MainActor
+private final class PlayerSurface: NSObject, ObservableObject, AVPictureInPictureControllerDelegate {
+    let layer = AVPlayerLayer()
+    @Published private(set) var pipAvailable = false
+    @Published private(set) var pipActive = false
+    private var pip: AVPictureInPictureController?
+    private var pipObservation: NSKeyValueObservation?
+
+    override init() {
+        super.init()
+        guard AVPictureInPictureController.isPictureInPictureSupported(),
+              let controller = AVPictureInPictureController(playerLayer: layer) else { return }
+        pip = controller
+        controller.delegate = self
+        controller.canStartPictureInPictureAutomaticallyFromInline = true
+        pipObservation = controller.observe(\.isPictureInPicturePossible, options: [.initial, .new]) { [weak self] controller, _ in
+            let possible = controller.isPictureInPicturePossible
+            Task { @MainActor in self?.pipAvailable = possible }
+        }
+    }
+
+    func togglePiP() {
+        guard let pip else { return }
+        if pip.isPictureInPictureActive {
+            pip.stopPictureInPicture()
+        } else if pip.isPictureInPicturePossible {
+            pip.startPictureInPicture()
+        }
+    }
+
+    func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        pipActive = true
+    }
+
+    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        pipActive = false
+    }
+
+    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController,
+                                    restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
+        completionHandler(layer.superlayer != nil)
+    }
+}
+
+private struct RoutePicker: UIViewRepresentable {
+    func makeUIView(context: Context) -> AVRoutePickerView {
+        let view = AVRoutePickerView()
+        view.tintColor = .white
+        view.activeTintColor = .systemBlue
+        view.prioritizesVideoDevices = true
+        return view
+    }
+
+    func updateUIView(_ view: AVRoutePickerView, context: Context) {}
+}
+
+struct PlaybackScreen: View {
+    @EnvironmentObject private var playback: PlaybackController
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     @Environment(\.verticalSizeClass) private var verticalSize
-    var body:some View{
-        GeometryReader{proxy in
-            ZStack{
-                Color.black.ignoresSafeArea()
-                VStack(spacing:0){
-                    header
-                    playerArea.frame(maxWidth:.infinity,maxHeight:.infinity)
-                    if verticalSize != .compact{controls.padding(.bottom,8)}
-                }
+    @StateObject private var surface = PlayerSurface()
+    @State private var panel: Panel?
+    @State private var controlsVisible = true
+    @State private var interaction = 0
+    @State private var scrubbing = false
+    @State private var skip: Skip?
+
+    private enum Panel: String, Identifiable {
+        case resources, episodes, rate, more, mediaTracks, findSource
+        var id: Self { self }
+    }
+
+    private struct Skip: Equatable {
+        let id = UUID()
+        let seconds: Int
+    }
+
+    private var compact: Bool { verticalSize == .compact }
+    private var isPlaying: Bool { playback.phase == .playing }
+    private var canAutoHide: Bool {
+        isPlaying && controlsVisible && !scrubbing && panel == nil && !voiceOver
+            && !ProcessInfo.processInfo.arguments.contains("--screenshots")
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            PlayerVideoSurface(player: playback.player, fit: playback.fit, surface: surface)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+                .accessibilityHidden(true)
+            pictureGestures
+            if controlsVisible {
+                chrome
+                    .transition(.opacity)
             }
-            .overlay(alignment:.bottomTrailing){if verticalSize == .compact{compactControls.padding(14)}}
-        }.preferredColorScheme(.dark)
-        .sheet(isPresented:$tracks){PlaybackTracksView()}
-        .sheet(isPresented:$episodes){PlaybackEpisodesView()}
-        .sheet(isPresented:$findSource){NavigationStack{SearchView(initialQuery:playback.title,initiallyAll:true)}}
-        .onDisappear{playback.saveProgress()}
+            playbackStatus
+            if let skip { skipOverlay(skip) }
+        }
+        .foregroundStyle(.white)
+        .tint(.white)
+        .preferredColorScheme(.dark)
+        .statusBarHidden(!controlsVisible)
+        .sheet(item: $panel, onDismiss: { showControls() }) { selection in
+            switch selection {
+            case .resources: PlaybackTracksView()
+            case .episodes: PlaybackEpisodesView()
+            case .rate: ratePanel
+            case .more: morePanel
+            case .mediaTracks: PlaybackMediaTracksView(item: playback.player?.currentItem)
+            case .findSource: NavigationStack { SearchView(initialQuery: playback.title, initiallyAll: true) }
+            }
+        }
+        .task(id: canAutoHide ? interaction : nil) {
+            guard canAutoHide else { return }
+            do { try await Task.sleep(for: .seconds(5)) } catch { return }
+            setControlsVisible(false)
+        }
+        .task(id: skip) {
+            guard skip != nil else { return }
+            do { try await Task.sleep(for: .milliseconds(650)) } catch { return }
+            skip = nil
+        }
+        .onChange(of: playback.phase) { _, phase in
+            if phase == .paused || phase == .failed || phase == .ended { showControls() }
+        }
+        .onChange(of: voiceOver) { _, enabled in
+            if enabled { showControls() }
+        }
+        .onDisappear { playback.saveProgress() }
     }
-    private var header:some View{
-        HStack(spacing:12){
-            Button{playback.showPlayer=false}label:{Image(systemName:"chevron.down").font(.system(size:16,weight:.semibold)).frame(width:42,height:42)}.glassPill().accessibilityLabel("收起播放器，继续播放")
-            VStack(alignment:.leading,spacing:3){Text(playback.title).font(.subheadline.weight(.semibold)).lineLimit(1);Text(playback.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)}
-            Spacer(minLength:0)
-            RoutePicker().frame(width:38,height:38)
-            Menu{
-                Button("查找其它内容源",systemImage:"magnifyingglass"){findSource=true}
-                Button(playback.fit ? "铺满画面":"适应画面",systemImage:"arrow.up.left.and.arrow.down.right"){playback.fit.toggle()}
-                Button("重新解析播放地址",systemImage:"arrow.clockwise"){playback.retry()}
-                Button("停止播放",systemImage:"stop.fill",role:.destructive){playback.stop()}
-            }label:{Image(systemName:"ellipsis").frame(width:40,height:42)}.glassPill()
-        }.foregroundStyle(.white).padding(.horizontal,16).padding(.vertical,8)
+
+    private var pictureGestures: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .contentShape(Rectangle())
+                .gesture(SpatialTapGesture(count: 2).exclusively(before: SpatialTapGesture()).onEnded { value in
+                    switch value {
+                    case .first(let tap):
+                        let fraction = tap.location.x / max(1, proxy.size.width)
+                        if fraction < 0.35 { jump(-15) }
+                        else if fraction > 0.65 { jump(15) }
+                        else if playback.phase != .resolving { playback.toggle() }
+                    case .second:
+                        if controlsVisible && !voiceOver { setControlsVisible(false) }
+                        else { showControls() }
+                    }
+                })
+                .accessibilityHidden(true)
+        }
+        .ignoresSafeArea()
     }
-    @ViewBuilder private var playerArea:some View{
-        ZStack{
-            if let player=playback.player{NativePlayerView(player:player,fit:playback.fit)}
-            if playback.phase == .resolving{status("正在解析播放地址…")}
-            else if playback.phase == .buffering{VStack{Spacer();HStack{ProgressView().tint(.white);Text("正在缓冲…").font(.caption);Spacer()}.padding(18)}}
-            else if playback.phase == .failed{
-                VStack(spacing:18){Image(systemName:"exclamationmark.circle").font(.largeTitle);Text(playback.error ?? "播放失败").font(.subheadline).multilineTextAlignment(.center).textSelection(.enabled)
-                    HStack{Button("重试"){playback.retry()};Button("切换线路"){tracks=true}}.buttonStyle(.bordered)
-                }.foregroundStyle(.white).padding(28).frame(maxWidth:500).background(.black.opacity(0.8),in:RoundedRectangle(cornerRadius:20))
+
+    private var chrome: some View {
+        ZStack {
+            VStack(spacing: 0) {
+                LinearGradient(colors: [.black.opacity(0.84), .black.opacity(0.16), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: compact ? 94 : 140)
+                Spacer(minLength: 0)
+                LinearGradient(colors: [.clear, .black.opacity(0.6), .black.opacity(0.94)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: compact ? 126 : 220)
+            }
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+
+            VStack(spacing: 0) {
+                header
+                Spacer(minLength: 0)
+                if !compact { transport.padding(.bottom, 6) }
+                footer
+            }
+            .padding(.horizontal, compact ? 14 : 18)
+            .padding(.top, compact ? 6 : 4)
+            .padding(.bottom, 4)
+
+            if compact { transport }
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: 12) {
+            circleButton("收起播放器", icon: "chevron.down", id: "player-minimize") { playback.showPlayer = false }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(playback.title).font(.headline).lineLimit(1)
+                Text(playback.subtitle).font(.caption).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            RoutePicker().frame(width: 44, height: 44)
+                .background(.black.opacity(0.24), in: Circle())
+            circleButton("更多播放选项", icon: "ellipsis", id: "player-more") { panel = .more }
+        }
+    }
+
+    private func circleButton(_ title: String, icon: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .frame(width: 44, height: 44)
+                .glassPill()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityIdentifier(id)
+    }
+
+    private var transport: some View {
+        HStack(spacing: compact ? 14 : 6) {
+            transportButton("上一集", icon: "backward.end.fill", enabled: (playback.context?.index ?? 0) > 0) {
+                showControls()
+                playback.previous()
+            }
+            transportButton("后退 15 秒", icon: "gobackward.15", enabled: playback.canSeek) { jump(-15) }
+            Button {
+                showControls()
+                playback.toggle()
+            } label: {
+                Image(systemName: isPlaying || playback.phase == .buffering ? "pause.fill" : playback.phase == .ended ? "arrow.counterclockwise" : "play.fill")
+                    .font(.system(size: 24, weight: .semibold))
+                    .frame(width: 56, height: 56)
+                    .glassPill()
+            }
+            .buttonStyle(.plain)
+            .disabled(playback.context == nil || playback.phase == .resolving)
+            .accessibilityLabel(isPlaying || playback.phase == .buffering ? "暂停" : playback.phase == .ended ? "重播" : "播放")
+            .accessibilityIdentifier("player-play-pause")
+            transportButton("前进 15 秒", icon: "goforward.15", enabled: playback.canSeek) { jump(15) }
+            transportButton("下一集", icon: "forward.end.fill", enabled: playback.hasNextEpisode) {
+                showControls()
+                playback.next()
+            }
+        }
+        .frame(maxWidth: 390)
+    }
+
+    private func transportButton(_ label: String, icon: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 22, weight: .medium))
+                .frame(maxWidth: .infinity)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .opacity(enabled ? 1 : 0.34)
+        .disabled(!enabled)
+        .accessibilityLabel(label)
+    }
+
+    private var footer: some View {
+        VStack(spacing: 2) {
+            PlaybackTimeline(scrubbing: $scrubbing, onInteraction: showControls)
+            HStack(spacing: 4) {
+                shortcut("倍速", iconText: "\(playback.rate.formatted())×", id: "player-rate") { panel = .rate }
+                shortcut("线路", icon: "point.3.connected.trianglepath.dotted", id: "player-resources") { panel = .resources }
+                shortcut("选集", icon: "list.bullet", id: "player-episodes") { panel = .episodes }
+                shortcut(playback.fit ? "适应" : "填满", icon: "aspectratio", id: "player-fit") {
+                    playback.fit.toggle()
+                    showControls()
+                }
+                .accessibilityLabel(playback.fit ? "画面适应，轻点切换填满" : "画面填满，轻点切换适应")
+            }
+            .frame(maxWidth: 560)
+        }
+    }
+
+    private func shortcut(_ label: String, icon: String? = nil, iconText: String? = nil, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let icon { Image(systemName: icon).font(.system(size: 13, weight: .semibold)) }
+                if let iconText { Text(iconText).font(.subheadline.monospacedDigit().weight(.semibold)) }
+                Text(label).font(.caption.weight(.medium)).lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
+    }
+
+    @ViewBuilder private var playbackStatus: some View {
+        switch playback.phase {
+        case .resolving, .buffering:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small).tint(.white)
+                Text(playback.phase == .resolving ? "正在解析播放地址…" : "正在缓冲…")
+                    .font(.footnote.weight(.medium))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(.black.opacity(0.72), in: Capsule())
+            .offset(y: compact ? -56 : 0)
+            .allowsHitTesting(false)
+        case .failed:
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.circle").font(.title2)
+                Text("播放失败").font(.headline)
+                if let error = playback.error {
+                    Text(error).font(.footnote).foregroundStyle(.secondary).lineLimit(4)
+                        .multilineTextAlignment(.center).textSelection(.enabled)
+                }
+                HStack {
+                    Button("重试") { playback.retry() }
+                    Button("切换线路") { panel = .resources }
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding(20)
+            .frame(maxWidth: 380)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
+            .padding(.horizontal, 28)
+        default:
+            if surface.pipActive {
+                Label("正在画中画播放", systemImage: "pip").font(.subheadline)
+                    .allowsHitTesting(false)
             }
         }
     }
-    private func status(_ text:String)->some View{VStack(spacing:14){ProgressView().tint(.white);Text(text).font(.subheadline).foregroundStyle(.white.opacity(0.8))}.padding(28).background(.black.opacity(0.65),in:RoundedRectangle(cornerRadius:18))}
-    private var controls:some View{
-        VStack(spacing:20){
-            HStack(spacing:36){
-                Button{playback.previous()}label:{Image(systemName:"backward.end.fill").font(.title2)}
-                Button{playback.seek(by:-15)}label:{Image(systemName:"gobackward.15").font(.title2)}
-                Button{playback.toggle()}label:{Image(systemName:playback.phase == .playing ? "pause.fill":"play.fill").font(.system(size:30)).frame(width:60,height:60)}.glassPill()
-                Button{playback.seek(by:15)}label:{Image(systemName:"goforward.15").font(.title2)}
-                Button{playback.next()}label:{Image(systemName:"forward.end.fill").font(.title2)}
-            }.foregroundStyle(.white)
-            HStack(spacing:12){speedMenu;Spacer();Button{tracks=true}label:{Label("线路",systemImage:"point.3.connected.trianglepath.dotted")};Spacer();Button{episodes=true}label:{Label("选集",systemImage:"list.bullet")};Spacer();Button{playback.fit.toggle()}label:{Label("画面",systemImage:"aspectratio")}}.font(.subheadline).foregroundStyle(.white).padding(.horizontal,26)
-            HStack{Text(playback.phase == .playing ? "\(playback.elapsed.playbackTime) / \(playback.duration.playbackTime)":"\(playback.context?.group.name ?? "")");Spacer();if playback.nextReady{Label("下集已预热",systemImage:"checkmark.circle")}}.font(.caption2).foregroundStyle(.secondary).padding(.horizontal,26)
-        }.padding(.vertical,16)
+
+    private func skipOverlay(_ skip: Skip) -> some View {
+        Label(skip.seconds > 0 ? "+15 秒" : "−15 秒", systemImage: skip.seconds > 0 ? "goforward.15" : "gobackward.15")
+            .font(.subheadline.weight(.semibold))
+            .monospacedDigit()
+            .padding(12)
+            .background(.black.opacity(0.72), in: Capsule())
+            .frame(maxWidth: .infinity, alignment: skip.seconds > 0 ? .trailing : .leading)
+            .padding(.horizontal, compact ? 46 : 22)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
-    private var speedMenu:some View{Menu{ForEach([Float(0.5),0.75,1,1.25,1.5,2,2.5,3],id:\.self){value in Button("\(value.formatted())×"){playback.setRate(value)}}}label:{Text("\(playback.rate.formatted())×").monospacedDigit()}}
-    private var compactControls:some View{HStack(spacing:18){speedMenu;Button{tracks=true}label:{Image(systemName:"point.3.connected.trianglepath.dotted")};Button{episodes=true}label:{Image(systemName:"list.bullet")}}.foregroundStyle(.white).padding(.horizontal,18).padding(.vertical,12).glassPill()}
-}
-struct PlaybackTracksView:View{
-    @EnvironmentObject private var playback:PlaybackController
-    @Environment(\.dismiss) private var dismiss
-    var body:some View{
-        NavigationStack{
-            List{
-                Section("播放线路"){
-                    ForEach(playback.context?.detail.groups ?? []){group in
-                        Button{playback.selectGroup(group);dismiss()}label:{HStack{VStack(alignment:.leading,spacing:4){Text(group.name);Text("\(group.episodes.count) 集").font(.caption).foregroundStyle(.secondary)};Spacer();if group.id==playback.context?.group.id{Image(systemName:"checkmark")}}}
+
+    private func jump(_ seconds: Int) {
+        guard playback.canSeek else { return }
+        playback.seek(by: Double(seconds))
+        skip = Skip(seconds: seconds)
+        interaction += 1
+    }
+
+    private func showControls() { setControlsVisible(true) }
+
+    private func setControlsVisible(_ visible: Bool) {
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) { controlsVisible = visible }
+        if visible { interaction += 1 }
+    }
+
+    private var ratePanel: some View {
+        PlaybackSheet("播放倍速") {
+            List {
+                ForEach([Float(0.5), 0.75, 1, 1.25, 1.5, 2, 2.5, 3], id: \.self) { rate in
+                    Button {
+                        playback.setRate(rate)
+                        panel = nil
+                    } label: {
+                        PlaybackChoice(title: "\(rate.formatted())×", selected: playback.rate == rate)
+                    }
+                    .accessibilityAddTraits(playback.rate == rate ? .isSelected : [])
+                }
+            }
+        }
+    }
+
+    private var morePanel: some View {
+        PlaybackSheet("播放选项") {
+            List {
+                if surface.pipAvailable || surface.pipActive {
+                    Button(surface.pipActive ? "关闭画中画" : "进入画中画", systemImage: "pip") {
+                        surface.togglePiP()
+                        panel = nil
                     }
                 }
-                Section("本集资源"){
-                    ForEach(playback.variants){media in Button{playback.selectVariant(media.id);dismiss()}label:{HStack{Text(media.name);Spacer();if media.id==playback.selectedVariantID{Image(systemName:"checkmark")}}}}
+                if playback.player?.currentItem != nil {
+                    Button("音轨和字幕", systemImage: "captions.bubble") { panel = .mediaTracks }
                 }
-            }.navigationTitle("切换资源").navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.topBarTrailing){Button("完成"){dismiss()}}}
-        }.presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
+                Button("查找其它内容源", systemImage: "magnifyingglass") {
+                    panel = .findSource
+                }
+                Button("重新解析播放地址", systemImage: "arrow.clockwise") {
+                    panel = nil
+                    playback.retry()
+                }
+                Button("停止播放", systemImage: "stop.fill", role: .destructive) {
+                    panel = nil
+                    playback.stop()
+                }
+            }
+        }
     }
 }
-struct PlaybackEpisodesView:View{
-    @EnvironmentObject private var playback:PlaybackController
-    @Environment(\.dismiss) private var dismiss
-    var body:some View{
-        NavigationStack{
-            ScrollView{
-                LazyVGrid(columns:[GridItem(.adaptive(minimum:80),spacing:10)],spacing:12){ForEach(playback.context?.group.episodes ?? []){episode in
-                    Button{playback.selectEpisode(episode);dismiss()}label:{Text(episode.name).font(.subheadline).lineLimit(1).frame(maxWidth:.infinity).padding(.vertical,14).background(episode.id==playback.context?.episode.id ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:RoundedRectangle(cornerRadius:12)).foregroundStyle(episode.id==playback.context?.episode.id ? Color.white:Color.primary)}.buttonStyle(.plain)
-                }}.padding(20)
-            }.navigationTitle("选集").navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.topBarTrailing){Button("完成"){dismiss()}}}
-        }.presentationDetents([.medium,.large]).presentationDragIndicator(.visible)
+
+private struct PlaybackTimeline: View {
+    @EnvironmentObject private var playback: PlaybackController
+    @Binding var scrubbing: Bool
+    let onInteraction: () -> Void
+    @State private var target = 0.0
+
+    private var position: Double { scrubbing ? target : playback.elapsed }
+    private var upperBound: Double { playback.canSeek ? playback.duration : 1 }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(position.playbackTime).accessibilityLabel("已播放 \(position.playbackTime)")
+                Spacer()
+                Text(playback.canSeek ? playback.duration.playbackTime : "–:––")
+                    .accessibilityLabel(playback.canSeek ? "总时长 \(playback.duration.playbackTime)" : "时长未知")
+            }
+            .font(.caption.monospacedDigit().weight(.medium))
+            .foregroundStyle(.white.opacity(0.8))
+            Slider(value: Binding(get: { min(max(0, position), upperBound) }, set: { value in
+                if scrubbing { target = value }
+                else { playback.seek(to: value) }
+                onInteraction()
+            }), in: 0...upperBound, onEditingChanged: { editing in
+                if editing {
+                    target = playback.elapsed
+                    scrubbing = true
+                } else if scrubbing {
+                    playback.seek(to: target)
+                    scrubbing = false
+                }
+                onInteraction()
+            })
+            .disabled(!playback.canSeek)
+            .accessibilityLabel("播放进度")
+            .accessibilityValue(playback.canSeek ? "\(position.playbackTime) / \(playback.duration.playbackTime)" : "时长未知")
+            .accessibilityIdentifier("player-timeline")
+        }
+        .onChange(of: playback.context?.episode.id) { _, _ in scrubbing = false }
+        .onChange(of: playback.canSeek) { _, seekable in if !seekable { scrubbing = false } }
     }
 }

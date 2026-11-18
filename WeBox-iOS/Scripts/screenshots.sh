@@ -20,6 +20,9 @@ cp Tests/Fixtures/Screenshots/*.js "$CONTAINER_PATH/Documents/UIFixtures/"
 for PAGE in empty discover detail sources library settings player; do
   xcrun simctl terminate "$SIMULATOR_ID" com.xylyra.webox || true
   rm -f "$CONTAINER_PATH/Documents/UIReady-$PAGE"
+  if [ "$PAGE" = player ]; then
+    sed 's@/sample.mp4@/portrait.mp4@g' Tests/Fixtures/Screenshots/01-cinema.webox.js > "$CONTAINER_PATH/Documents/UIFixtures/01-cinema.webox.js"
+  fi
   if [ "$PAGE" = empty ]; then
     xcrun simctl launch "$SIMULATOR_ID" com.xylyra.webox --screenshots --screen-empty
   else

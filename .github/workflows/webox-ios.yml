@@ -106,6 +106,7 @@ jobs:
           assert actual==allowed,actual
           assert not list(root.rglob('*.webox.js'))
           assert not list(root.rglob('sample.mp4'))
+          assert not list(root.rglob('portrait.mp4'))
           print('PASS: runtime libraries only; no bundled content source or test media')
           PY
           cd build/package
@@ -127,9 +128,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="webox-ios-0.2.4-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.4 · 请求日志与 Surge 线路 · build ${GITHUB_RUN_NUMBER}" \
-            --notes-file docs/RELEASE-0.2.4.md --prerelease \
+          TAG="webox-ios-0.2.5-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.5 · 全屏播放器 · build ${GITHUB_RUN_NUMBER}" \
+            --notes-file docs/RELEASE-0.2.5.md --prerelease \
             build/WeBox-iOS-unsigned.ipa build/SHA256SUMS.txt build/WeBox-iOS-screenshots.zip build/screenshots/*.png
       - name: Save diagnostics
         if: failure()

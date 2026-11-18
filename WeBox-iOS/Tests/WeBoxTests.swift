@@ -312,6 +312,31 @@ final class WeBoxTests:XCTestCase{
         let player=app.playback.player;app.select(second)
         XCTAssertTrue(app.playback.player === player);XCTAssertEqual(app.playback.context?.source.id,source.id)
         app.playback.pause();app.playback.saveProgress();XCTAssertGreaterThan(app.saved(card,source:source)?.seconds ?? 0,2)
-        app.playback.selectGroup(detail.groups[1]);XCTAssertEqual(app.playback.context?.group.id,detail.groups[1].id)
+        XCTAssertTrue(app.playback.canSeek)
+        app.playback.seek(to:6)
+        let seekDeadline=Date().addingTimeInterval(5)
+        while Date()<seekDeadline,abs((player?.currentTime().seconds ?? 0)-6)>0.3{
+            try await Task.sleep(for:.milliseconds(100))
+        }
+        XCTAssertEqual(player?.currentTime().seconds ?? 0,6,accuracy:0.3)
+        XCTAssertEqual(app.playback.phase,.paused)
+
+        app.playback.selectVariant("backup")
+        let variantDeadline=Date().addingTimeInterval(12)
+        while Date()<variantDeadline,app.playback.phase != .paused,app.playback.phase != .failed{
+            try await Task.sleep(for:.milliseconds(100))
+        }
+        XCTAssertEqual(app.playback.selectedVariantID,"backup")
+        XCTAssertEqual(app.playback.phase,.paused,app.playback.error ?? "")
+        XCTAssertEqual(app.playback.elapsed,6,accuracy:0.35)
+
+        app.playback.selectGroup(detail.groups[1])
+        XCTAssertEqual(app.playback.context?.group.id,detail.groups[1].id)
+        let groupDeadline=Date().addingTimeInterval(12)
+        while Date()<groupDeadline,app.playback.phase != .paused,app.playback.phase != .failed{
+            try await Task.sleep(for:.milliseconds(100))
+        }
+        XCTAssertEqual(app.playback.phase,.paused,app.playback.error ?? "")
+        XCTAssertEqual(app.playback.elapsed,6,accuracy:0.35)
     }
 }
