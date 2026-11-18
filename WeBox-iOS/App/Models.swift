@@ -100,6 +100,7 @@ final class AppModel: ObservableObject {
     @Published var importOwner: UUID?
     @Published var sourceRevision = 0
     @Published private(set) var encryptedDNS = false
+    @Published private(set) var sourceHTTPSProxy: SourceHTTPSProxy?
     @Published var preferences: PlayerPreferences { didSet { UserDefaults.standard.set(try? JSONEncoder().encode(preferences), forKey: "webox.player.preferences") } }
     let playback = PlaybackController()
     let root: URL
@@ -124,12 +125,21 @@ final class AppModel: ObservableObject {
         if !sources.contains(where: { $0.id == selectedID && $0.isEnabled }) { selectedID = sources.first(where: \.isEnabled)?.id ?? "" }
         playback.onProgress = { [weak self] context, seconds, duration in self?.record(context, seconds: seconds, duration: duration) }
         encryptedDNS = defaults.bool(forKey: AlternateDNS.preferenceKey)
+        sourceHTTPSProxy = defaults.string(forKey: SourceHTTPSProxy.preferenceKey).flatMap { try? SourceHTTPSProxy($0) }
         persist()
     }
     func setEncryptedDNS(_ enabled: Bool) {
         guard encryptedDNS != enabled else { return }
         defaults.set(enabled, forKey: AlternateDNS.preferenceKey)
         encryptedDNS = enabled
+    }
+    func setSourceProxy(_ input: String) throws {
+        let proxy = input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? nil : try SourceHTTPSProxy(input)
+        guard proxy != sourceHTTPSProxy else { return }
+        defaults.set(proxy?.address, forKey: SourceHTTPSProxy.preferenceKey)
+        sourceHTTPSProxy = proxy
+        sourceRevision += 1
     }
     static func read<T: Decodable>(_ key: String, fallback: T, defaults: UserDefaults = .standard) -> T {
         guard let data = defaults.data(forKey: key), let decoded = try? JSONDecoder().decode(T.self, from: data) else { return fallback }; return decoded
@@ -194,7 +204,7 @@ final class AppModel: ObservableObject {
         }
     }
     func makeRuntime(_ source: SourceEntry) async throws -> SourceRuntime {
-        let runtime = SourceRuntime(namespace: source.id)
+        let runtime = SourceRuntime(namespace: source.id, sourceProxy: sourceHTTPSProxy)
         do {
             let script = try String(contentsOf: root.appendingPathComponent(source.filename), encoding: .utf8)
             _ = try await runtime.load(script: script, settings: configuration(source).mapValues(\.any), hint: source.fingerprint ?? source.id)
@@ -228,7 +238,7 @@ final class AppModel: ObservableObject {
     }
     @discardableResult func install(_ data: Data, origin: String?) async throws -> (SourceEntry, Bool) {
         let document = try ScriptDocument(data: data)
-        let candidate = SourceRuntime(namespace: "validation-" + UUID().uuidString)
+        let candidate = SourceRuntime(namespace: "validation-" + UUID().uuidString, sourceProxy: sourceHTTPSProxy)
         defer { candidate.close() }
         let raw = try await candidate.load(script: document.text, hint: document.fingerprint)
         let manifest = try JSONDecoder().decode(SourceManifest.self, from: JSONSerialization.data(withJSONObject: raw))

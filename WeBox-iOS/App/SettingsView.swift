@@ -9,14 +9,12 @@ struct SettingsView:View{
                 NavigationLink{SourcesView()}label:{Label{HStack{Text("内容源");Spacer();Text("\(app.sources.count)").foregroundStyle(.secondary)}}icon:{Image(systemName:"square.stack.3d.up")}}
                 NavigationLink{PlayerSettingsView()}label:{Label("播放设置",systemImage:"play.rectangle")}
             }
-            Section {
-                Toggle("备用 DNS 连接", isOn: Binding(
-                    get: { app.encryptedDNS }, set: { app.setEncryptedDNS($0) }
-                ))
-            } header: {
-                Text("网络")
-            } footer: {
-                Text("系统解析失败时，使用公共 DNS 查询地址并重连 HTTPS 源。此时 VPN 的按域名分流可能无法识别该连接。")
+            Section("网络") {
+                NavigationLink {
+                    SourceNetworkSettingsView()
+                } label: {
+                    LabeledContent("源网络线路", value: app.sourceHTTPSProxy == nil ? "自动" : "手动代理")
+                }
             }
             Section("存储"){
                 Button{Task{await ArtworkCache.shared.clear();cleared=true}}label:{Label(cleared ? "图片内存缓存已清理":"清理图片内存缓存",systemImage:"photo.stack")}
@@ -27,6 +25,52 @@ struct SettingsView:View{
                 LabeledContent("版本", value: (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") + " beta").foregroundStyle(.secondary)
             }
         }.navigationTitle("设置")
+    }
+}
+struct SourceNetworkSettingsView: View {
+    @EnvironmentObject private var app: AppModel
+    @State private var address = ""
+    @State private var error: String?
+    @State private var saved = false
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("备用 DNS 连接", isOn: Binding(
+                    get: { app.encryptedDNS }, set: { app.setEncryptedDNS($0) }
+                )).disabled(app.sourceHTTPSProxy != nil)
+            } footer: {
+                Text("系统解析失败时，使用公共 DNS 查询地址并重连 HTTPS 源。VPN 的按域名分流可能无法识别备用连接。")
+            }
+            Section {
+                TextField("http://主机:端口", text: $address)
+                    .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .onChange(of: address) { _, _ in saved = false }
+                Button("填入本机 Surge 默认端口") { address = "http://127.0.0.1:6152" }
+                Button("保存代理") { save(address) }.disabled(address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                if app.sourceHTTPSProxy != nil {
+                    Button("恢复系统线路") { save(""); address = "" }
+                }
+                if let error { Text(error).foregroundStyle(.red) }
+                else if saved { Text("已保存。返回首页重新加载。").foregroundStyle(.secondary) }
+            } header: {
+                Text("手动源代理")
+            } footer: {
+                Text("用于源脚本的 HTTPS 请求。支持 HTTP CONNECT 或 SOCKS5。使用 Surge 时，需先让其代理服务可用，并按实际端口填写。")
+            }
+        }
+        .navigationTitle("源网络线路")
+        .onAppear { address = app.sourceHTTPSProxy?.address ?? "" }
+    }
+
+    private func save(_ input: String) {
+        do {
+            try app.setSourceProxy(input)
+            error = nil
+            saved = true
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }
 struct PlayerSettingsView:View{

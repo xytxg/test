@@ -24,9 +24,11 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     private var permitsHTTP = true
     private var closed = false
     private let client: HTTPClient
+    private let proxyClient: HTTPClient?
     private let gate = InvocationGate()
-    init(namespace: String, client: HTTPClient = HTTPClient()) {
+    init(namespace: String, client: HTTPClient = HTTPClient(), sourceProxy: SourceHTTPSProxy? = nil) {
         self.namespace = namespace; self.client = client
+        self.proxyClient = sourceProxy?.makeClient()
         super.init()
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
@@ -47,6 +49,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         view?.stopLoading(); view?.uiDelegate = nil; view?.navigationDelegate = nil
         view?.configuration.userContentController.removeAllScriptMessageHandlers()
         client.close()
+        proxyClient?.close()
     }
     func load(script: String, settings: [String: Any] = [:], hint: String = "source") async throws -> [String: Any] {
         guard script.utf8.count <= ScriptDocument.limit else { throw WeBoxError("源文件超过 8 MB") }
@@ -227,6 +230,14 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     }
 
     private func fetchSource(_ request: URLRequest, limit: Int, httpsOnly: Bool) async throws -> HTTPResult {
+        if let proxyClient, request.url?.scheme == "https" {
+            do {
+                return try await proxyClient.fetch(request, limit: limit, httpsOnly: true)
+            } catch var error as HTTPNetworkError {
+                error.recoveryResult = "当前线路为手动源代理。请检查代理是否可用。"
+                throw error
+            }
+        }
         do {
             return try await client.fetch(request, limit: limit, httpsOnly: httpsOnly)
         } catch var failure as HTTPNetworkError {
@@ -245,10 +256,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
                 return try await AlternateDNS.fetch(request, limit: limit, addresses: addresses)
             } catch {
                 try Task.checkCancellation()
-                failure.recoveryResult = "备用 DNS 已解析，HTTPS 连接未成功。"
-                if let connectionError = error as? HTTPNetworkError {
-                    failure.recoveryResult = "备用 DNS 已解析，HTTPS 连接失败（\(connectionError.code.rawValue)）。"
-                }
+                failure.recoveryResult = error.localizedDescription
                 throw failure
             }
         }

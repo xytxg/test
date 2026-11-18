@@ -13,8 +13,7 @@ enum AlternateDNS {
 
     private static let resolvers = [
         "https://dns.alidns.com/resolve",
-        "https://cloudflare-dns.com/dns-query",
-        "https://1.1.1.1/dns-query"
+        "https://cloudflare-dns.com/dns-query"
     ]
 
     static func resolve(_ host: String) async throws -> [NWEndpoint.Host] {
@@ -24,20 +23,42 @@ enum AlternateDNS {
         }
         let client = HTTPClient(followRedirects: false)
         defer { client.close() }
-        for resolver in resolvers {
-            try Task.checkCancellation()
-            async let v4 = addresses(host, type: 1, resolver: resolver, client: client)
-            async let v6 = addresses(host, type: 28, resolver: resolver, client: client)
-            let (ipv4, ipv6) = await (v4, v6)
-            // Try both families early. A 5G network can be IPv6-only.
-            let ordered = (0..<max(ipv4.count, ipv6.count)).flatMap { i in
-                [ipv4.indices.contains(i) ? ipv4[i] : nil,
-                 ipv6.indices.contains(i) ? ipv6[i] : nil].compactMap { $0 }
+        let results = await withTaskGroup(of: (Int, [NWEndpoint.Host]).self) { group in
+            for (index, resolver) in resolvers.enumerated() {
+                group.addTask {
+                    (index, await resolveBothFamilies(host, resolver: resolver, client: client))
+                }
             }
-            if !ordered.isEmpty { return Array(ordered.prefix(4)) }
+            var results = [[NWEndpoint.Host]](repeating: [], count: resolvers.count)
+            for await (index, answers) in group { results[index] = answers }
+            return results
         }
+        let addresses = mergeAnswers(results)
         try Task.checkCancellation()
-        throw WeBoxError("备用 DNS 未返回可用地址")
+        if !addresses.isEmpty { return addresses }
+        let bootstrap = await resolveBothFamilies(host, resolver: "https://1.1.1.1/dns-query", client: client)
+        try Task.checkCancellation()
+        guard !bootstrap.isEmpty else { throw WeBoxError("备用 DNS 未返回可用地址") }
+        return mergeAnswers([bootstrap])
+    }
+
+    private static func resolveBothFamilies(_ host: String, resolver: String, client: HTTPClient) async -> [NWEndpoint.Host] {
+        async let v4 = addresses(host, type: 1, resolver: resolver, client: client)
+        async let v6 = addresses(host, type: 28, resolver: resolver, client: client)
+        let (ipv4, ipv6) = await (v4, v6)
+        return mergeAnswers([ipv4, ipv6])
+    }
+
+    static func mergeAnswers(_ groups: [[NWEndpoint.Host]]) -> [NWEndpoint.Host] {
+        var result: [NWEndpoint.Host] = []
+        var seen = Set<NWEndpoint.Host>()
+        for i in 0..<(groups.map(\.count).max() ?? 0) {
+            for group in groups where group.indices.contains(i) {
+                if seen.insert(group[i]).inserted { result.append(group[i]) }
+                if result.count == 8 { return result }
+            }
+        }
+        return result
     }
 
     private static func addresses(_ host: String, type: Int, resolver: String, client: HTTPClient) async -> [NWEndpoint.Host] {
@@ -81,6 +102,13 @@ enum AlternateDNS {
         configuration.proxyConfigurations = [proxy]
         let client = HTTPClient(configuration: configuration, followRedirects: false)
         defer { client.close() }
-        return try await client.fetch(request, limit: limit, httpsOnly: true)
+        do {
+            return try await client.fetch(request, limit: limit, httpsOnly: true)
+        } catch {
+            try Task.checkCancellation()
+            let detail = await tunnel.failureDescription()
+            let code = (error as? HTTPNetworkError).map { "（iOS \($0.code.rawValue)）" } ?? ""
+            throw WeBoxError("备用连接：" + detail + code)
+        }
     }
 }

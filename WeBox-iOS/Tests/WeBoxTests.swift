@@ -92,7 +92,9 @@ final class WeBoxTests:XCTestCase{
         var request = URLRequest(url: url, timeoutInterval: 8)
         request.httpMethod = "POST"
         request.httpBody = Data([0, 0xff, 0x78, 0x2b, 0x3d])
-        let result = try await AlternateDNS.fetch(request, limit: 1024, addresses: ["127.0.0.1"])
+        // The first address is not listening. Only the second can complete
+        // TLS with the certificate for webox-transport.test.
+        let result = try await AlternateDNS.fetch(request, limit: 1024, addresses: ["127.0.0.2", "127.0.0.1"])
         XCTAssertEqual(result.response.statusCode, 200)
         XCTAssertEqual(result.response.url?.host, url.host)
         XCTAssertEqual(result.data, request.httpBody)
@@ -103,6 +105,46 @@ final class WeBoxTests:XCTestCase{
         XCTAssertNotNil(AlternateDNS.publicAddress("1.1.1.1"))
         XCTAssertNotNil(AlternateDNS.publicAddress("2606:4700:4700::1111"))
     }
+    func testAlternateDNSReportsUpstreamTCPFailure() async throws {
+        let url = try XCTUnwrap(URL(string: "https://webox-transport.test:8766/"))
+        do {
+            _ = try await AlternateDNS.fetch(URLRequest(url: url, timeoutInterval: 8), limit: 1024, addresses: ["127.0.0.2"])
+            XCTFail("Expected an unreachable upstream")
+        } catch {
+            XCTAssertTrue(error.localizedDescription.contains("所有候选地址的 TCP 连接均失败"), error.localizedDescription)
+        }
+        let first: NWEndpoint.Host = "1.1.1.1"
+        let second: NWEndpoint.Host = "223.5.5.5"
+        let ipv6: NWEndpoint.Host = "2606:4700:4700::1111"
+        XCTAssertEqual(AlternateDNS.mergeAnswers([[first, ipv6], [second, ipv6]]), [first, second, ipv6])
+    }
+
+    @MainActor func testSourceScriptCanUseExplicitHTTPSProxy() async throws {
+        let tunnel = try DNSConnectTunnel(host: "webox-transport.test", port: 8766, addresses: ["127.0.0.1"])
+        defer { tunnel.close() }
+        guard case .hostPort(_, let port) = try await tunnel.start() else {
+            return XCTFail("Missing loopback listener")
+        }
+        let proxy = try SourceHTTPSProxy("http://127.0.0.1:\(port.rawValue)")
+        XCTAssertThrowsError(try SourceHTTPSProxy("http://name:secret@127.0.0.1:6152"))
+        XCTAssertThrowsError(try SourceHTTPSProxy("http://127.0.0.1:6152/redirect"))
+        let runtime = SourceRuntime(namespace: "manual-proxy-test", sourceProxy: proxy)
+        defer { runtime.close() }
+        _ = try await runtime.load(script: """
+            WeBox.define({api:'1.5',id:'test.proxy',name:'Proxy Test',version:'1.0.0',allowHttp:false,
+                filters:async()=>[],list:async ctx=>{
+                    const reply=await ctx.http.post('https://webox-transport.test:8766/register?signature=a%2Bb',
+                        {bytes:'AP94Kz0=',headers:{'Content-Type':'application/octet-stream'},responseType:'base64'});
+                    if(reply.status!==200)throw Error('HTTP '+reply.status);
+                    return {items:[{id:'v',title:reply.data,kind:'movie'}]};
+                },
+                detail:async()=>({}),play:async()=>({sources:[]})});
+            """)
+        let reply = try await runtime.invoke("list", ["filters": [:]]) as? [String: Any]
+        let rows = try XCTUnwrap(reply?["items"] as? [[String: Any]])
+        XCTAssertEqual(rows.first?["title"] as? String, "AP94Kz0=")
+    }
+
     func testCENCBlockCacheAndCrossSegmentRanges()async throws{
         let key=Data(repeating:3,count:16),iv8=Data(repeating:2,count:8),plain=Data((0..<64).map(UInt8.init))
         let encrypted=try SourceCrypto.aes(plain,key:key,iv:iv8+Data(repeating:0,count:8),mode:"CTR",padding:false,decrypt:false)
