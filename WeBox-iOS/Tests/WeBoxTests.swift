@@ -15,7 +15,16 @@ final class MockURLProtocol: URLProtocol {
         }catch{client?.urlProtocol(self,didFailWithError:error)}
     }
     override func stopLoading(){}
-    static func client()->HTTPClient{let configuration=URLSessionConfiguration.ephemeral;configuration.protocolClasses=[MockURLProtocol.self];return HTTPClient(configuration:configuration)}
+    static func client(classicLoading: Bool = false) -> HTTPClient {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        if #available(iOS 27.0, *), classicLoading {
+            // The new iOS 27 loader can lose the URLProtocol state when this
+            // mock fails during startLoading and the next POST succeeds.
+            configuration.usesClassicLoadingMode = true
+        }
+        return HTTPClient(configuration: configuration)
+    }
 }
 final class WeBoxTests:XCTestCase{
     func fixture(_ name:String,_ ext:String="js")throws->URL{try XCTUnwrap(Bundle(for:Self.self).url(forResource:name,withExtension:ext))}
@@ -56,7 +65,7 @@ final class WeBoxTests:XCTestCase{
         XCTAssertFalse(HTTPClient.valid(URL(string:"https://user:pass@example.test")!,httpsOnly:false))
     }
     @MainActor func testSourceRequestCanRecoverFromDNSFailureBeforeSending() async throws {
-        let runtime = SourceRuntime(namespace: "network-recovery", client: MockURLProtocol.client())
+        let runtime = SourceRuntime(namespace: "network-recovery", client: MockURLProtocol.client(classicLoading: true))
         defer { runtime.close() }
         _ = try await runtime.load(script: """
             WeBox.define({api:'1.5',id:'test.network',name:'Network',version:'1.0.0',allowHttp:false,
@@ -72,7 +81,8 @@ final class WeBoxTests:XCTestCase{
             requests += 1
             XCTAssertEqual(request.httpMethod, "POST")
             if requests == 1 { throw URLError(.cannotFindHost) }
-            return (200, ["Content-Type":"application/json"], Data("{\"items\":[]}".utf8))
+            let body = Data("{\"items\":[]}".utf8)
+            return (200, ["Content-Type":"application/json", "Content-Length":String(body.count)], body)
         }
         let result = try await runtime.invoke("list", ["filters": [:]]) as? [String: Any]
         XCTAssertEqual(result?["items"] as? [String], [])
