@@ -28,6 +28,7 @@ struct RootView:View{
     @EnvironmentObject private var app:AppModel
     @EnvironmentObject private var playback:PlaybackController
     @State private var tab=0
+    @AppStorage("webox.appearance") private var appearance = Appearance.system
     var body:some View{
         Group{
             if #available(iOS 26.1,*){
@@ -38,6 +39,7 @@ struct RootView:View{
             }
         }
         .tint(Color(red:0.12,green:0.37,blue:0.78))
+        .preferredColorScheme(appearance.colorScheme)
         .fullScreenCover(isPresented:$playback.showPlayer){PlaybackScreen()}
         .onAppear{
             if ProcessInfo.processInfo.arguments.contains("--screen-library"){tab=1}
@@ -57,10 +59,19 @@ struct MiniPlayerView:View{
     var body:some View{
         HStack(spacing:10){
             ArtworkView(reference:playback.context?.card.poster).frame(width:34,height:40).clipShape(RoundedRectangle(cornerRadius:6))
-            Button{playback.showPlayer=true}label:{VStack(alignment:.leading,spacing:3){Text(playback.title).font(.subheadline.weight(.medium)).lineLimit(1);Text(playback.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)}.frame(maxWidth:.infinity,alignment:.leading)}.buttonStyle(.plain)
+            Button{playback.showPlayer=true}label:{
+                VStack(alignment:.leading,spacing:3){
+                    Text(playback.title).font(.subheadline.weight(.medium)).lineLimit(1)
+                    Text(playback.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                .frame(maxWidth:.infinity, alignment:.leading)
+                .contentShape(Rectangle())
+            }.buttonStyle(.plain).accessibilityLabel("打开播放器，" + playback.title)
             if playback.isBusy{ProgressView().controlSize(.small)}
             Button{playback.toggle()}label:{Image(systemName:playback.phase == .playing ? "pause.fill":"play.fill").frame(width:32,height:40)}.buttonStyle(.plain).accessibilityLabel("播放或暂停")
-            Button{playback.next()}label:{Image(systemName:"forward.end.fill").frame(width:32,height:40)}.buttonStyle(.plain).accessibilityLabel("下一集")
+            Button{playback.next()}label:{Image(systemName:"forward.end.fill").frame(width:32,height:40)}.buttonStyle(.plain)
+                .disabled(!playback.hasNextEpisode)
+                .accessibilityLabel("下一集")
         }.padding(.horizontal,12).padding(.vertical,6)
     }
 }

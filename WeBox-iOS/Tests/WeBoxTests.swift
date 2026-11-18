@@ -293,6 +293,35 @@ final class WeBoxTests:XCTestCase{
         let response=try JSONDecoder().decode(PlayResponse.self,from:JSONSerialization.data(withJSONObject:play))
         let plan=try XCTUnwrap(response.sources.first?.cenc);try plan.validate();XCTAssertTrue(plan.size>0)
     }
+    @MainActor func testHomeKeepsCategoriesThatLoadAndDeduplicatesCards() async throws {
+        let suite = "webox-home-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let app = AppModel(root: folder, defaults: defaults)
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(at: folder)
+        }
+        let script = """
+        WeBox.define({
+          api:'1.5', id:'test.home.partial', name:'目录测试', version:'1',
+          filters:async()=>[{key:'kind',label:'分类',type:'select',options:[{value:'failed',label:'不可用'},{value:'works',label:'可读'}]}],
+          list:async(_, req)=>{
+            if(req.filters.kind==='failed') throw new Error('分类不可用');
+            return {items:[{id:'1',title:'可播放'},{id:'1',title:'重复'}]};
+          },
+          detail:async()=>({}), play:async()=>({sources:[]})
+        });
+        """
+        let (source, _) = try await app.install(Data(script.utf8), origin: "fixture.js")
+        let home = HomeCatalogModel()
+        await home.start(source, app: app)
+        XCTAssertFalse(home.busy)
+        XCTAssertNil(home.error)
+        XCTAssertEqual(home.sections.map(\.title), ["可读"])
+        XCTAssertEqual(home.sections.first?.cards.map(\.title), ["可播放"])
+    }
+
     @MainActor func testRealAVPlayerPlaybackSurvivesSourceSwitchAndResumes()async throws{
         let suite="webox-player-"+UUID().uuidString,defaults=UserDefaults(suiteName:suite)!,folder=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let app=AppModel(root:folder,defaults:defaults)
@@ -338,5 +367,11 @@ final class WeBoxTests:XCTestCase{
         }
         XCTAssertEqual(app.playback.phase,.paused,app.playback.error ?? "")
         XCTAssertEqual(app.playback.elapsed,6,accuracy:0.35)
+        XCTAssertFalse(app.playback.canSwipeEpisodes)
+        let active = try XCTUnwrap(app.playback.context)
+        let next = active.group.episodes[1]
+        app.record(active.replacing(group: active.group, episode: next), seconds: 0, duration: 0)
+        XCTAssertEqual(app.saved(card, source: source)?.episodeID, active.episode.id)
+        XCTAssertEqual(app.saved(card, source: source)?.seconds ?? 0, 6, accuracy: 0.35)
     }
 }

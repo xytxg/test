@@ -106,6 +106,7 @@ struct PlaybackScreen: View {
     @State private var interaction = 0
     @State private var scrubbing = false
     @State private var skip: Skip?
+    @State private var togglePiPAfterDismiss = false
 
     private enum Panel: String, Identifiable {
         case resources, episodes, rate, more, mediaTracks, findSource
@@ -143,7 +144,13 @@ struct PlaybackScreen: View {
         .tint(.white)
         .preferredColorScheme(.dark)
         .statusBarHidden(!controlsVisible)
-        .sheet(item: $panel, onDismiss: { showControls() }) { selection in
+        .sheet(item: $panel, onDismiss: {
+            showControls()
+            if togglePiPAfterDismiss {
+                togglePiPAfterDismiss = false
+                surface.togglePiP()
+            }
+        }) { selection in
             switch selection {
             case .resources: PlaybackTracksView()
             case .episodes: PlaybackEpisodesView()
@@ -188,6 +195,15 @@ struct PlaybackScreen: View {
                         else { showControls() }
                     }
                 })
+                .simultaneousGesture(DragGesture(minimumDistance: 28).onEnded { drag in
+                    let start = drag.startLocation.x / max(1, proxy.size.width)
+                    let distance = drag.translation.height
+                    guard !compact, !scrubbing, panel == nil, !surface.pipActive, playback.canSwipeEpisodes,
+                          (0.2...0.8).contains(start), abs(distance) >= 72,
+                          abs(distance) > abs(drag.translation.width) * 1.5 else { return }
+                    if distance < 0 { playback.next() }
+                    else { playback.previous() }
+                })
                 .accessibilityHidden(true)
         }
         .ignoresSafeArea()
@@ -220,16 +236,17 @@ struct PlaybackScreen: View {
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
-            circleButton("收起播放器", icon: "chevron.down", id: "player-minimize") { playback.showPlayer = false }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(playback.title).font(.headline).lineLimit(1)
-                Text(playback.subtitle).font(.caption).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
+        GlassControls(spacing: 8) {
+            HStack(spacing: 10) {
+                circleButton("收起播放器", icon: "chevron.down", id: "player-minimize") { playback.showPlayer = false }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(playback.title).font(.headline).lineLimit(1)
+                    Text(playback.subtitle).font(.caption).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                RoutePicker().frame(width: 44, height: 44).glassPill()
+                circleButton("更多播放选项", icon: "ellipsis", id: "player-more") { panel = .more }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            RoutePicker().frame(width: 44, height: 44)
-                .background(.black.opacity(0.24), in: Circle())
-            circleButton("更多播放选项", icon: "ellipsis", id: "player-more") { panel = .more }
         }
     }
 
@@ -302,6 +319,8 @@ struct PlaybackScreen: View {
                 .accessibilityLabel(playback.fit ? "画面适应，轻点切换填满" : "画面填满，轻点切换适应")
             }
             .frame(maxWidth: 560)
+            .padding(.horizontal, 3)
+            .glassPill()
         }
     }
 
@@ -406,7 +425,7 @@ struct PlaybackScreen: View {
             List {
                 if surface.pipAvailable || surface.pipActive {
                     Button(surface.pipActive ? "关闭画中画" : "进入画中画", systemImage: "pip") {
-                        surface.togglePiP()
+                        togglePiPAfterDismiss = true
                         panel = nil
                     }
                 }

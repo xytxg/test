@@ -13,12 +13,15 @@ struct SourcePickerView:View{
                 SourceImportStatus()
                 if app.sources.isEmpty{Section{VStack(alignment:.leading,spacing:8){Text("添加你的第一个源").font(.headline);Text("支持 WeBox、Widget 与 XPTV JS 接口。内容源由你自行提供。").font(.subheadline).foregroundStyle(.secondary)}.padding(.vertical,8);SourceImportActions()}}
                 else{
-                    Section("内容源"){
+                    Section("已启用"){
                         ForEach(visible){source in
                             HStack(spacing:12){
                                 Button{app.select(source);dismiss()}label:{SourceRow(source:source,selected:app.selectedID==source.id,needsConfiguration:app.needsConfiguration(source))}.buttonStyle(.plain)
                                 if !(source.manifest?.settings.isEmpty ?? true){Button{configure=source}label:{Image(systemName:"slider.horizontal.3").padding(8)}.buttonStyle(.borderless).accessibilityLabel("配置 "+source.name)}
                             }
+                        }
+                        if visible.isEmpty {
+                            Text(query.isEmpty ? "暂无启用的内容源" : "没有匹配的内容源").foregroundStyle(.secondary)
                         }
                     }
                     Section{Button{manage=true}label:{Label("管理与导入内容源",systemImage:"externaldrive.badge.plus")}}
@@ -48,11 +51,18 @@ struct SourceRow:View{
 struct SourceImportActions:View{
     @EnvironmentObject private var app:AppModel
     @EnvironmentObject private var importer:SourceImportCoordinator
+    var showsBatch = false
     var body:some View{
         Group{
             Button{importer.openFiles()}label:{Label("从文件导入 JS",systemImage:"folder")}.disabled(app.importing).accessibilityIdentifier("import-local-js")
                 .contextMenu { Button("批量导入 JS", systemImage: "document.on.document") { importer.openFiles(allowsMultipleSelection: true) } }
             Button{importer.link=true}label:{Label("从链接导入",systemImage:"link")}.disabled(app.importing)
+            if showsBatch {
+                Button { importer.openFiles(allowsMultipleSelection: true) } label: {
+                    Label("批量导入 JS", systemImage:"document.on.document")
+                }
+                .disabled(app.importing)
+            }
         }
     }
 }
@@ -63,7 +73,7 @@ struct SourcesView:View{
     var body:some View{
         List{
             SourceImportStatus()
-            Section("添加内容源"){SourceImportActions()}
+            Section("添加内容源"){SourceImportActions(showsBatch: true)}
             Section("已添加 · \(app.sources.count)"){
                 ForEach(app.sources){source in
                     Button{if !(source.manifest?.settings.isEmpty ?? true){configure=source}else{app.select(source)}}label:{SourceRow(source:source,selected:app.selectedID==source.id,needsConfiguration:app.needsConfiguration(source)).opacity(source.isEnabled ? 1:0.45)}.buttonStyle(.plain)

@@ -80,6 +80,8 @@ struct PlayerPreferences: Codable, Equatable {
     var rate: Float = 1
     var autoNext = true
     var prefetchNext = true
+    var swipeEpisodes: Bool?
+    var allowsEpisodeSwipe: Bool { swipeEpisodes ?? true }
     var skipIntro: Double = 0
     var skipOutro: Double = 0
     var forwardBuffer: Double { bufferMode == "quick" ? 4 : bufferMode == "stable" ? 30 : 12 }
@@ -102,7 +104,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var encryptedDNS = false
     @Published private(set) var useSurgeVIF = false
     @Published private(set) var sourceHTTPSProxy: SourceHTTPSProxy?
-    @Published var preferences: PlayerPreferences { didSet { UserDefaults.standard.set(try? JSONEncoder().encode(preferences), forKey: "webox.player.preferences") } }
+    @Published var preferences: PlayerPreferences {
+        didSet { defaults.set(try? JSONEncoder().encode(preferences), forKey: "webox.player.preferences") }
+    }
     let playback = PlaybackController()
     let root: URL
     let screenshotMode = ProcessInfo.processInfo.arguments.contains("--screenshots")
@@ -290,9 +294,23 @@ final class AppModel: ObservableObject {
         else { favorites.insert(LibraryItem(sourceID: source.id, card: card, date: Date(), pluginID: source.pluginID), at: 0) }; persist()
     }
     func saved(_ card: Card, source: SourceEntry) -> LibraryItem? { history.first { $0.sourceID == source.id && $0.card.id == card.id } }
+    func deleteLibraryItems(_ ids: Set<String>, history isHistory: Bool) {
+        if isHistory { history.removeAll { ids.contains($0.id) } }
+        else { favorites.removeAll { ids.contains($0.id) } }
+        persist()
+    }
+
     func record(_ context: PlaybackContext, seconds: Double, duration: Double) {
+        guard seconds.isFinite, seconds >= 0, (duration > 0 || seconds > 0) else { return }
+        let previous = saved(context.card, source: context.source)
+        let sameEpisode = previous.flatMap { item in
+            item.episodeID == context.episode.id && item.groupID == context.group.id ? item : nil
+        }
+        let total = duration.isFinite && duration > 0 ? duration : sameEpisode?.duration
+        let variant = playback.selectedVariantID ?? sameEpisode?.variantID
         history.removeAll { $0.sourceID == context.source.id && $0.card.id == context.card.id }
-        history.insert(LibraryItem(sourceID: context.source.id, card: context.card, episodeID: context.episode.id, seconds: max(0, seconds.isFinite ? seconds : 0), date: Date(), pluginID: context.source.pluginID, groupID: context.group.id, variantID: playback.selectedVariantID, duration: duration.isFinite ? duration : nil, episodeName: context.episode.name), at: 0)
-        history = Array(history.prefix(200)); persist()
+        history.insert(LibraryItem(sourceID: context.source.id, card: context.card, episodeID: context.episode.id, seconds: seconds, date: Date(), pluginID: context.source.pluginID, groupID: context.group.id, variantID: variant, duration: total, episodeName: context.episode.name), at: 0)
+        history = Array(history.prefix(200))
+        defaults.set(try? JSONEncoder().encode(history), forKey: "webox.history")
     }
 }

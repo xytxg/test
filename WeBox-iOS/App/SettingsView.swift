@@ -1,14 +1,39 @@
 import SwiftUI
 import UIKit
 
+enum Appearance: String, CaseIterable {
+    case system, light, dark
+
+    var label: String {
+        switch self {
+        case .system: "跟随系统"
+        case .light: "浅色"
+        case .dark: "深色"
+        }
+    }
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+}
+
 struct SettingsView:View{
     @EnvironmentObject private var app:AppModel
     @State private var cleared=false
+    @AppStorage("webox.appearance") private var appearance = Appearance.system
     var body:some View{
         List{
-            Section{
+            Section("播放与内容") {
                 NavigationLink{SourcesView()}label:{Label{HStack{Text("内容源");Spacer();Text("\(app.sources.count)").foregroundStyle(.secondary)}}icon:{Image(systemName:"square.stack.3d.up")}}
                 NavigationLink{PlayerSettingsView()}label:{Label("播放设置",systemImage:"play.rectangle")}
+            }
+            Section("显示") {
+                Picker(selection: $appearance) {
+                    ForEach(Appearance.allCases, id: \.self) { style in Text(style.label).tag(style) }
+                } label: { Label("外观", systemImage: "circle.lefthalf.filled") }
             }
             Section("网络") {
                 NavigationLink {
@@ -16,9 +41,7 @@ struct SettingsView:View{
                 } label: {
                     LabeledContent("源网络线路", value: app.useSurgeVIF ? "Surge VPN" : (app.sourceHTTPSProxy == nil ? "自动" : "手动代理"))
                 }
-            }
-            Section {
-                NavigationLink("源请求日志") { SourceRequestLogView() }
+                NavigationLink { SourceRequestLogView() } label: { Label("源请求日志", systemImage: "waveform.path") }
             }
             Section("存储"){
                 Button{Task{await ArtworkCache.shared.clear();cleared=true}}label:{Label(cleared ? "图片内存缓存已清理":"清理图片内存缓存",systemImage:"photo.stack")}
@@ -140,12 +163,18 @@ struct PlayerSettingsView:View{
             Section("连续观看"){
                 Toggle("自动播放下一集",isOn:$app.preferences.autoNext)
                 Toggle("预解析并预热下一集",isOn:$app.preferences.prefetchNext)
-                Text("接近片尾时准备下一集。切换源或分集会取消旧的预加载任务。 ").font(.footnote).foregroundStyle(.secondary)
+                Toggle("竖屏视频滑动切集",isOn:Binding(
+                    get: { app.preferences.allowsEpisodeSwipe },
+                    set: { app.preferences.swipeEpisodes = $0 }
+                ))
+            }
+            Section("播放手势") {
+                Text("在竖屏视频中央上滑播放下一集，下滑返回上一集。双击两侧可快进或快退 15 秒。")
+                    .font(.footnote).foregroundStyle(.secondary)
             }
             Section("播放与缓冲"){
                 Picker("缓冲策略",selection:$app.preferences.bufferMode){Text("均衡").tag("balanced");Text("起播优先").tag("quick");Text("弱网稳定").tag("stable")}
                 Picker("默认倍速",selection:$app.preferences.rate){ForEach([Float(0.5),0.75,1,1.25,1.5,2,2.5,3],id:\.self){value in Text("\(value.formatted())×").tag(value)}}
-                Text("视频由系统播放器硬件解码。字幕、音轨、AirPlay 和画中画使用系统播放控件。 ").font(.footnote).foregroundStyle(.secondary)
             }
             Section("跳过片头片尾"){
                 Stepper("片头 · \(Int(app.preferences.skipIntro)) 秒",value:$app.preferences.skipIntro,in:0...180,step:5)

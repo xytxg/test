@@ -75,6 +75,7 @@ final class PlaybackController: ObservableObject {
     @Published private(set) var duration: Double = 0
     @Published private(set) var bufferSeconds: Double = 0
     @Published private(set) var nextReady = false
+    @Published private(set) var isPortraitVideo = false
     @Published var showPlayer = false
     @Published var rate: Float = 1
     @Published var fit = true
@@ -119,13 +120,14 @@ final class PlaybackController: ObservableObject {
     deinit { for observer in notifications { NotificationCenter.default.removeObserver(observer) };for (command,token) in remoteTokens { command.removeTarget(token) } }
     var isBusy: Bool { phase == .resolving || phase == .buffering }
     var canSeek: Bool { player != nil && duration > 0 && duration.isFinite && phase != .resolving && phase != .failed }
+    var canSwipeEpisodes: Bool { isPortraitVideo && preferences.allowsEpisodeSwipe && phase != .resolving && phase != .failed }
     var hasNextEpisode: Bool {
         guard let context else { return false }
         return context.index + 1 < context.group.episodes.count
     }
     var title: String { context?.card.title ?? "尚未播放" }
     var subtitle: String { guard let context else { return "" };return [context.source.name,context.episode.name].joined(separator:" · ") }
-    func play(_ value: PlaybackContext, app: AppModel, resume: Double = 0, present: Bool = true, autoplay: Bool = true) {
+    func play(_ value: PlaybackContext, app: AppModel, resume: Double = 0, present: Bool = true, autoplay: Bool = true, preferredVariantID: String? = nil) {
         saveProgress(); clearObservers(); self.app=app;preferences=app.preferences;rate=preferences.rate
         if let prepared=prefetched,prepared.context.source.id==value.source.id,prepared.context.card.id==value.card.id,prepared.context.group.id==value.group.id,prepared.context.episode.id==value.episode.id,Date().timeIntervalSince(prepared.created)<120 {
             preloader?.cancel();preloader=nil;prefetched=nil;nextReady=false
@@ -145,7 +147,7 @@ final class PlaybackController: ObservableObject {
                 let variants=try await self.resolve(value,refresh:false)
                 guard self.generation==currentGeneration,!Task.isCancelled else { return }
                 guard !variants.isEmpty else { throw WeBoxError("源没有返回播放线路") }
-                let prepared=try self.makeHandle(context:value,variants:variants,preferred:nil)
+                let prepared=try self.makeHandle(context:value,variants:variants,preferred:preferredVariantID)
                 self.adopt(prepared,resume:resume)
             } catch { if self.generation==currentGeneration,!Task.isCancelled { self.fail(error.localizedDescription) } }
         }
@@ -180,6 +182,7 @@ final class PlaybackController: ObservableObject {
         clearObservers();handle?.close();handle=value
         value.warmObservation=nil;value.player.cancelPendingPrerolls()
         player=value.player;context=value.context;variants=value.variants;selectedVariantID=value.variants[value.selected].id
+        isPortraitVideo = value.item.presentationSize.width > 0 && value.item.presentationSize.height > value.item.presentationSize.width
         attempted.insert(value.variants[value.selected].id)
         error=nil;phase = .buffering;elapsed=max(0,resume.isFinite ? resume : 0);duration=0;bufferSeconds=0;advanced=false
         lastSaved = -100;pendingSeek=max(elapsed,preferences.skipIntro);seeking=false
@@ -189,6 +192,13 @@ final class PlaybackController: ObservableObject {
                 guard let self,self.generation==currentGeneration,self.handle?.item === item else { return }
                 if item.status == .failed { self.recover(item.error?.localizedDescription ?? "视频无法解码") }
                 else if item.status == .readyToPlay { await self.ready(value,generation:currentGeneration) }
+            }
+        })
+        observations.append(value.item.observe(\.presentationSize, options: [.new]) { [weak self] item, _ in
+            let size = item.presentationSize
+            Task { @MainActor in
+                guard let self, self.generation == currentGeneration, self.handle?.item === item else { return }
+                self.isPortraitVideo = size.width > 0 && size.height > size.width
             }
         })
         observations.append(value.player.observe(\.timeControlStatus,options:[.new]) { [weak self] player,_ in
@@ -222,7 +232,13 @@ final class PlaybackController: ObservableObject {
         duration = total.isFinite ? max(0, total) : 0
         let position=value.player.currentTime().seconds
         if position.isFinite { elapsed=max(0,position) }
-        if wantsPlayback { value.player.play();value.player.rate=rate } else { phase = .paused }
+        if wantsPlayback {
+            value.player.play()
+            value.player.rate=rate
+        } else {
+            phase = .paused
+            saveProgress()
+        }
         updateNowPlaying()
     }
     func pause() { wantsPlayback=false;player?.pause();phase = .paused;stallTimer?.cancel();saveProgress();updateNowPlaying() }
@@ -293,6 +309,7 @@ final class PlaybackController: ObservableObject {
     func stop() {
         saveProgress();generation=UUID();resolver?.cancel();resolver=nil;cancelPrefetch();stallTimer?.cancel();clearObservers()
         handle?.close();handle=nil;player=nil;runtime?.close();runtime=nil;context=nil;variants=[];phase = .idle;error=nil;showPlayer=false
+        isPortraitVideo = false
         MPNowPlayingInfoCenter.default().nowPlayingInfo=nil;try? AVAudioSession.sharedInstance().setActive(false,options:.notifyOthersOnDeactivation)
     }
     func saveProgress() { if let context { onProgress?(context,elapsed,duration) } }

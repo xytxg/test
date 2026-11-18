@@ -20,6 +20,7 @@ final class DetailModel:ObservableObject{
 struct DetailView:View{
     let card:Card
     let source:SourceEntry
+    var resumeOnOpen = false
     @EnvironmentObject private var app:AppModel
     @EnvironmentObject private var playback:PlaybackController
     @StateObject private var model=DetailModel()
@@ -28,6 +29,7 @@ struct DetailView:View{
     @State private var page=0
     @State private var expanded=false
     @State private var search=false
+    @State private var openedResume = false
     private var saved:LibraryItem?{app.saved(card,source:source)}
     private var group:EpisodeGroup?{model.detail?.groups.first{$0.id==groupID} ?? model.detail?.groups.first}
     private var orderedEpisodes:[Episode]{guard let group else{return []};return ascending ? group.episodes:Array(group.episodes.reversed())}
@@ -46,9 +48,29 @@ struct DetailView:View{
         }
         .background{ZStack(alignment:.top){Color(uiColor:.systemGroupedBackground);ArtworkView(reference:model.detail?.poster ?? card.poster).frame(height:300).blur(radius:45).opacity(0.18);LinearGradient(colors:[.clear,Color(uiColor:.systemGroupedBackground)],startPoint:.top,endPoint:.bottom).frame(height:350)}.ignoresSafeArea()}
         .navigationTitle("").navigationBarTitleDisplayMode(.inline)
-        .toolbar{ToolbarItem(placement:.topBarTrailing){Menu{Button("搜索其它内容源",systemImage:"magnifyingglass"){search=true};Button("复制名称",systemImage:"doc.on.doc"){UIPasteboard.general.string=card.title};if playback.context?.card.id==card.id{Button("打开播放器",systemImage:"play.rectangle"){playback.showPlayer=true}}}label:{Image(systemName:"ellipsis")}}}
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button("搜索其它内容源", systemImage: "magnifyingglass") { search = true }
+                    ShareLink(item: card.title)
+                    Button("复制名称", systemImage: "doc.on.doc") { UIPasteboard.general.string = card.title }
+                    if playback.context?.source.id == source.id, playback.context?.card.id == card.id {
+                        Button("打开播放器", systemImage: "play.rectangle") { playback.showPlayer = true }
+                    }
+                } label: { Image(systemName: "ellipsis") }
+                .accessibilityLabel("更多内容操作")
+            }
+        }
         .sheet(isPresented:$search){NavigationStack{SearchView(initialQuery:card.title,initiallyAll:true)}}
-        .task{if model.detail==nil{await model.load(card,source:source,app:app)};if let savedID=saved?.groupID{groupID=savedID};if let index=group?.episodes.firstIndex(where:{$0.id==currentEpisodeID}){page=index/50}}
+        .task {
+            if model.detail == nil { await model.load(card, source: source, app: app) }
+            if let savedID = saved?.groupID, groupID.isEmpty { groupID = savedID }
+            if let index = orderedEpisodes.firstIndex(where: { $0.id == currentEpisodeID }) { page = index / 50 }
+            if resumeOnOpen, !openedResume, group?.episodes.isEmpty == false {
+                openedResume = true
+                continuePlayback()
+            }
+        }
         .onChange(of:model.detail?.groups.count){_,_ in
             ScreenshotSupport.mark("detail")
             if groupID.isEmpty{groupID=saved?.groupID ?? model.detail?.groups.first?.id ?? ""}
@@ -69,9 +91,24 @@ struct DetailView:View{
         }.accessibilityElement(children:.combine)
     }
     private var primaryActions:some View{
-        HStack(spacing:12){
-            Button{continuePlayback()}label:{Label(continueTitle,systemImage:"play.fill").font(.headline).frame(maxWidth:.infinity).padding(.vertical,17)}.buttonStyle(.plain).foregroundStyle(.white).background(Color.accentColor,in:RoundedRectangle(cornerRadius:20)).disabled(group?.episodes.isEmpty != false)
-            Button{app.toggleFavorite(card,source:source)}label:{Image(systemName:app.favorite(card,source:source) ? "heart.fill":"heart").font(.system(size:22)).frame(width:64,height:58)}.buttonStyle(.plain).glassPill().accessibilityLabel("收藏")
+        let favorite = app.favorite(card, source: source)
+        return GlassControls(spacing: 12) {
+            HStack(spacing: 12) {
+                Button { continuePlayback() } label: {
+                    Label(continueTitle, systemImage: "play.fill").font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                }
+                .primaryGlassButton()
+                .controlSize(.large)
+                .disabled(group?.episodes.isEmpty != false)
+                Button { app.toggleFavorite(card, source: source) } label: {
+                    Image(systemName: favorite ? "heart.fill" : "heart").font(.title3.weight(.semibold))
+                        .frame(width: 52, height: 52).glassPill(selected: favorite)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(favorite ? "取消收藏" : "收藏")
+                .accessibilityAddTraits(favorite ? .isSelected : [])
+            }
         }
     }
     private var continueTitle:String{
@@ -91,24 +128,61 @@ struct DetailView:View{
         VStack(alignment:.leading,spacing:15){
             HStack{Text("播放线路").font(.title3.bold());Spacer();if detail.groups.count>1{Text("\(detail.groups.count) 条").font(.caption).foregroundStyle(.secondary)}}
             ScrollView(.horizontal,showsIndicators:false){
-                HStack(spacing:10){ForEach(detail.groups){value in
-                    Button{groupID=value.id;page=0;if playback.context?.source.id==source.id && playback.context?.card.id==card.id{playback.selectGroup(value)}}label:{
-                        VStack(spacing:4){Text(value.name).font(.subheadline.weight(.medium)).lineLimit(1);Text("\(value.episodes.count) 集").font(.caption2).opacity(0.75)}.padding(.horizontal,22).padding(.vertical,11)
-                            .background(group?.id==value.id ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:Capsule()).foregroundStyle(group?.id==value.id ? Color.white:Color.primary)
-                    }.buttonStyle(.plain)
-                }}
+                GlassControls(spacing: 10) {
+                    HStack(spacing: 10) {
+                        ForEach(detail.groups) { value in
+                            let selected = group?.id == value.id
+                            Button {
+                                groupID = value.id
+                                page = 0
+                                if playback.context?.source.id == source.id && playback.context?.card.id == card.id {
+                                    playback.selectGroup(value)
+                                }
+                            } label: {
+                                HStack(spacing: 7) {
+                                    if selected { Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.tint) }
+                                    Text(value.name).font(.subheadline.weight(.medium)).lineLimit(1)
+                                    Text("\(value.episodes.count) 集").font(.caption).foregroundStyle(.secondary)
+                                }
+                                .padding(.horizontal, 14)
+                                .frame(minHeight: 44)
+                                .glassPill(selected: selected)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(selected ? .isSelected : [])
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
             }
         }
     }
     private var episodesSection:some View{
         VStack(alignment:.leading,spacing:18){
-            HStack{Text("选集 · 共 \(orderedEpisodes.count) 集").font(.title3.bold());Spacer();Button{ascending.toggle();page=0}label:{Label(ascending ? "逆序":"正序",systemImage:"arrow.up.arrow.down")}.font(.subheadline)}
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("选集").font(.title3.bold())
+                    Text("共 \(orderedEpisodes.count) 集").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button {
+                    ascending.toggle()
+                    if let index = orderedEpisodes.firstIndex(where: { $0.id == currentEpisodeID }) { page = index / 50 }
+                    else { page = 0 }
+                } label: {
+                    Label(ascending ? "逆序" : "正序", systemImage: "arrow.up.arrow.down")
+                        .font(.footnote.weight(.medium)).padding(.horizontal, 12).frame(minHeight: 40).glassPill()
+                }
+                .buttonStyle(.plain)
+            }
             if orderedEpisodes.count>50{
                 ScrollView(.horizontal,showsIndicators:false){HStack(spacing:10){ForEach(0..<Int(ceil(Double(orderedEpisodes.count)/50)),id:\.self){index in
                     Button{page=index}label:{Text("\(index*50+1)–\(min((index+1)*50,orderedEpisodes.count))").font(.subheadline).padding(.horizontal,18).padding(.vertical,12).background(page==index ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:RoundedRectangle(cornerRadius:13)).foregroundStyle(page==index ? Color.white:Color.primary)}.buttonStyle(.plain)
                 }}}
             }
-            LazyVGrid(columns:Array(repeating:GridItem(.flexible(),spacing:10),count:4),spacing:12){ForEach(visibleEpisodes){episode in episodeButton(episode)}}
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 68), spacing: 10)], spacing: 12) {
+                ForEach(visibleEpisodes) { episode in episodeButton(episode) }
+            }
         }
     }
     private func episodeButton(_ episode:Episode)->some View{
@@ -116,15 +190,18 @@ struct DetailView:View{
         return Button{if let group{start(group,episode,resume:0)}}label:{
             Text(episode.name).font(.subheadline).lineLimit(1).minimumScaleFactor(0.8).frame(maxWidth:.infinity).padding(.vertical,16)
                 .background(selected ? Color.accentColor:Color(uiColor:.secondarySystemGroupedBackground),in:RoundedRectangle(cornerRadius:16)).foregroundStyle(selected ? Color.white:Color.primary)
-        }.buttonStyle(.plain)
+        }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func continuePlayback(){
         guard let group,let episode=group.episodes.first(where:{$0.id==saved?.episodeID}) ?? group.episodes.first else{return}
         if playback.context?.source.id==source.id,playback.context?.card.id==card.id,playback.context?.episode.id==episode.id{playback.showPlayer=true;return}
-        start(group,episode,resume:saved?.episodeID==episode.id ? saved?.seconds ?? 0:0)
+        let last = saved.flatMap { record in
+            record.episodeID == episode.id && (record.groupID == nil || record.groupID == group.id) ? record : nil
+        }
+        start(group,episode,resume:last?.seconds ?? 0,preferredVariantID:last?.variantID)
     }
-    private func start(_ group:EpisodeGroup,_ episode:Episode,resume:Double){
+    private func start(_ group:EpisodeGroup,_ episode:Episode,resume:Double,preferredVariantID:String?=nil){
         guard let detail=model.detail else{return}
-        playback.play(PlaybackContext(source:source,card:card,detail:detail,group:group,episode:episode),app:app,resume:resume)
+        playback.play(PlaybackContext(source:source,card:card,detail:detail,group:group,episode:episode),app:app,resume:resume,preferredVariantID:preferredVariantID)
     }
 }

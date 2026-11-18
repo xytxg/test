@@ -63,13 +63,43 @@ struct PosterCard: View {
         }.frame(width:width,alignment:.topLeading).accessibilityElement(children:.combine)
     }
 }
-struct GlassPill: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0,*) { content.glassEffect(.regular.interactive(),in:Capsule()) }
-        else { content.background(.ultraThinMaterial,in:Capsule()) }
+struct GlassControls<Content: View>: View {
+    let spacing: CGFloat
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: spacing, content: content) }
+        else { content() }
     }
 }
-extension View { func glassPill() -> some View { modifier(GlassPill()) } }
+
+private struct GlassPill: ViewModifier {
+    var selected: Bool
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            if selected {
+                content.glassEffect(.regular.tint(Color.accentColor.opacity(0.26)).interactive(), in: Capsule())
+            } else {
+                content.glassEffect(.regular.interactive(), in: Capsule())
+            }
+        } else {
+            content.background(.regularMaterial, in: Capsule())
+                .overlay { if selected { Capsule().strokeBorder(Color.accentColor, lineWidth: 1) } }
+        }
+    }
+}
+
+private struct PrimaryGlassButton: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) { content.buttonStyle(.glassProminent) }
+        else { content.buttonStyle(.borderedProminent) }
+    }
+}
+
+extension View {
+    func glassPill(selected: Bool = false) -> some View { modifier(GlassPill(selected: selected)) }
+    func primaryGlassButton() -> some View { modifier(PrimaryGlassButton()) }
+}
 extension Double {
     var playbackTime: String {
         guard isFinite,self>=0,self<10000000 else{return "0:00"};let value=Int(self)
