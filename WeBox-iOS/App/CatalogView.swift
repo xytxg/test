@@ -15,14 +15,15 @@ final class HomeCatalogModel: ObservableObject {
     @Published var filters:[SourceFilter]=[]
     @Published var busy=false
     @Published var error:String?
+    @Published private(set) var networkError: HTTPNetworkError?
     private var engine:SourceRuntime?
     private var generation=UUID()
     private var cache:[String:(Date,[CatalogSection],[SourceFilter])]=[:]
     var hero:[Card]{Array(sections.first?.cards.prefix(6) ?? [])}
     func start(_ source:SourceEntry,app:AppModel,force:Bool=false) async {
         engine?.close();engine=nil;generation=UUID();let token=generation;sourceID=source.id
-        error=nil;sections=[];filters=[];busy=true
-        let key=source.id+String(app.sourceRevision)+(source.fingerprint ?? "")
+        error=nil;networkError=nil;sections=[];filters=[];busy=true
+        let key=source.id+String(app.sourceRevision)+(source.fingerprint ?? "")+String(app.encryptedDNS)
         if !force,let cached=cache[key],Date().timeIntervalSince(cached.0)<90 {sections=cached.1;filters=cached.2;busy=false;return}
         guard !app.needsConfiguration(source) else {busy=false;error="请先完成这个源的配置";return}
         do {
@@ -54,20 +55,26 @@ final class HomeCatalogModel: ObservableObject {
             }
             guard token==generation else{return};cache[key]=(Date(),sections,filters)
             if cache.count>3,let oldest=cache.min(by:{$0.value.0<$1.value.0})?.key{cache.removeValue(forKey:oldest)}
-        }catch{if token==generation,!(error is CancellationError){self.error=error.localizedDescription}}
+        } catch {
+            if token == generation, !(error is CancellationError) {
+                networkError = error as? HTTPNetworkError
+                self.error = error.localizedDescription
+            }
+        }
         if token==generation{busy=false}
     }
 }
 
 struct CatalogView: View {
     @EnvironmentObject private var app:AppModel
+    @Environment(\.openURL) private var openURL
     @StateObject private var home=HomeCatalogModel()
     @State private var sourcePicker=false
     @State private var search=false
     @State private var configure:SourceEntry?
     @State private var fixtureDetail:DetailRoute?
     @State private var fixtureOpened=false
-    private var key:String{app.selectedID+String(app.sourceRevision)}
+    private var key:String{app.selectedID+String(app.sourceRevision)+String(app.encryptedDNS)}
     var body:some View {
         ScrollView {
             VStack(alignment:.leading,spacing:26){
@@ -145,9 +152,29 @@ struct CatalogView: View {
     @ViewBuilder private func status(_ source:SourceEntry)->some View {
         if home.busy{ProgressView("正在读取内容…").frame(maxWidth:.infinity).padding(30)}
         if let message=home.error {
-            VStack(spacing:14){Image(systemName:app.needsConfiguration(source) ? "slider.horizontal.3":"wifi.exclamationmark").font(.title2);Text(message).font(.subheadline).multilineTextAlignment(.center).foregroundStyle(.secondary)
-                if app.needsConfiguration(source){Button("配置这个源"){configure=source}.buttonStyle(.borderedProminent)}else{Button("重新加载"){Task{await home.start(source,app:app,force:true)}}.buttonStyle(.bordered)}
-            }.frame(maxWidth:.infinity).padding(24)
+            VStack(spacing: 14) {
+                Image(systemName: app.needsConfiguration(source) ? "slider.horizontal.3" : "wifi.exclamationmark")
+                    .font(.title2)
+                Text(message).font(.subheadline).multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary).textSelection(.enabled)
+                if app.needsConfiguration(source) {
+                    Button("配置这个源") { configure = source }.buttonStyle(.borderedProminent)
+                } else {
+                    Button("重新加载") { Task { await home.start(source, app: app, force: true) } }
+                        .buttonStyle(.bordered)
+                    if let failure = home.networkError {
+                        if failure.cellularDenied {
+                            Button("打开 iOS 设置") {
+                                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                            }
+                        } else if failure.isResolutionFailure && !app.encryptedDNS {
+                            Button("用 Google 加密 DNS 重试") { app.setEncryptedDNS(true) }
+                            Text("仅用于 WeBox。可以在设置中关闭。")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }.frame(maxWidth: .infinity).padding(24)
         } else if !home.busy && home.sections.isEmpty {ContentUnavailableView("暂无内容",systemImage:"rectangle.stack",description:Text("试试搜索，或选择其它内容源。"))}
     }
     private var emptyState:some View {

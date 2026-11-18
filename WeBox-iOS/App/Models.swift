@@ -99,6 +99,7 @@ final class AppModel: ObservableObject {
     @Published var importResults: [ImportItem] = []
     @Published var importOwner: UUID?
     @Published var sourceRevision = 0
+    @Published private(set) var encryptedDNS = false
     @Published var preferences: PlayerPreferences { didSet { UserDefaults.standard.set(try? JSONEncoder().encode(preferences), forKey: "webox.player.preferences") } }
     let playback = PlaybackController()
     let root: URL
@@ -122,7 +123,15 @@ final class AppModel: ObservableObject {
         }
         if !sources.contains(where: { $0.id == selectedID && $0.isEnabled }) { selectedID = sources.first(where: \.isEnabled)?.id ?? "" }
         playback.onProgress = { [weak self] context, seconds, duration in self?.record(context, seconds: seconds, duration: duration) }
+        encryptedDNS = defaults.bool(forKey: AppDNS.preferenceKey)
+        if encryptedDNS { AppDNS.apply(encrypted: true) }
         persist()
+    }
+    func setEncryptedDNS(_ enabled: Bool) {
+        guard encryptedDNS != enabled else { return }
+        AppDNS.apply(encrypted: enabled)
+        defaults.set(enabled, forKey: AppDNS.preferenceKey)
+        encryptedDNS = enabled
     }
     static func read<T: Decodable>(_ key: String, fallback: T, defaults: UserDefaults = .standard) -> T {
         guard let data = defaults.data(forKey: key), let decoded = try? JSONDecoder().decode(T.self, from: data) else { return fallback }; return decoded
@@ -212,7 +221,7 @@ final class AppModel: ObservableObject {
             guard var url = URL(string: address), HTTPClient.valid(url, httpsOnly: false) else { throw WeBoxError("请输入 HTTP(S) 脚本直链") }
             if url.host == "github.com", url.path.contains("/blob/"), var raw = URLComponents(url: url, resolvingAgainstBaseURL: false) { raw.host = "raw.githubusercontent.com"; raw.path = raw.path.replacingOccurrences(of: "/blob/", with: "/"); url = raw.url ?? url }
             let client = HTTPClient(); defer { client.close() }
-            let response = try await client.fetch(URLRequest(url: url, timeoutInterval: 30), limit: ScriptDocument.limit, httpsOnly: url.scheme == "https")
+            let response = try await client.fetch(URLRequest(url: url, timeoutInterval: 30), limit: ScriptDocument.limit, httpsOnly: url.scheme == "https", retryDNS: true)
             guard response.response.statusCode == 200 else { throw WeBoxError("下载脚本失败：HTTP \(response.response.statusCode)") }
             var origin = URLComponents(url: url, resolvingAgainstBaseURL: false); origin?.query = nil; origin?.fragment = nil
             let installed = try await install(response.data, origin: origin?.string)

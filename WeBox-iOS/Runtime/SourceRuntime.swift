@@ -14,6 +14,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     private var continuations: [String: CheckedContinuation<Any, Error>] = [:]
     private var timers: [String: Task<Void, Never>] = [:]
     private var network: [String: Task<Void, Never>] = [:]
+    private var networkFailures: [String: [HTTPNetworkError]] = [:]
     private var loadContinuation: CheckedContinuation<Void, Error>?
     private var loadTimer: Task<Void, Never>?
     private var evaluationContinuation: CheckedContinuation<Void, Error>?
@@ -35,7 +36,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     }
     func close() {
         guard !closed else { return }; closed = true
-        for task in network.values { task.cancel() }; network.removeAll()
+        for task in network.values { task.cancel() }; network.removeAll(); networkFailures.removeAll()
         for task in timers.values { task.cancel() }; timers.removeAll(); loadTimer?.cancel(); evaluationTimer?.cancel()
         evaluationContinuation?.resume(throwing: CancellationError()); evaluationContinuation = nil
         let pending = Array(continuations.values); continuations.removeAll()
@@ -121,6 +122,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     }
     private func finish(_ id: String, result: Result<Any, Error>) {
         timers.removeValue(forKey: id)?.cancel()
+        networkFailures.removeValue(forKey: id)
         for (key, task) in network where key.hasPrefix(id + ":") { task.cancel() }
         guard let continuation = continuations.removeValue(forKey: id) else { return }; continuation.resume(with: result)
     }
@@ -175,7 +177,8 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
             else {
                 var message = body["error"] as? String ?? "源运行失败"
                 if let start = message.range(of: "WBX_ERROR:"), let data = String(message[start.upperBound...]).data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] { message = (value["message"] as? String ?? message) }
-                finish(id, result: .failure(WeBoxError(message)))
+                let networkFailure = networkFailures[id]?.last { $0.localizedDescription == message }
+                finish(id, result: .failure(networkFailure.map { $0 as Error } ?? WeBoxError(message)))
             }; return
         }
         let operation = body["operation"] as? String ?? ""
@@ -185,7 +188,16 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
             guard let self else { return }; defer { self.network.removeValue(forKey: key) }
             let reply: [String: Any]
             do { reply = ["ok":true,"value":try await self.handleAsync(body)] }
-            catch { reply = ["ok":false,"error":error.localizedDescription] }
+            catch {
+                if let failure = error as? HTTPNetworkError, !Task.isCancelled, self.continuations[operation] != nil {
+                    // JS receives a normal Error and can catch it as usual. Keep
+                    // the typed original for a failure it propagates to the UI.
+                    var recent = self.networkFailures[operation] ?? []
+                    recent.append(failure)
+                    self.networkFailures[operation] = Array(recent.suffix(8))
+                }
+                reply = ["ok":false,"error":error.localizedDescription]
+            }
             guard !Task.isCancelled, self.continuations[operation] != nil else { return }
             if let json = try? Self.json(reply) { self.webView.evaluateJavaScript("__reply(\(Self.quote(id)),\(json)); void 0", completionHandler: nil) }
         }
@@ -202,7 +214,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         if let body = p["bodyBase64"] as? String { request.httpBody = try SourceCrypto.decode(body, "base64") }
         else if let text = p["data"] as? String { request.httpBody = Data(text.utf8) }
         else if let data = p["data"], !(data is NSNull) { request.httpBody = try JSONSerialization.data(withJSONObject: data) }
-        let result = try await client.fetch(request, limit: min(8_388_608,max(1,p["maxResponseBytes"] as? Int ?? 4_194_304)), httpsOnly: !permitsHTTP || p["httpsOnly"] as? Bool == true)
+        let result = try await client.fetch(request, limit: min(8_388_608,max(1,p["maxResponseBytes"] as? Int ?? 4_194_304)), httpsOnly: !permitsHTTP || p["httpsOnly"] as? Bool == true, retryDNS: true)
         let value: Any
         if p["base64Data"] as? Bool == true { value = result.data.base64EncodedString() }
         else if p["decodable"] as? Bool != false, let json = try? JSONSerialization.jsonObject(with: result.data) { value = json }

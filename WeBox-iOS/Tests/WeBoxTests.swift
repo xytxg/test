@@ -55,6 +55,53 @@ final class WeBoxTests:XCTestCase{
         XCTAssertFalse(HTTPClient.valid(URL(string:"http://example.test")!,httpsOnly:true))
         XCTAssertFalse(HTTPClient.valid(URL(string:"https://user:pass@example.test")!,httpsOnly:false))
     }
+    @MainActor func testSourceRequestCanRecoverFromDNSFailureBeforeSending() async throws {
+        let runtime = SourceRuntime(namespace: "network-recovery", client: MockURLProtocol.client())
+        defer { runtime.close() }
+        _ = try await runtime.load(script: """
+            WeBox.define({api:'1.5',id:'test.network',name:'Network',version:'1.0.0',allowHttp:false,
+                filters:async()=>[],list:async ctx=>{
+                    const reply=await ctx.http.post('https://source.test/catalog?secret=redact-me',
+                        {json:{category:'test'},responseType:'json'});
+                    return reply.data;
+                },
+                detail:async()=>({}),play:async()=>({sources:[]})});
+            """)
+        var requests = 0
+        MockURLProtocol.response = { request in
+            requests += 1
+            XCTAssertEqual(request.httpMethod, "POST")
+            if requests == 1 { throw URLError(.cannotFindHost) }
+            return (200, ["Content-Type":"application/json"], Data("{\"items\":[]}".utf8))
+        }
+        let result = try await runtime.invoke("list", ["filters": [:]]) as? [String: Any]
+        XCTAssertEqual(result?["items"] as? [String], [])
+        XCTAssertEqual(requests, 2)
+
+        requests = 0
+        MockURLProtocol.response = { _ in requests += 1; throw URLError(.dnsLookupFailed) }
+        do {
+            _ = try await runtime.invoke("list", ["filters": [:], "refresh": true])
+            XCTFail("Expected DNS failure")
+        } catch let error as HTTPNetworkError {
+            XCTAssertEqual(error.code, .dnsLookupFailed)
+            XCTAssertEqual(error.host, "source.test")
+            XCTAssertTrue(error.localizedDescription.contains("域名解析失败"))
+            XCTAssertFalse(error.localizedDescription.contains("redact-me"))
+        }
+        XCTAssertEqual(requests, 2, "DNS retry must be bounded")
+
+        requests = 0
+        MockURLProtocol.response = { _ in requests += 1; throw URLError(.networkConnectionLost) }
+        do {
+            _ = try await runtime.invoke("list", ["filters": [:], "refresh": true])
+            XCTFail("Expected interrupted connection")
+        } catch let error as HTTPNetworkError {
+            XCTAssertEqual(error.code, .networkConnectionLost)
+            XCTAssertFalse(error.canRetryResolution)
+        }
+        XCTAssertEqual(requests, 1, "Do not replay a POST on connection loss")
+    }
     func testCENCBlockCacheAndCrossSegmentRanges()async throws{
         let key=Data(repeating:3,count:16),iv8=Data(repeating:2,count:8),plain=Data((0..<64).map(UInt8.init))
         let encrypted=try SourceCrypto.aes(plain,key:key,iv:iv8+Data(repeating:0,count:8),mode:"CTR",padding:false,decrypt:false)

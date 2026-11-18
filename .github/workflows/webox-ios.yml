@@ -123,9 +123,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="webox-ios-0.2.0-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.0 · 多源与播放器 · build ${GITHUB_RUN_NUMBER}" \
-            --notes-file docs/RELEASE-0.2.0.md --prerelease \
+          TAG="webox-ios-0.2.1-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.1 · 网络修复 · build ${GITHUB_RUN_NUMBER}" \
+            --notes-file docs/RELEASE-0.2.1.md --prerelease \
             build/WeBox-iOS-unsigned.ipa build/SHA256SUMS.txt build/WeBox-iOS-screenshots.zip build/screenshots/*.png
       - name: Save diagnostics
         if: failure()

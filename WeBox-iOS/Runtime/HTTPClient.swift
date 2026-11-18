@@ -12,6 +12,7 @@ final class HTTPClient: NSObject, @unchecked Sendable {
         var data = Data()
         var response: HTTPURLResponse?
         var failure: Error?
+        var redirected = false
     }
     private let lock = NSLock()
     private var transfers: [Int: Transfer] = [:]
@@ -28,7 +29,17 @@ final class HTTPClient: NSObject, @unchecked Sendable {
     }
     deinit { session.invalidateAndCancel() }
     func close() { lock.lock(); stopped = true; lock.unlock(); session.invalidateAndCancel() }
-    func fetch(_ request: URLRequest, limit: Int, httpsOnly: Bool = false) async throws -> HTTPResult {
+    func fetch(_ request: URLRequest, limit: Int, httpsOnly: Bool = false, retryDNS: Bool = false) async throws -> HTTPResult {
+        do {
+            return try await attempt(request, limit: limit, httpsOnly: httpsOnly)
+        } catch let failure as HTTPNetworkError where retryDNS && failure.canRetryResolution {
+            // DNS failed before headers or body could be sent. Do not replay a
+            // request if it reached a server, timed out, or followed a redirect.
+            try await Task.sleep(for: .milliseconds(400))
+            return try await attempt(request, limit: limit, httpsOnly: httpsOnly)
+        }
+    }
+    private func attempt(_ request: URLRequest, limit: Int, httpsOnly: Bool) async throws -> HTTPResult {
         guard let url = request.url, Self.valid(url, httpsOnly: httpsOnly), limit > 0 else { throw WeBoxError("请求地址或响应上限无效") }
         let cancellation = TransferCancellation()
         return try await withTaskCancellationHandler {
@@ -69,12 +80,30 @@ final class HTTPClient: NSObject, @unchecked Sendable {
     fileprivate func complete(_ task: URLSessionTask, _ error: Error?) {
         lock.lock(); let transfer = transfers.removeValue(forKey: task.taskIdentifier); lock.unlock()
         guard let transfer else { return }
-        if let failure = transfer.failure ?? error { transfer.continuation.resume(throwing: failure) }
-        else if let response = transfer.response { transfer.continuation.resume(returning: HTTPResult(data: transfer.data, response: response)) }
-        else { transfer.continuation.resume(throwing: WeBoxError("服务器没有返回响应")) }
+        if let failure = transfer.failure {
+            transfer.continuation.resume(throwing: failure)
+        } else if let error = error as? URLError, error.code != .cancelled {
+            let host = error.failingURL?.host ?? task.currentRequest?.url?.host ?? task.originalRequest?.url?.host
+            let cellularDenied = error.code == .dataNotAllowed || error.networkUnavailableReason == .cellular
+            let isDNS = error.code == .cannotFindHost || error.code == .dnsLookupFailed
+            let canRetry = isDNS && !cellularDenied && !transfer.redirected &&
+                transfer.response == nil && task.countOfBytesSent == 0 && host == task.originalRequest?.url?.host
+            transfer.continuation.resume(throwing: HTTPNetworkError(
+                code: error.code, host: host, cellularDenied: cellularDenied, canRetryResolution: canRetry
+            ))
+        } else if let error {
+            transfer.continuation.resume(throwing: error)
+        } else if let response = transfer.response {
+            transfer.continuation.resume(returning: HTTPResult(data: transfer.data, response: response))
+        } else {
+            transfer.continuation.resume(throwing: WeBoxError("服务器没有返回响应"))
+        }
     }
     fileprivate func redirect(_ task: URLSessionTask, _ request: URLRequest, _ completion: @escaping (URLRequest?) -> Void) {
-        lock.lock(); let httpsOnly = transfers[task.taskIdentifier]?.httpsOnly ?? true; lock.unlock()
+        lock.lock()
+        let httpsOnly = transfers[task.taskIdentifier]?.httpsOnly ?? true
+        transfers[task.taskIdentifier]?.redirected = true
+        lock.unlock()
         completion(request.url.flatMap { Self.valid($0, httpsOnly: httpsOnly) ? request : nil })
     }
 }

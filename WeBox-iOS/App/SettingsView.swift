@@ -9,13 +9,22 @@ struct SettingsView:View{
                 NavigationLink{SourcesView()}label:{Label{HStack{Text("内容源");Spacer();Text("\(app.sources.count)").foregroundStyle(.secondary)}}icon:{Image(systemName:"square.stack.3d.up")}}
                 NavigationLink{PlayerSettingsView()}label:{Label("播放设置",systemImage:"play.rectangle")}
             }
+            Section {
+                Toggle("Google 加密 DNS", isOn: Binding(
+                    get: { app.encryptedDNS }, set: { app.setEncryptedDNS($0) }
+                ))
+            } header: {
+                Text("网络")
+            } footer: {
+                Text("域名解析失败时可以开启。仅影响 WeBox，iOS 已配置的 DNS 优先。")
+            }
             Section("存储"){
                 Button{Task{await ArtworkCache.shared.clear();cleared=true}}label:{Label(cleared ? "图片内存缓存已清理":"清理图片内存缓存",systemImage:"photo.stack")}
                 Text("收藏和播放记录仅保存在设备上。源配置中的私密字段保存在系统钥匙串。 ").font(.footnote).foregroundStyle(.secondary)
             }
             Section{
                 NavigationLink{AboutView()}label:{Label("关于 WeBox",systemImage:"info.circle")}
-                LabeledContent("版本",value:"0.2.0 beta").foregroundStyle(.secondary)
+                LabeledContent("版本", value: (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") + " beta").foregroundStyle(.secondary)
             }
         }.navigationTitle("设置")
     }
