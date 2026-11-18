@@ -1,0 +1,113 @@
+name: iDuanJu XY unsigned IPA
+
+on:
+  push:
+    branches: [main]
+    paths: ['iDuanJu/**', '.github/workflows/iduanju-ios.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: iduanju-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: xcode-27
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: iDuanJu
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Xcode 27 and install XcodeGen
+        run: |
+          set -o pipefail
+          xcodebuild -version
+          xcodebuild -showsdks | tee "$RUNNER_TEMP/iduanju-sdks.log"
+          grep -q iphoneos27 "$RUNNER_TEMP/iduanju-sdks.log"
+          brew install xcodegen
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            iDuanJu/DerivedDataRelease/SourcePackages
+          key: iduanju-ios27-packages-${{ runner.arch }}-${{ hashFiles('iDuanJu/project.yml', 'iDuanJu/Packages/**/Package.swift') }}
+          restore-keys: iduanju-ios27-packages-${{ runner.arch }}-
+      - name: Build unsigned iOS device package
+        env:
+          STV_RUN_TESTS: '0'
+          STV_BUILD_SIMULATOR: '0'
+          STV_PKG_NAME: XY-1.5.1b15
+        run: bash scripts/package.sh "$RUNNER_TEMP/iduanju-dist"
+      - name: Validate IPA and bundle licensing
+        run: |
+          python3 - <<'PY'
+          import hashlib, os, pathlib, plistlib, struct, zipfile
+          dist = pathlib.Path(os.environ['RUNNER_TEMP']) / 'iduanju-dist'
+          ipa = dist / 'STV-XY-1.5.1b15-unsigned.ipa'
+          with zipfile.ZipFile(ipa) as package:
+              assert package.testzip() is None
+              names = package.namelist()
+              root = 'Payload/STV.app/'
+              info = plistlib.loads(package.read(root + 'Info.plist'))
+              assert info['CFBundleIdentifier'] == 'com.xylyra.iduanju'
+              assert info['CFBundleShortVersionString'] == '1.5.1'
+              assert info['CFBundleVersion'] == '15'
+              assert info['MinimumOSVersion'] == '18.0'
+              assert info['CFBundleSupportedPlatforms'] == ['iPhoneOS']
+              assert not any(n.endswith('embedded.mobileprovision') for n in names)
+              assert not any(n.startswith(root + '_CodeSignature/') for n in names)
+              assert not any(n.endswith('ui_color_bars.mp4') for n in names)
+              assert package.read(root + 'iDuanJu-GPL-3.0.txt') == pathlib.Path('LICENSE').read_bytes()
+              assert package.read(root + 'iDuanJu-FORK-NOTICE.md') == pathlib.Path('FORK-NOTICE.md').read_bytes()
+              executable = package.read(root + 'STV')
+              magic, cpu, _, _, ncmds, _, _, _ = struct.unpack_from('<8I', executable)
+              assert magic == 0xfeedfacf and cpu == 0x100000c
+              offset = 32
+              for _ in range(ncmds):
+                  command, length = struct.unpack_from('<II', executable, offset)
+                  assert command != 0x1d, 'Main executable has a code signature'
+                  assert length >= 8
+                  offset += length
+              assert any('/Frameworks/' in n and 'AetherLibavcodec' in n for n in names)
+          digest = hashlib.sha256(ipa.read_bytes()).hexdigest()
+          (dist / 'SHA256SUMS.txt').write_text(f'{digest}  {ipa.name}\n')
+          print('Validated unsigned arm64 iOS app, licenses and checksum', digest)
+          PY
+      - name: Publish downloadable IPA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          tag="iduanju-xy-1.5.1b15-${GITHUB_RUN_NUMBER}"
+          cat > "$RUNNER_TEMP/iduanju-release.md" <<'NOTES'
+          i短剧 XY 1.5.1（15），基于 iDuanJu 的 GPL v3 二改版本。
+
+          - iOS 27 原生 Liquid Glass 导航、搜索、频道、详情、播放器和阅读工具栏。
+          - 支持浅色、深色和跟随系统。
+          - 优化分页任务取消、条目去重、重复游标终止和失败重试。
+          - 保留上游及第三方许可，完整二改源码在本仓库 iDuanJu 目录。
+
+          最低 iOS 18。IPA 未签名，需自行重签安装。iOS 27 模拟器已通过分页及播放器横竖屏回归。真机播放、AirPlay 和画中画未实测。
+
+          GPL v3 源码、第三方许可与构建步骤见同版本源码和 iDuanJu/FORK-NOTICE.md。
+          NOTES
+          printf '\n构建提交 %s\n' "$GITHUB_SHA" >> "$RUNNER_TEMP/iduanju-release.md"
+          gh release create "$tag" --target "$GITHUB_SHA" --title "i短剧 XY 1.5.1 · iOS 27 · 未签名 IPA" \
+            --notes-file "$RUNNER_TEMP/iduanju-release.md" --prerelease \
+            "$RUNNER_TEMP/iduanju-dist/STV-XY-1.5.1b15-unsigned.ipa" "$RUNNER_TEMP/iduanju-dist/SHA256SUMS.txt"
+      - name: Save package and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iDuanJu-XY-iOS-package
+          path: |
+            ${{ runner.temp }}/iduanju-dist/*.ipa
+            ${{ runner.temp }}/iduanju-dist/SHA256SUMS.txt
+            ${{ runner.temp }}/iduanju-dist/logs/*.log
+          if-no-files-found: warn
+          retention-days: 14
