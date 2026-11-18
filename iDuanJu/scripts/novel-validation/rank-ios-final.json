@@ -1,0 +1,2804 @@
+[
+ {
+  "explore": [
+   {
+    "error": "HTTP 403：https://m.bookmaopu.com/1.html?page=1",
+    "url": "/1.html?page={{page}}",
+    "title": "玄幻奇幻"
+   },
+   {
+    "title": "仙侠修真",
+    "url": "/2.html?page={{page}}",
+    "error": "HTTP 403：https://m.bookmaopu.com/2.html?page=1"
+   },
+   {
+    "error": "HTTP 403：https://m.bookmaopu.com/3.html?page=1",
+    "url": "/3.html?page={{page}}",
+    "title": "都市青春"
+   }
+  ],
+  "name": "猫扑中文",
+  "groups": [
+   "推荐"
+  ],
+  "index": 1,
+  "categories": 11
+ },
+ {
+  "name": "优质粉鲍",
+  "index": 2,
+  "categories": 1017,
+  "groups": [
+   "推荐",
+   "搜索"
+  ],
+  "explore": [
+   {
+    "error": "网络错误：The request timed out.",
+    "title": "总排行榜",
+    "url": "/cn/home/web/index.php/label/hot/page/{{page}}.html"
+   },
+   {
+    "first": "",
+    "title": "月排行榜",
+    "count": 0,
+    "ms": 947
+   },
+   {
+    "url": "/cn/home/web/index.php/label/hot_week/page/{{page}}.html",
+    "error": "网络错误：A TLS error caused the secure connection to fail.",
+    "title": "周排行榜"
+   }
+  ]
+ },
+ {
+  "groups": [
+   "分 类",
+   "总 榜",
+   "标 签"
+  ],
+  "index": 3,
+  "categories": 59,
+  "explore": [
+   {
+    "first": "那就当个氪金大佬吧_check猫【完结】|http://www.tjsyjjzs.com/170_170650/",
+    "ms": 77,
+    "count": 10,
+    "title": "全 部"
+   },
+   {
+    "ms": 9,
+    "count": 10,
+    "title": "海棠耽美",
+    "first": "谁让他修仙的！|http://www.tjsyjjzs.com/169_169982/"
+   },
+   {
+    "title": "耽美小说",
+    "first": "负距离告白（校园 h）|http://www.tjsyjjzs.com/167_167263/",
+    "count": 10,
+    "ms": 6
+   }
+  ],
+  "name": "名熹小说"
+ },
+ {
+  "categories": 25,
+  "index": 6,
+  "groups": [
+   "━━━ 🎬 视频分类 ━━━",
+   "━━━ 🏠 首页 ━━━",
+   "━━━ 📖 小说分类 ━━━"
+  ],
+  "explore": [
+   {
+    "count": 0,
+    "title": "🏠 首页推荐",
+    "first": "",
+    "ms": 863
+   },
+   {
+    "count": 0,
+    "ms": 365,
+    "title": "小说首页",
+    "first": ""
+   },
+   {
+    "ms": 328,
+    "count": 0,
+    "first": "",
+    "title": "都市"
+   }
+  ],
+  "name": "黄区"
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "categories": 23,
+  "index": 7,
+  "explore": [
+   {
+    "first": "无敌天命|https://api-bc.wtzw.com/api/v4/book/detail?id=1862264&imei_ip=2937357107&teeny_mode=0&sign=2d89e62144e647359a989d2433977688,{\"headers\":{\"app-version\":\"80400\",\"platform\":\"android\",\"reg\":\"0\",\"AUTHORIZATION\":\"\",\"application-id\":\"com.****.reader\",\"net-env\":\"1\",\"channel\":\"unknown\",\"qm-params\":\"\",\"sign\":\"e8ed9edb6a3ec924fa8f718b4e29c0a7\"}}",
+    "ms": 1016,
+    "count": 10,
+    "title": "爽文"
+   },
+   {
+    "ms": 874,
+    "first": "太荒吞天诀|https://api-bc.wtzw.com/api/v4/book/detail?id=195631&imei_ip=2937357107&teeny_mode=0&sign=cc730323b6196ac76a8b7b127affee85,{\"headers\":{\"app-version\":\"80400\",\"platform\":\"android\",\"reg\":\"0\",\"AUTHORIZATION\":\"\",\"application-id\":\"com.****.reader\",\"net-env\":\"1\",\"channel\":\"unknown\",\"qm-params\":\"\",\"sign\":\"e8ed9edb6a3ec924fa8f718b4e29c0a7\"}}",
+    "title": "多角色",
+    "count": 10
+   },
+   {
+    "first": "逆流年代：从1970开始种田养家|https://api-bc.wtzw.com/api/v4/book/detail?id=1948435&imei_ip=2937357107&teeny_mode=0&sign=3fd7519302d560c12b10917e0d60245b,{\"headers\":{\"app-version\":\"80400\",\"platform\":\"android\",\"reg\":\"0\",\"AUTHORIZATION\":\"\",\"application-id\":\"com.****.reader\",\"net-env\":\"1\",\"channel\":\"unknown\",\"qm-params\":\"\",\"sign\":\"e8ed9edb6a3ec924fa8f718b4e29c0a7\"}}",
+    "title": "年代",
+    "count": 10,
+    "ms": 720
+   }
+  ],
+  "name": "七猫小说"
+ },
+ {
+  "index": 8,
+  "name": "番茄小说",
+  "groups": [
+   "🏠 首页",
+   "📊 排行榜",
+   "📖 频道",
+   "📚 分类榜"
+  ],
+  "explore": [
+   {
+    "title": "🔥 推荐榜",
+    "ms": 2128,
+    "count": 16,
+    "first": "沈总别闹了，夫人要复仇|https://fanqienovel.com/page/7051890838976072718#7051890838976072718"
+   },
+   {
+    "title": "🏆 完本榜",
+    "ms": 1757,
+    "first": "校花笑我没天赋？我成了龙国剑神|https://fanqienovel.com/page/7497212915364138009#7497212915364138009",
+    "count": 16
+   },
+   {
+    "first": "凌天剑帝|https://fanqienovel.com/page/6992173166638402591#6992173166638402591",
+    "title": "👑 巅峰榜",
+    "count": 16,
+    "ms": 1764
+   }
+  ],
+  "categories": 24
+ },
+ {
+  "index": 9,
+  "name": "书旗小说",
+  "groups": [
+   "🏆 全站榜单",
+   "💕 女频榜单",
+   "📊 男频榜单",
+   "📚 书库·分类",
+   "📚 书库·状态/字数/更新",
+   "📚 书库·频道"
+  ],
+  "categories": 47,
+  "explore": [
+   {
+    "first": "东京：这些问题少女太极八荒了|https://www.shuqi.com/book/9442951.html",
+    "count": 10,
+    "title": "男频点击榜",
+    "ms": 1188
+   },
+   {
+    "count": 10,
+    "ms": 734,
+    "title": "男频收藏榜",
+    "first": "鹰酱的战机都被打爆了，你管这叫模型？|https://www.shuqi.com/book/8825548.html"
+   },
+   {
+    "first": "转职校长：赐你神职就背叛，我收回你哭啥？|https://www.shuqi.com/book/9171920.html",
+    "ms": 637,
+    "count": 10,
+    "title": "男频订阅榜"
+   }
+  ]
+ },
+ {
+  "index": 14,
+  "categories": 6,
+  "groups": [
+   "༺ˇ»`ʚ分类ɞ´«ˇ༻"
+  ],
+  "name": "穿越小说",
+  "explore": [
+   {
+    "first": "杂灵根的我，靠加点杀穿修真界|http://www.kk169.la/book/info/825/825867.html",
+    "count": 15,
+    "ms": 1082,
+    "title": "玄幻魔法"
+   },
+   {
+    "count": 15,
+    "ms": 778,
+    "title": "武侠修真",
+    "first": "清都山水郎|http://www.kk169.la/book/info/821/821030.html"
+   },
+   {
+    "first": "华娱：是小花主动的|http://www.kk169.la/book/info/815/815383.html",
+    "count": 15,
+    "ms": 506,
+    "title": "都市言情"
+   }
+  ]
+ },
+ {
+  "index": 15,
+  "categories": 8,
+  "explore": [
+   {
+    "title": "玄幻",
+    "error": "HTTP 502：http://www.jiuxs.la/shu/1-default-0-0-0-0-2-0-1.html",
+    "url": "/shu/1-default-0-0-0-0-2-0-{{page}}.html"
+   },
+   {
+    "error": "HTTP 502：http://www.jiuxs.la/shu/2-default-0-0-0-0-2-0-1.html",
+    "title": "仙侠",
+    "url": "/shu/2-default-0-0-0-0-2-0-{{page}}.html"
+   },
+   {
+    "url": "/shu/3-default-0-0-0-0-2-0-{{page}}.html",
+    "title": "都市",
+    "error": "HTTP 502：http://www.jiuxs.la/shu/3-default-0-0-0-0-2-0-1.html"
+   }
+  ],
+  "name": "八月文学",
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "name": "乐库小说",
+  "index": 16,
+  "explore": [
+   {
+    "title": "言情",
+    "error": "HTTP 502：http://m.6lk.la/sort/1/1.html",
+    "url": "/sort/1/{{page}}.html"
+   },
+   {
+    "title": "总裁",
+    "url": "/sort/2/{{page}}.html",
+    "error": "HTTP 502：http://m.6lk.la/sort/2/1.html"
+   },
+   {
+    "error": "HTTP 502：http://m.6lk.la/sort/3/1.html",
+    "title": "都市",
+    "url": "/sort/3/{{page}}.html"
+   }
+  ],
+  "categories": 10,
+  "groups": [
+   "全部🌊分类"
+  ]
+ },
+ {
+  "explore": [
+   {
+    "ms": 2428,
+    "title": "仙侠武侠",
+    "count": 51,
+    "first": "华娱之扮演成为超级赛亚人！|http://m.5859ycdh.com/wuba/111430/"
+   },
+   {
+    "count": 51,
+    "first": "云灵仙路|http://m.5859ycdh.com/wuba/10328/",
+    "title": "灵异悬疑",
+    "ms": 1573
+   },
+   {
+    "first": "机甲维修师她什么都会亿点点|http://m.5859ycdh.com/wuba/108786/",
+    "title": "历史军事",
+    "ms": 1639,
+    "count": 51
+   }
+  ],
+  "index": 17,
+  "categories": 12,
+  "name": "五八书阁",
+  "groups": [
+   "————————书库——————————",
+   "————————分类——————————",
+   "————————完本——————————",
+   "————————排行——————————"
+  ]
+ },
+ {
+  "name": "废纸文学",
+  "index": 18,
+  "groups": [
+   "推荐"
+  ],
+  "categories": 4,
+  "explore": [
+   {
+    "count": 16,
+    "first": "师尊社恐我社牛|https://www.sunnyread6.com/book/7351899704729709/",
+    "ms": 1357,
+    "title": "废文原创"
+   },
+   {
+    "first": "惑|https://www.sunnyread6.com/book/7351914525581403/",
+    "count": 16,
+    "ms": 875,
+    "title": "废文同人"
+   },
+   {
+    "ms": 784,
+    "count": 16,
+    "title": "PO完结",
+    "first": "可他们非要为我沉沦（nph）|https://www.sunnyread6.com/book/7348683957727338/"
+   }
+  ]
+ },
+ {
+  "index": 19,
+  "categories": 12,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "url": "modules/article/articlefilter.php?&order=lastupdate&page={{page}}",
+    "title": "全部小说",
+    "error": "HTTP 502：http://www.xduqu.com/modules/article/articlefilter.php?&order=lastupdate&page=1"
+   },
+   {
+    "error": "HTTP 502：http://www.xduqu.com/modules/article/articlefilter.php?&order=lastupdate&sortid=1&page=1",
+    "title": "玄幻魔法",
+    "url": "modules/article/articlefilter.php?&order=lastupdate&sortid=1&page={{page}}"
+   },
+   {
+    "title": "武侠修真",
+    "url": "modules/article/articlefilter.php?&order=lastupdate&sortid=2&page={{page}}",
+    "error": "HTTP 502：http://www.xduqu.com/modules/article/articlefilter.php?&order=lastupdate&sortid=2&page=1"
+   }
+  ],
+  "name": "️读趣网站"
+ },
+ {
+  "name": "无双小说",
+  "explore": [
+   {
+    "title": "玄幻魔法",
+    "url": "mulu/1/{{page}}.html",
+    "error": "HTTP 502：http://www.buxia.la/mulu/1/1.html"
+   },
+   {
+    "error": "HTTP 502：http://www.buxia.la/mulu/2/1.html",
+    "title": "武侠修真",
+    "url": "mulu/2/{{page}}.html"
+   },
+   {
+    "title": "都市言情",
+    "url": "mulu/3/{{page}}.html",
+    "error": "HTTP 502：http://www.buxia.la/mulu/3/1.html"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ],
+  "index": 20,
+  "categories": 8
+ },
+ {
+  "categories": 8,
+  "groups": [
+   "全部🌊分类"
+  ],
+  "explore": [
+   {
+    "title": "玄幻奇幻",
+    "url": "http://www.janpn.org/xuanhuanqihuan/list-1-{{page}}.html",
+    "error": "HTTP 502：http://www.janpn.org/xuanhuanqihuan/list-1-1.html"
+   },
+   {
+    "title": "武侠修真",
+    "error": "HTTP 502：http://www.janpn.org/wuxiaxiuzhen/list-2-1.html",
+    "url": "http://www.janpn.org/wuxiaxiuzhen/list-2-{{page}}.html"
+   },
+   {
+    "title": "现代都市",
+    "url": "http://www.janpn.org/xiandaidushi/list-3-{{page}}.html",
+    "error": "HTTP 502：http://www.janpn.org/xiandaidushi/list-3-1.html"
+   }
+  ],
+  "name": "键盘小说",
+  "index": 22
+ },
+ {
+  "name": "久久小说",
+  "index": 25,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "全部小说",
+    "ms": 1211,
+    "count": 25,
+    "first": "乔念叶妄川|http://177.5.49.192/25_25661/"
+   },
+   {
+    "title": "玄幻",
+    "ms": 974,
+    "count": 25,
+    "first": "穿越70年，开局一本合欢宗秘籍|http://177.5.49.192/275_275447/"
+   },
+   {
+    "ms": 810,
+    "count": 25,
+    "first": "亡灵法师，召唤055什么鬼？|http://177.5.49.192/136_136415/",
+    "title": "仙侠"
+   }
+  ],
+  "categories": 13
+ },
+ {
+  "index": 26,
+  "name": "️快眼小说",
+  "categories": 22,
+  "groups": [
+   "分类",
+   "排行"
+  ],
+  "explore": [
+   {
+    "error": "HTTP 502：http://www.kyxsw.info/fenlei1_1.html",
+    "title": "玄幻魔法",
+    "url": "/fenlei1_{{page}}.html"
+   },
+   {
+    "error": "HTTP 502：http://www.kyxsw.info/fenlei2_1.html",
+    "url": "/fenlei2_{{page}}.html",
+    "title": "武侠修真"
+   },
+   {
+    "title": "都市青春",
+    "error": "HTTP 502：http://www.kyxsw.info/fenlei3_1.html",
+    "url": "/fenlei3_{{page}}.html"
+   }
+  ]
+ },
+ {
+  "categories": 14,
+  "index": 27,
+  "name": "笔趣阁",
+  "explore": [
+   {
+    "first": "追个美女当老婆|https://www.whzh-xs.cc/du/7018/",
+    "title": "总排行榜",
+    "count": 20,
+    "ms": 986
+   },
+   {
+    "title": "月排行榜",
+    "ms": 305,
+    "count": 20,
+    "first": "追个美女当老婆|https://www.whzh-xs.cc/du/7018/"
+   },
+   {
+    "count": 20,
+    "title": "周排行榜",
+    "first": "追个美女当老婆|https://www.whzh-xs.cc/du/7018/",
+    "ms": 300
+   }
+  ],
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "name": "爱看小说",
+  "groups": [
+   "分类"
+  ],
+  "explore": [
+   {
+    "title": "玄幻小说",
+    "first": "开局押镖，获得满级神功|https://m.aikanxs.cc/wapbook/118681/",
+    "count": 20,
+    "ms": 260
+   },
+   {
+    "title": "仙侠小说",
+    "first": "修仙：我以灵瞳铸长生|https://m.aikanxs.cc/wapbook/118014/",
+    "count": 20,
+    "ms": 251
+   },
+   {
+    "first": "高冷太子的克星|https://m.aikanxs.cc/wapbook/118823/",
+    "title": "都市小说",
+    "count": 20,
+    "ms": 251
+   }
+  ],
+  "categories": 5,
+  "index": 28
+ },
+ {
+  "explore": [
+   {
+    "url": "/",
+    "title": "首页",
+    "error": "HTTP 502：http://wap.99wx.info/"
+   },
+   {
+    "error": "HTTP 502：http://wap.99wx.info/type/1.html",
+    "url": "/type/1<,_{{page}}>.html",
+    "title": "玄幻"
+   },
+   {
+    "url": "/type/2<,_{{page}}>.html",
+    "error": "HTTP 502：http://wap.99wx.info/type/2.html",
+    "title": "武侠"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ],
+  "name": "鸟书网",
+  "index": 29,
+  "categories": 10
+ },
+ {
+  "groups": [
+   "********************全部分类********************",
+   "********************完本小说********************",
+   "********************小说排行********************"
+  ],
+  "categories": 45,
+  "name": "飘天文学",
+  "index": 30,
+  "explore": [
+   {
+    "count": 20,
+    "ms": 33,
+    "title": "玄幻奇幻",
+    "first": "帝国从领主开始|https://m.piaotianwxz.com/ptwx/9990/"
+   },
+   {
+    "count": 20,
+    "first": "仙人炸不死，只是核弹当量不够|https://m.piaotianwxz.com/ptwx/9979/",
+    "title": "武侠仙侠",
+    "ms": 7
+   },
+   {
+    "first": "我有一座海滨五星大酒店|https://m.piaotianwxz.com/ptwx/9915/",
+    "title": "都市生活",
+    "count": 20,
+    "ms": 8
+   }
+  ]
+ },
+ {
+  "index": 31,
+  "explore": [
+   {
+    "title": "言情",
+    "ms": 146,
+    "count": 10,
+    "first": "大爱晚成|http://m.9191net.com/article/detail/year/2025/id/8097.html"
+   },
+   {
+    "count": 10,
+    "title": "穿越",
+    "first": "穿越了去做个女侠|http://m.9191net.com/article/detail/year/2023/id/8073.html",
+    "ms": 69
+   },
+   {
+    "count": 10,
+    "first": "重生异界之乞丐诛神|http://m.9191net.com/article/detail/year/2023/id/8062.html",
+    "title": "重生",
+    "ms": 138
+   }
+  ],
+  "categories": 24,
+  "groups": [
+   "推荐"
+  ],
+  "name": "久久小说"
+ },
+ {
+  "name": "️三叉小说",
+  "catError": "书源规则错误：JS：HTTP 502：http://m.xxxbiquge.net/xclass/0/1.html",
+  "index": 33
+ },
+ {
+  "categories": 18,
+  "explore": [
+   {
+    "count": 12,
+    "title": "玄幻",
+    "first": "傲世丹神|https://www.quanben.io/n/aoshidanshen/",
+    "ms": 242
+   },
+   {
+    "count": 12,
+    "title": "都市",
+    "first": "老兵传奇|https://www.quanben.io/n/laobingchuanqi/",
+    "ms": 272
+   },
+   {
+    "first": "全职家丁|https://www.quanben.io/n/quanzhijiading/",
+    "title": "言情",
+    "ms": 238,
+    "count": 12
+   }
+  ],
+  "groups": [
+   "🏷️全部分类🏷️"
+  ],
+  "index": 34,
+  "name": "全本小说"
+ },
+ {
+  "explore": [
+   {
+    "ms": 12,
+    "title": "玄幻奇幻",
+    "first": "猎妖高校|http://m.2kk.la/ks22969/",
+    "count": 20
+   },
+   {
+    "title": "武侠仙侠",
+    "count": 20,
+    "first": "公若不弃，愿拜为义父|http://m.2kk.la/ks140666/",
+    "ms": 512
+   },
+   {
+    "first": "温先生，夫人不会再为你心动了|http://m.2kk.la/ks166154/",
+    "title": "都市言情",
+    "count": 20,
+    "ms": 524
+   }
+  ],
+  "index": 35,
+  "name": "爱看小说",
+  "groups": [
+   "🌹全本🌹",
+   "🌹分类🌹"
+  ],
+  "categories": 15
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "index": 36,
+  "categories": 16,
+  "name": "悦读小说",
+  "explore": [
+   {
+    "title": "古代",
+    "first": "護軍司馬，皇帝司馬炎|https://hareading.com/books?bookId=47998",
+    "count": 705,
+    "ms": 735
+   },
+   {
+    "ms": 292,
+    "title": "實境",
+    "count": 322,
+    "first": "110公路|https://hareading.com/books?bookId=47981"
+   },
+   {
+    "title": "奇幻",
+    "count": 993,
+    "first": "已打完|https://hareading.com/books?bookId=47961",
+    "ms": 981
+   }
+  ]
+ },
+ {
+  "explore": [
+   {
+    "ms": 183,
+    "count": 315,
+    "first": "虫皇主宰|http://23.225.143.232/ldks/41996/",
+    "title": "完本"
+   },
+   {
+    "title": "最新",
+    "first": "离婚后，夫人她光芒万丈|http://23.225.143.232/ldks/134468/",
+    "ms": 664,
+    "count": 40
+   }
+  ],
+  "index": 37,
+  "groups": [
+   "推荐"
+  ],
+  "name": "零点看书",
+  "categories": 2
+ },
+ {
+  "name": "望书阁网",
+  "categories": 23,
+  "groups": [
+   "分类",
+   "榜单"
+  ],
+  "index": 38,
+  "explore": [
+   {
+    "title": "日点击榜",
+    "count": 21,
+    "first": "夜无疆|http://wap.wangshugu.info/book-176723/",
+    "ms": 534
+   },
+   {
+    "count": 21,
+    "ms": 355,
+    "first": "夜无疆|http://wap.wangshugu.info/book-176723/",
+    "title": "周点击榜"
+   },
+   {
+    "count": 21,
+    "ms": 274,
+    "title": "月点击榜",
+    "first": "夜无疆|http://wap.wangshugu.info/book-176723/"
+   }
+  ]
+ },
+ {
+  "categories": 22,
+  "groups": [
+   "名著",
+   "女频",
+   "榜单",
+   "男频"
+  ],
+  "explore": [
+   {
+    "title": "综合",
+    "first": "绝品相师|/Book/ArticleInfo,{\"method\":\"POST\",\"body\":\"{\\\"_id\\\":\\\"9060\\\",\\\"userID\\\":\\\"312818\\\",\\\"ver\\\":\\\"1.6.4\\\",\\\"md5\\\":\\\"05536694d3aa0723799f6218\\\"}\"}",
+    "ms": 846,
+    "count": 20
+   },
+   {
+    "count": 20,
+    "first": "重生古代田园|/Book/ArticleInfo,{\"method\":\"POST\",\"body\":\"{\\\"_id\\\":\\\"12918\\\",\\\"userID\\\":\\\"312818\\\",\\\"ver\\\":\\\"1.6.4\\\",\\\"md5\\\":\\\"7654292f69500efa54345bcf\\\"}\"}",
+    "title": "新书",
+    "ms": 764
+   },
+   {
+    "first": "绝品相师|/Book/ArticleInfo,{\"method\":\"POST\",\"body\":\"{\\\"_id\\\":\\\"9060\\\",\\\"userID\\\":\\\"312818\\\",\\\"ver\\\":\\\"1.6.4\\\",\\\"md5\\\":\\\"05536694d3aa0723799f6218\\\"}\"}",
+    "count": 20,
+    "ms": 1084,
+    "title": "完结"
+   }
+  ],
+  "name": "乐读小说",
+  "index": 39
+ },
+ {
+  "index": 40,
+  "name": "武道文学",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "玄幻",
+    "error": "HTTP 502：http://www.bookwenxue.com/class/1_1.html",
+    "url": "/class/1_{{page}}.html"
+   },
+   {
+    "title": "武侠",
+    "error": "HTTP 502：http://www.bookwenxue.com/class/2_1.html",
+    "url": "/class/2_{{page}}.html"
+   },
+   {
+    "url": "/class/3_{{page}}.html",
+    "error": "HTTP 502：http://www.bookwenxue.com/class/3_1.html",
+    "title": "都市"
+   }
+  ],
+  "categories": 8
+ },
+ {
+  "name": "笔趣阁",
+  "index": 42,
+  "categories": 9,
+  "explore": [
+   {
+    "first": "完美匹配孤山与蝶txt下载|https://m.suimeng.la/files/article/html/433/433837/",
+    "count": 36,
+    "title": "全部",
+    "ms": 1428
+   },
+   {
+    "title": "玄幻魔法",
+    "first": "黑龙亡灵法师|https://m.suimeng.la/files/article/html/424/424006/",
+    "ms": 355,
+    "count": 36
+   },
+   {
+    "count": 36,
+    "first": "轻风修仙记|https://m.suimeng.la/files/article/html/420/420918/",
+    "ms": 267,
+    "title": "武侠修真"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "explore": [
+   {
+    "title": "玄幻奇幻",
+    "error": "HTTP 502：http://www.xkushu.org/zwwsort1/0/1.htm",
+    "url": "/zwwsort1/0/{{page}}.htm"
+   },
+   {
+    "title": "修真武侠",
+    "error": "HTTP 502：http://www.xkushu.org/zwwsort2/0/1.htm",
+    "url": "/zwwsort2/0/{{page}}.htm"
+   },
+   {
+    "title": "都市言情",
+    "error": "HTTP 502：http://www.xkushu.org/zwwsort3/0/1.htm",
+    "url": "/zwwsort3/0/{{page}}.htm"
+   }
+  ],
+  "index": 43,
+  "name": "三五中文",
+  "categories": 19,
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "name": "美艺言情",
+  "categories": 2,
+  "index": 46,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "url": "/list/",
+    "error": "HTTP 502：http://m.meiyeewk.com/list/",
+    "title": "最新更新"
+   },
+   {
+    "error": "HTTP 502：http://m.meiyeewk.com/good/",
+    "title": "编辑推荐",
+    "url": "/good/"
+   }
+  ]
+ },
+ {
+  "categories": 23,
+  "groups": [
+   "🌸 女生分类 🌸",
+   "🔥 男生分类 🔥"
+  ],
+  "explore": [
+   {
+    "title": "都市",
+    "first": "都市超凡医神|https://gateway.kugou.com/v1/book/book_detail?signature=420a44fbf548d9a87523125cb336bdf5&mid=1&userid=0&dfid=0&appid=1005&clientver=0&clienttime=1794924323&book_id=5109087937893470,{\"headers\":{\"x-router\":\"longaudio.kugou.com\"}}",
+    "count": 50,
+    "ms": 949
+   },
+   {
+    "title": "玄幻",
+    "ms": 814,
+    "count": 50,
+    "first": "我不想逆天啊|https://gateway.kugou.com/v1/book/book_detail?signature=8cc6020bec582cee09cb56a79b6494d0&mid=1&userid=0&dfid=0&appid=1005&clientver=0&clienttime=1794924324&book_id=5109089338877627,{\"headers\":{\"x-router\":\"longaudio.kugou.com\"}}"
+   },
+   {
+    "title": "仙侠",
+    "first": "兰若仙缘|https://gateway.kugou.com/v1/book/book_detail?signature=8a6831968b2f7adefd791eaf7096e2fc&mid=1&userid=0&dfid=0&appid=1005&clientver=0&clienttime=1794924325&book_id=5109121114013078,{\"headers\":{\"x-router\":\"longaudio.kugou.com\"}}",
+    "count": 50,
+    "ms": 563
+   }
+  ],
+  "name": "酷狗小说",
+  "index": 48
+ },
+ {
+  "categories": 43,
+  "name": "传奇中文",
+  "index": 49,
+  "explore": [
+   {
+    "title": "东方玄幻",
+    "first": "大神主|http://www.cqzww.com/m/book/55/",
+    "count": 10,
+    "ms": 178
+   },
+   {
+    "title": "军事战争",
+    "count": 10,
+    "first": "刺客沈小凤|http://www.cqzww.com/m/book/2675/",
+    "ms": 56
+   },
+   {
+    "count": 10,
+    "title": "现代都市",
+    "ms": 132,
+    "first": "药王美食家|http://www.cqzww.com/m/book/1981/"
+   }
+  ],
+  "groups": [
+   "出版",
+   "女频",
+   "男频"
+  ]
+ },
+ {
+  "groups": [
+   "🔥分类小说🔥"
+  ],
+  "explore": [
+   {
+    "first": "他说只是练习（男女微甜H）|https://www.longshuwu.com/book/7351942602555394/",
+    "count": 13,
+    "title": "全部",
+    "ms": 251
+   },
+   {
+    "title": "原创小说",
+    "count": 13,
+    "ms": 266,
+    "first": "春刀夜|https://www.longshuwu.com/book/7351899594448897/"
+   },
+   {
+    "count": 13,
+    "ms": 262,
+    "first": "那年长安|https://www.longshuwu.com/book/7342639357796353/",
+    "title": "同人衍生"
+   }
+  ],
+  "categories": 46,
+  "index": 50,
+  "name": "新龙小说"
+ },
+ {
+  "categories": 16,
+  "explore": [
+   {
+    "count": 30,
+    "ms": 877,
+    "title": "全部",
+    "first": "夫人她马甲又轰动全城了|https://www.bayiwxw.com/yd/14_14138/"
+   },
+   {
+    "first": "大荒经|https://www.bayiwxw.com/yd/29_29630/",
+    "ms": 180,
+    "title": "玄幻",
+    "count": 30
+   },
+   {
+    "ms": 101,
+    "title": "修真",
+    "count": 30,
+    "first": "伯言传|https://www.bayiwxw.com/yd/49_49327/"
+   }
+  ],
+  "index": 53,
+  "name": "八一中文",
+  "groups": [
+   "分类",
+   "完本"
+  ]
+ },
+ {
+  "index": 54,
+  "categories": 2,
+  "name": "️圣墟小说",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "总点击",
+    "ms": 628,
+    "count": 15,
+    "first": "全职高手番外之巅峰荣耀|http://www.shengxuxu.info/2924/"
+   },
+   {
+    "ms": 260,
+    "first": "御天武帝|http://www.shengxuxu.info/104007/",
+    "title": "排行",
+    "count": 15
+   }
+  ]
+ },
+ {
+  "index": 55,
+  "groups": [
+   "分类",
+   "榜单"
+  ],
+  "explore": [
+   {
+    "url": "/top/allvote.html",
+    "title": "总推荐榜",
+    "error": "HTTP 502：http://www.qiushu.info/top/allvote.html"
+   },
+   {
+    "url": "/top/allvisit.html",
+    "title": "总排行榜",
+    "error": "HTTP 502：http://www.qiushu.info/top/allvisit.html"
+   },
+   {
+    "title": "月排行榜",
+    "error": "HTTP 502：http://www.qiushu.info/top/monthvisit.html",
+    "url": "/top/monthvisit.html"
+   }
+  ],
+  "categories": 37,
+  "name": "求书网"
+ },
+ {
+  "groups": [
+   "图书",
+   "女频",
+   "推荐",
+   "男频"
+  ],
+  "index": 59,
+  "name": "阅友小说",
+  "explore": [
+   {
+    "first": "神医毒妃不好惹|http://m.suixkan.com/b/222536.html",
+    "ms": 267,
+    "count": 6,
+    "title": "重磅推荐"
+   },
+   {
+    "ms": 321,
+    "first": "最佳女婿|http://m.suixkan.com/b/207553.html",
+    "count": 15,
+    "title": "男生必读"
+   },
+   {
+    "title": "女生爱看",
+    "ms": 243,
+    "count": 15,
+    "first": "至尊毒妃：邪王的盛宠娇妃|http://m.suixkan.com/b/205910.html"
+   }
+  ],
+  "categories": 24
+ },
+ {
+  "categories": 20,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "总榜",
+    "url": "/allvisit-{{page}}.html",
+    "error": "HTTP 502：http://www.92xs.info/allvisit-1.html"
+   },
+   {
+    "title": "月榜",
+    "url": "/monthvisit-{{page}}.html",
+    "error": "HTTP 502：http://www.92xs.info/monthvisit-1.html"
+   },
+   {
+    "title": "周榜",
+    "error": "HTTP 502：http://www.92xs.info/weekvisit-1.html",
+    "url": "/weekvisit-{{page}}.html"
+   }
+  ],
+  "index": 61,
+  "name": "就爱文学"
+ },
+ {
+  "index": 63,
+  "explore": [
+   {
+    "error": "HTTP 502：http://www.xwenxuem.com/book/topweekvisit/0/1.html",
+    "title": "周榜",
+    "url": "/book/topweekvisit/0/{{page}}.html"
+   },
+   {
+    "url": "/book/topmonthvisit/0/{{page}}.html",
+    "error": "HTTP 502：http://www.xwenxuem.com/book/topmonthvisit/0/1.html",
+    "title": "月榜"
+   },
+   {
+    "url": "/book/topallvisit/0/{{page}}.html",
+    "title": "总榜",
+    "error": "HTTP 502：http://www.xwenxuem.com/book/topallvisit/0/1.html"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ],
+  "categories": 29,
+  "name": "女生文学"
+ },
+ {
+  "explore": [
+   {
+    "error": "HTTP 502：http://www.sjshuku.com/soft/1/Soft_001_1.html",
+    "title": "武侠小说",
+    "url": "/soft/1/Soft_001_{{page}}.html"
+   },
+   {
+    "title": "玄幻小说",
+    "error": "HTTP 502：http://www.sjshuku.com/soft/2/Soft_002_1.html",
+    "url": "/soft/2/Soft_002_{{page}}.html"
+   },
+   {
+    "url": "/soft/3/Soft_003_{{page}}.html",
+    "title": "都市言情",
+    "error": "HTTP 502：http://www.sjshuku.com/soft/3/Soft_003_1.html"
+   }
+  ],
+  "name": "手机小说",
+  "categories": 17,
+  "groups": [
+   "推荐"
+  ],
+  "index": 64
+ },
+ {
+  "groups": [
+   "༺女生༻",
+   "༺男生༻",
+   "♧传记♧",
+   "♧修养♧",
+   "♧励志♧",
+   "♧历史♧",
+   "♧小说♧",
+   "♧情节♧",
+   "♧文艺♧",
+   "♧生活♧",
+   "♧社科♧",
+   "♧科教♧",
+   "♧经管♧",
+   "♧角色♧",
+   "♧金手指♧",
+   "♧青春♧",
+   "♧题材♧"
+  ],
+  "explore": [
+   {
+    "title": "口碑榜",
+    "ms": 827,
+    "count": 20,
+    "first": "继承十一座茶山后，我被员工扫地出门了|/asg-portal/portal/client/1111,{\"method\": \"post\", body: \"c404884e9987512077c04001843138b0d1e18feda3aadc5b2c54d164d437be0a550829f240721115c52a7562cf82740d\"}"
+   },
+   {
+    "title": "畅销榜",
+    "count": 20,
+    "ms": 1071,
+    "first": "她用假结婚证试探我真心，我真死后她哭疯了|/asg-portal/portal/client/1111,{\"method\": \"post\", body: \"c404884e9987512077c04001843138b0716556503fe0df0d352a2e8a7c124ab4eb355dcee33809c99a583bf8c4d8002b\"}"
+   },
+   {
+    "count": 20,
+    "title": "完本榜",
+    "first": "老婆为哄小白脸骗我离婚，我假死娶白富美破防什么|/asg-portal/portal/client/1111,{\"method\": \"post\", body: \"c404884e9987512077c04001843138b0ecf1c2aa9d19c37d5bc73d0013e8ffedf9b0bed0f13865f0ddeb1fb2d0c0a7bf\"}",
+    "ms": 600
+   }
+  ],
+  "categories": 557,
+  "name": "点众阅读",
+  "index": 65
+ },
+ {
+  "categories": 7,
+  "explore": [
+   {
+    "first": "从摸尸开始肉身成圣|http://www.23uswx.la/179_179895/",
+    "count": 60,
+    "title": "玄幻小说",
+    "ms": 2292
+   },
+   {
+    "title": "修真小说",
+    "ms": 1360,
+    "first": "蜀山玄阴教主|http://www.23uswx.la/181_181477/",
+    "count": 60
+   },
+   {
+    "ms": 894,
+    "title": "都市小说",
+    "first": "华娱：演技模拟，女主演都当真了|http://www.23uswx.la/188_188026/",
+    "count": 60
+   }
+  ],
+  "index": 66,
+  "groups": [
+   "推荐"
+  ],
+  "name": "顶点小说"
+ },
+ {
+  "index": 71,
+  "categories": 7,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "ms": 721,
+    "title": "青春",
+    "count": 20,
+    "first": "住在楼上的人妻|http://z.303wx.com/book/50953/"
+   },
+   {
+    "ms": 553,
+    "count": 20,
+    "first": "不要勾引老实人妻！[画皮]|http://z.303wx.com/book/50496/",
+    "title": "古代"
+   },
+   {
+    "first": "能帮我治疗口欲期吗？|http://z.303wx.com/book/41600/",
+    "ms": 494,
+    "title": "穿越",
+    "count": 20
+   }
+  ],
+  "name": "33文学"
+ },
+ {
+  "name": "年代小说",
+  "index": 73,
+  "categories": 7,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "玄幻奇幻",
+    "count": 30,
+    "first": "规则天书|http://www.8xiaoshuo.net/221/221181/",
+    "ms": 1150
+   },
+   {
+    "title": "武侠仙侠",
+    "ms": 518,
+    "count": 30,
+    "first": "悟道长生：我以凡躯镇诸天|http://www.8xiaoshuo.net/220/220693/"
+   },
+   {
+    "first": "四合院：何雨水的逆袭人生|http://www.8xiaoshuo.net/228/228939/",
+    "ms": 879,
+    "title": "都市言情",
+    "count": 30
+   }
+  ]
+ },
+ {
+  "categories": 8,
+  "index": 76,
+  "name": "77读书网",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "url": "/store/1_{{page}}.html",
+    "title": "玄幻小说",
+    "error": "HTTP 502：http://www.77shuku.info/store/1_1.html"
+   },
+   {
+    "error": "HTTP 502：http://www.77shuku.info/store/2_1.html",
+    "title": "仙侠小说",
+    "url": "/store/2_{{page}}.html"
+   },
+   {
+    "title": "都市小说",
+    "url": "/store/3_{{page}}.html",
+    "error": "HTTP 502：http://www.77shuku.info/store/3_1.html"
+   }
+  ]
+ },
+ {
+  "explore": [
+   {
+    "title": "玄幻奇幻",
+    "url": "xuanhuan/{{page}}/",
+    "error": "HTTP 502：http://www.ujxsw.org/xuanhuan/1/"
+   },
+   {
+    "error": "HTTP 502：http://www.ujxsw.org/wuxia/1/",
+    "title": "仙侠修真",
+    "url": "wuxia/{{page}}/"
+   },
+   {
+    "title": "都市青春",
+    "url": "dushi/{{page}}/",
+    "error": "HTTP 502：http://www.ujxsw.org/dushi/1/"
+   }
+  ],
+  "index": 77,
+  "name": "悠久小说",
+  "categories": 7,
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "categories": 38,
+  "explore": [
+   {
+    "ms": 1138,
+    "title": "爱情婚姻",
+    "count": 30,
+    "first": "爱情在前，遗忘在后|https://g.hongshu.com/bookajax/chapterlist/bid/3217.do?bid=3217&pagesize=50&sortby=ASC&pagenum=1"
+   },
+   {
+    "title": "商战风云",
+    "first": "极痞保镖|https://g.hongshu.com/bookajax/chapterlist/bid/49444.do?bid=49444&pagesize=50&sortby=ASC&pagenum=1",
+    "ms": 1255,
+    "count": 30
+   },
+   {
+    "count": 30,
+    "ms": 951,
+    "first": "秋水无痕|https://g.hongshu.com/bookajax/chapterlist/bid/27143.do?bid=27143&pagesize=50&sortby=ASC&pagenum=1",
+    "title": "职场励志"
+   }
+  ],
+  "name": "红薯小说",
+  "groups": [
+   "推荐"
+  ],
+  "index": 78
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "first": "祭太一|https://www.cthulhuclub.com/mythos-original/worship-taiyi/",
+    "ms": 331,
+    "count": 12,
+    "title": "原创故事"
+   },
+   {
+    "count": 0,
+    "first": "",
+    "title": "原著小说",
+    "ms": 292
+   },
+   {
+    "first": "《玄君七章秘经（Seven Cryptical Books of Hsan）》|https://www.cthulhuclub.com/mythos-books/seven-cryptical-books-of-hsan/",
+    "title": "热门文章",
+    "ms": 227,
+    "count": 12
+   }
+  ],
+  "name": "克苏鲁公社",
+  "categories": 11,
+  "index": 79
+ },
+ {
+  "index": 80,
+  "name": "永恒小说",
+  "catError": "书源规则错误：JS：HTTP 502：http://wap.4pan.org/mulu/"
+ },
+ {
+  "explore": [
+   {
+    "title": "🌊全本🌊",
+    "error": "HTTP 502：http://m.cxzz958.com/wanben/1.html",
+    "url": "http://m.cxzz958.com/wanben/{{page}}.html"
+   },
+   {
+    "url": "/fenlei/1/{{page}}.html",
+    "error": "HTTP 502：http://www.cxzz958.com/fenlei/1/1.html",
+    "title": "玄幻小说"
+   },
+   {
+    "url": "/fenlei/2/{{page}}.html",
+    "error": "HTTP 502：http://www.cxzz958.com/fenlei/2/1.html",
+    "title": "仙侠小说"
+   }
+  ],
+  "groups": [
+   "全部🌊分类"
+  ],
+  "index": 83,
+  "categories": 9,
+  "name": "鬼吹灯"
+ },
+ {
+  "name": "得间小说",
+  "categories": 23,
+  "groups": [
+   "出版",
+   "女生",
+   "男生"
+  ],
+  "explore": [
+   {
+    "count": 20,
+    "title": "都市",
+    "first": "天才鬼医|https://wechat.idejian.com/api/wechat/book/11721527",
+    "ms": 980
+   },
+   {
+    "first": "混沌天帝诀|https://wechat.idejian.com/api/wechat/book/11826433",
+    "ms": 1369,
+    "title": "玄幻",
+    "count": 20
+   },
+   {
+    "title": "仙侠",
+    "ms": 519,
+    "count": 20,
+    "first": "异世灵武天下|https://wechat.idejian.com/api/wechat/book/11326581"
+   }
+  ],
+  "index": 84
+ },
+ {
+  "groups": [
+   "完结专区",
+   "最新排行",
+   "热门排行",
+   "评分排行"
+  ],
+  "name": "疯读小说",
+  "index": 85,
+  "categories": 53,
+  "explore": [
+   {
+    "title": "都市小说",
+    "count": 10,
+    "ms": 399,
+    "first": "重生牛二的首富人生|https://fiction.fengduxiaoshuo.com/doReader/enter_bookinfo_index?_token=d2a094ff-b75f-4b60-ba2c-19e1cfe6cf73&bookId=60647&_sv=v2"
+   },
+   {
+    "ms": 108,
+    "title": "玄幻小说",
+    "first": "修炼9999级了，老祖才100级|https://fiction.fengduxiaoshuo.com/doReader/enter_bookinfo_index?_token=d2a094ff-b75f-4b60-ba2c-19e1cfe6cf73&bookId=45456&_sv=v2",
+    "count": 10
+   },
+   {
+    "first": "我在仙界当狱卒|https://fiction.fengduxiaoshuo.com/doReader/enter_bookinfo_index?_token=d2a094ff-b75f-4b60-ba2c-19e1cfe6cf73&bookId=19414&_sv=v2",
+    "title": "仙侠小说",
+    "ms": 529,
+    "count": 10
+   }
+  ]
+ },
+ {
+  "index": 86,
+  "name": "爱笔楼",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "url": "http://m.biqutu.info/ph/week{{page}}.html",
+    "title": "周榜·全",
+    "error": "HTTP 502：http://m.biqutu.info/ph/week1.html"
+   },
+   {
+    "title": "周榜·玄幻",
+    "error": "HTTP 502：http://m.biqutu.info/ph/week1_1.html",
+    "url": "http://m.biqutu.info/ph/week1_{{page}}.html"
+   },
+   {
+    "error": "HTTP 502：http://m.biqutu.info/ph/week2_1.html",
+    "title": "周榜·修真",
+    "url": "http://m.biqutu.info/ph/week2_{{page}}.html"
+   }
+  ],
+  "categories": 32
+ },
+ {
+  "index": 87,
+  "explore": [
+   {
+    "title": "玄幻魔法",
+    "url": "/mulu/1-{{page}}.html",
+    "error": "HTTP 502：http://www.mhtxs.info/mulu/1-1.html"
+   },
+   {
+    "title": "武侠修真",
+    "url": "/mulu/2-{{page}}.html",
+    "error": "HTTP 502：http://www.mhtxs.info/mulu/2-1.html"
+   },
+   {
+    "url": "/mulu/3-{{page}}.html",
+    "error": "HTTP 502：http://www.mhtxs.info/mulu/3-1.html",
+    "title": "都市言情"
+   }
+  ],
+  "name": "棉花糖",
+  "categories": 10,
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "index": 91,
+  "name": "文桑小说",
+  "categories": 12,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "error": "HTTP 502：http://www.wensang.net/xuanhuan/page_1.html",
+    "title": "奇幻玄幻",
+    "url": "/xuanhuan/page_{{page}}.html"
+   },
+   {
+    "error": "HTTP 502：http://www.wensang.net/xiuzhen/page_1.html",
+    "title": "武侠仙侠",
+    "url": "/xiuzhen/page_{{page}}.html"
+   },
+   {
+    "error": "HTTP 502：http://www.wensang.net/dushi/page_1.html",
+    "title": "都市言情",
+    "url": "/dushi/page_{{page}}.html"
+   }
+  ]
+ },
+ {
+  "name": "阅读书库",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "error": "HTTP 502：http://www.yeudusk.com/book/sort1/0/1.html",
+    "title": "玄幻·魔法",
+    "url": "http://www.yeudusk.com/book/sort1/0/1.html"
+   },
+   {
+    "title": "武侠·修真",
+    "url": "http://www.yeudusk.com/book/sort2/0/1.html",
+    "error": "HTTP 502：http://www.yeudusk.com/book/sort2/0/1.html"
+   },
+   {
+    "url": "http://www.yeudusk.com/book/sort3/0/1.html",
+    "error": "HTTP 502：http://www.yeudusk.com/book/sort3/0/1.html",
+    "title": "都市·言情"
+   }
+  ],
+  "categories": 11,
+  "index": 93
+ },
+ {
+  "name": "玄幻阁吧",
+  "index": 96,
+  "explore": [
+   {
+    "url": "/sort1/{{page}}/",
+    "title": "玄幻",
+    "error": "HTTP 502：http://www.xuanhuange.info/sort1/1/"
+   },
+   {
+    "error": "HTTP 502：http://www.xuanhuange.info/sort2/1/",
+    "title": "武侠",
+    "url": "/sort2/{{page}}/"
+   },
+   {
+    "title": "都市",
+    "url": "/sort3/{{page}}/",
+    "error": "HTTP 502：http://www.xuanhuange.info/sort3/1/"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ],
+  "categories": 11
+ },
+ {
+  "index": 98,
+  "name": "追光阅读",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "现代都市",
+    "count": 120,
+    "first": "都市极品医仙|http://touchlife.cootekservice.com/doReader/enter_bookinfo_index?_token=e72ca407-9caa-475d-a829-46e15d3d4834&bookId=16728",
+    "ms": 520
+   },
+   {
+    "first": "重生大魔头|http://touchlife.cootekservice.com/doReader/enter_bookinfo_index?_token=e72ca407-9caa-475d-a829-46e15d3d4834&bookId=17079",
+    "title": "东方玄幻",
+    "ms": 842,
+    "count": 120
+   },
+   {
+    "count": 39,
+    "ms": 199,
+    "title": "武侠仙侠",
+    "first": "变成鬼后，我一脚踢飞老道士|http://touchlife.cootekservice.com/doReader/enter_bookinfo_index?_token=e72ca407-9caa-475d-a829-46e15d3d4834&bookId=70462"
+   }
+  ],
+  "categories": 15
+ },
+ {
+  "explore": [
+   {
+    "count": 20,
+    "ms": 536,
+    "title": "全本小说",
+    "first": "你管这叫灾星？落魄将军府旺翻了|http://wap.80ge.info/227574/"
+   },
+   {
+    "count": 21,
+    "first": "夜无疆|http://wap.80ge.info/138357/",
+    "ms": 311,
+    "title": "日点击榜"
+   },
+   {
+    "count": 21,
+    "first": "夜无疆|http://wap.80ge.info/138357/",
+    "ms": 2040,
+    "title": "周点击榜"
+   }
+  ],
+  "categories": 38,
+  "index": 100,
+  "name": "八零小说",
+  "groups": [
+   "女生分类推荐",
+   "推荐",
+   "男生分类推荐"
+  ]
+ },
+ {
+  "index": 101,
+  "name": "八一中文",
+  "groups": [
+   "推荐"
+  ],
+  "categories": 7,
+  "explore": [
+   {
+    "title": "玄幻小说",
+    "url": "/xuanhuanxiaoshuo/1_{{page}}.html",
+    "error": "HTTP 502：http://www.81shuku.info/xuanhuanxiaoshuo/1_1.html"
+   },
+   {
+    "title": "修真小说",
+    "error": "HTTP 502：http://www.81shuku.info/xiuzhenxiaoshuo/2_1.html",
+    "url": "/xiuzhenxiaoshuo/2_{{page}}.html"
+   },
+   {
+    "url": "/dushixiaoshuo/3_{{page}}.html",
+    "title": "都市小说",
+    "error": "HTTP 502：http://www.81shuku.info/dushixiaoshuo/3_1.html"
+   }
+  ]
+ },
+ {
+  "name": "磨铁中文",
+  "categories": 86,
+  "index": 102,
+  "groups": [
+   "分类",
+   "榜单"
+  ],
+  "explore": [
+   {
+    "title": "男生热销",
+    "first": "地煞七十二变|https://app2.motie.com/pc/book/99776/catalog",
+    "ms": 1099,
+    "count": 10
+   },
+   {
+    "title": "女生热销",
+    "count": 10,
+    "first": "福晋|https://app2.motie.com/pc/book/207352/catalog",
+    "ms": 356
+   },
+   {
+    "first": "追踪师|https://app2.motie.com/pc/book/114001/catalog",
+    "count": 10,
+    "title": "出版热销",
+    "ms": 363
+   }
+  ]
+ },
+ {
+  "index": 103,
+  "name": "笔趣阁",
+  "categories": 7,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "url": "/xuanhuanxiaoshuo/1_{{page}}.html",
+    "error": "网络错误：The request timed out.",
+    "title": "玄幻小说"
+   },
+   {
+    "url": "/xiuzhenxiaoshuo/2_{{page}}.html",
+    "title": "修真小说",
+    "error": "网络错误：A TLS error caused the secure connection to fail."
+   },
+   {
+    "url": "/dushixiaoshuo/3_{{page}}.html",
+    "title": "都市小说",
+    "error": "网络错误：The request timed out."
+   }
+  ]
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "首页",
+    "count": 20,
+    "first": "海棠三选一|https://onehu.xyz/2026/11/17/%E6%B5%B7%E6%A3%A0%E4%B8%89%E9%80%89%E4%B8%80",
+    "ms": 187
+   },
+   {
+    "first": "海棠三选一|https://onehu.xyz/2026/11/17/%E6%B5%B7%E6%A3%A0%E4%B8%89%E9%80%89%E4%B8%80",
+    "ms": 985,
+    "title": "分类",
+    "count": 1679
+   },
+   {
+    "title": "zhihu",
+    "first": "海棠三选一|https://onehu.xyz/2026/11/17/%E6%B5%B7%E6%A3%A0%E4%B8%89%E9%80%89%E4%B8%80",
+    "ms": 399,
+    "count": 20
+   }
+  ],
+  "name": "我是盐神",
+  "categories": 190,
+  "index": 104
+ },
+ {
+  "index": 105,
+  "groups": [
+   "推荐"
+  ],
+  "categories": 16,
+  "explore": [
+   {
+    "title": "奇幻·玄幻",
+    "count": 6,
+    "first": "神座|https://www.yybsw.com/book/8132",
+    "ms": 45
+   },
+   {
+    "first": "网游之练级专家|https://www.yybsw.com/book/11673",
+    "ms": 11,
+    "title": "科幻·游戏",
+    "count": 6
+   },
+   {
+    "first": "连城诀|https://www.yybsw.com/book/9471",
+    "count": 6,
+    "ms": 8,
+    "title": "武侠·仙侠"
+   }
+  ],
+  "name": "夜伴书屋"
+ },
+ {
+  "name": "盗墓笔记",
+  "groups": [
+   "推荐"
+  ],
+  "index": 106,
+  "explore": [
+   {
+    "count": 11,
+    "first": "盗墓笔记1：七星鲁王|http://www.daomubiji.com/dao-mu-bi-ji-1",
+    "ms": 1058,
+    "title": "盗墓笔记"
+   }
+  ],
+  "categories": 1
+ },
+ {
+  "explore": [
+   {
+    "first": "乡村偷香神医|http://qmbook.taoyuewenhua.net/tf/book?appid=qmbook&bid=yw_26179403609600604&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794924359370&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=519086AE77F63F874AC1C5B4C9F75238",
+    "title": "推荐",
+    "ms": 344,
+    "count": 9
+   },
+   {
+    "ms": 351,
+    "title": "完本",
+    "count": 9,
+    "first": "乡村偷香神医|http://qmbook.taoyuewenhua.net/tf/book?appid=qmbook&bid=yw_26179403609600604&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794924359644&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=5C9D0C1D54FBE9EF7F0A0E79D20A60B7"
+   },
+   {
+    "title": "人气",
+    "first": "二柱你太强了，绕了我吧！|http://qmbook.taoyuewenhua.net/tf/book?appid=qmbook&bid=yueke_12678&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794924360009&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=2BF5F13F94AB85B89105B7F3F93FB17E",
+    "count": 10,
+    "ms": 430
+   }
+  ],
+  "categories": 36,
+  "groups": [
+   "🔖女频🍁分类🔖",
+   "🔖女频🍁榜单🔖",
+   "🔖男频🍁分类🔖",
+   "🔖男频🍁榜单🔖"
+  ],
+  "index": 109,
+  "name": "全免小说"
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "categories": 16,
+  "name": "笔趣中文",
+  "explore": [
+   {
+    "url": "/xclass/0/{{page}}.html",
+    "title": "全部",
+    "error": "HTTP 502：http://m.ibiquzw.org/xclass/0/1.html"
+   },
+   {
+    "url": "/xclass/1/{{page}}.html",
+    "error": "HTTP 502：http://m.ibiquzw.org/xclass/1/1.html",
+    "title": "玄幻奇幻"
+   },
+   {
+    "url": "/xclass/2/{{page}}.html",
+    "title": "修真仙侠",
+    "error": "HTTP 502：http://m.ibiquzw.org/xclass/2/1.html"
+   }
+  ],
+  "index": 110
+ },
+ {
+  "index": 111,
+  "categories": 44,
+  "explore": [
+   {
+    "first": "弟弟，给我玩一下[姐弟H]|https://www.songyewen.com/book/7350335371366446/",
+    "title": "全 部",
+    "count": 13,
+    "ms": 1068
+   },
+   {
+    "ms": 456,
+    "count": 13,
+    "title": "古代言情",
+    "first": "将六皇子拐进后院|https://www.songyewen.com/book/120486392614981/"
+   },
+   {
+    "ms": 381,
+    "title": "现代言情",
+    "count": 13,
+    "first": "深情已迟暮|https://www.songyewen.com/book/120486392619081/"
+   }
+  ],
+  "name": "小红书",
+  "groups": [
+   "—— 分类 ——",
+   "—— 总榜 ——"
+  ]
+ },
+ {
+  "name": "亿软小说",
+  "explore": [
+   {
+    "error": "HTTP 502：http://m.iyruan.info/sort/1/1.html",
+    "url": "http://m.iyruan.info/sort/1/{{page}}.html",
+    "title": "玄幻小说"
+   },
+   {
+    "title": "仙侠小说",
+    "url": "http://m.iyruan.info/sort/2/{{page}}.html",
+    "error": "HTTP 502：http://m.iyruan.info/sort/2/1.html"
+   },
+   {
+    "url": "http://m.iyruan.info/sort/3/{{page}}.html",
+    "error": "HTTP 502：http://m.iyruan.info/sort/3/1.html",
+    "title": "都市小说"
+   }
+  ],
+  "index": 113,
+  "groups": [
+   "推荐"
+  ],
+  "categories": 6
+ },
+ {
+  "explore": [
+   {
+    "title": "添加书籍",
+    "first": "ONE·阅读|http://m.wufazhuce.com/article/",
+    "count": 1,
+    "ms": 138
+   }
+  ],
+  "groups": [
+   "推荐"
+  ],
+  "categories": 1,
+  "index": 115,
+  "name": "一个阅读"
+ },
+ {
+  "name": "亿软小说",
+  "explore": [
+   {
+    "title": "玄幻小说",
+    "error": "HTTP 502：http://m.yruan.com/sort/1/1.html",
+    "url": "http://m.yruan.com/sort/1/{{page}}.html"
+   },
+   {
+    "url": "http://m.yruan.com/sort/2/{{page}}.html",
+    "error": "HTTP 502：http://m.yruan.com/sort/2/1.html",
+    "title": "仙侠小说"
+   },
+   {
+    "url": "http://m.yruan.com/sort/3/{{page}}.html",
+    "error": "HTTP 502：http://m.yruan.com/sort/3/1.html",
+    "title": "都市小说"
+   }
+  ],
+  "index": 116,
+  "groups": [
+   "推荐"
+  ],
+  "categories": 6
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "index": 119,
+  "explore": [
+   {
+    "url": "/fenlei/1/{{page}}.html",
+    "title": "玄幻小说",
+    "error": "HTTP 502：http://www.gdbzkz.la/fenlei/1/1.html"
+   },
+   {
+    "title": "仙侠小说",
+    "url": "/fenlei/2/{{page}}.html",
+    "error": "HTTP 502：http://www.gdbzkz.la/fenlei/2/1.html"
+   },
+   {
+    "error": "HTTP 502：http://www.gdbzkz.la/fenlei/3/1.html",
+    "title": "都市小说",
+    "url": "/fenlei/3/{{page}}.html"
+   }
+  ],
+  "name": "鬼吹灯",
+  "categories": 7
+ },
+ {
+  "categories": 23,
+  "groups": [
+   "女频",
+   "排行榜",
+   "男频"
+  ],
+  "index": 120,
+  "name": "灵猫小说",
+  "explore": [
+   {
+    "title": "男人气榜",
+    "count": 5,
+    "first": "龙婿医尊|http://quickapi.biduwenxue.com/api/book/info?appname=lingmao&channel=%E7%81%B5%E7%8C%AB%E5%B0%8F%E8%AF%B4&versionName=1.1.18&userId=8573311&device=OPM1.171019.019&androidid=d4dd57d6-93ea-4f4d-acaf-b3ea5c0271e9&mac=7C:03:AB:73:27:7E&bookId=223693&manufacturer=Xiaomi&",
+    "ms": 143
+   },
+   {
+    "title": "男收藏榜",
+    "ms": 127,
+    "first": "大小姐的贴身神医2|http://quickapi.biduwenxue.com/api/book/info?appname=lingmao&channel=%E7%81%B5%E7%8C%AB%E5%B0%8F%E8%AF%B4&versionName=1.1.18&userId=8573311&device=OPM1.171019.019&androidid=d4dd57d6-93ea-4f4d-acaf-b3ea5c0271e9&mac=7C:03:AB:73:27:7E&bookId=222539&manufacturer=Xiaomi&",
+    "count": 6
+   },
+   {
+    "title": "男字数榜",
+    "first": "",
+    "ms": 82,
+    "count": 0
+   }
+  ]
+ },
+ {
+  "index": 124,
+  "categories": 11,
+  "explore": [
+   {
+    "url": "/sort1/{{page}}/",
+    "error": "HTTP 502：http://www.xuanyge.net/sort1/1/",
+    "title": "玄幻"
+   },
+   {
+    "error": "HTTP 502：http://www.xuanyge.net/sort2/1/",
+    "title": "武侠",
+    "url": "/sort2/{{page}}/"
+   },
+   {
+    "title": "都市",
+    "url": "/sort3/{{page}}/",
+    "error": "HTTP 502：http://www.xuanyge.net/sort3/1/"
+   }
+  ],
+  "name": "玄幻阁吧",
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "categories": 8,
+  "explore": [
+   {
+    "ms": 926,
+    "count": 10,
+    "first": "开局押镖，获得满级神功|https://www.x520xs.com/shu/993700/",
+    "title": "玄幻魔法"
+   },
+   {
+    "count": 10,
+    "title": "武侠修真",
+    "first": "修仙：我以灵瞳铸长生|https://www.x520xs.com/shu/963832/",
+    "ms": 326
+   },
+   {
+    "count": 10,
+    "first": "高冷太子的克星|https://www.x520xs.com/shu/1002383/",
+    "title": "都市言情",
+    "ms": 335
+   }
+  ],
+  "name": "笔趣阁",
+  "index": 125,
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "name": "九九藏书",
+  "index": 126,
+  "categories": 8,
+  "groups": [
+   "💖分类💖"
+  ],
+  "explore": [
+   {
+    "title": "玄幻仙侠",
+    "first": "斗罗大陆|https://www.sangshixs.com/douluodalu/",
+    "count": 25,
+    "ms": 268
+   },
+   {
+    "title": "都市言情",
+    "count": 25,
+    "first": "太阳照常升起|https://www.sangshixs.com/1953/",
+    "ms": 524
+   },
+   {
+    "first": "秀丽江山之长歌行|https://www.sangshixs.com/xiulijiangshan/",
+    "ms": 281,
+    "count": 25,
+    "title": "穿越架空"
+   }
+  ]
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "周榜",
+    "url": "/ph/week0<,_{{page}}>.html",
+    "error": "HTTP 502：http://wap.aihytd.com/ph/week0.html"
+   },
+   {
+    "url": "/ph/week1<,_{{page}}>.html",
+    "error": "HTTP 502：http://wap.aihytd.com/ph/week1.html",
+    "title": "玄幻"
+   },
+   {
+    "error": "HTTP 502：http://wap.aihytd.com/ph/week2.html",
+    "title": "仙侠",
+    "url": "/ph/week2<,_{{page}}>.html"
+   }
+  ],
+  "categories": 45,
+  "index": 127,
+  "name": "黄易小说"
+ },
+ {
+  "index": 128,
+  "explore": [
+   {
+    "url": "/c/1-{{page}}.html",
+    "error": "网络错误：The certificate for this server is invalid. You might be connecting to a server that is pretending to be “www.quanwenyuedu.io” which could put your confidential information at risk.",
+    "title": "奇幻玄幻"
+   },
+   {
+    "url": "/c/2-{{page}}.html",
+    "error": "网络错误：The certificate for this server is invalid. You might be connecting to a server that is pretending to be “www.quanwenyuedu.io” which could put your confidential information at risk.",
+    "title": "武侠仙侠"
+   },
+   {
+    "url": "/c/3-{{page}}.html",
+    "error": "网络错误：The certificate for this server is invalid. You might be connecting to a server that is pretending to be “www.quanwenyuedu.io” which could put your confidential information at risk.",
+    "title": "都市官场"
+   }
+  ],
+  "name": "免费小说",
+  "categories": 12,
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "index": 129,
+  "categories": 25,
+  "groups": [
+   "女生",
+   "男生"
+  ],
+  "name": "淘小说",
+  "explore": [
+   {
+    "first": "帝霸|http://betam.taoyuewenhua.com/ajax/or/ty/book?sourceName=tf&sourceId=yw_22242573000080002",
+    "ms": 275,
+    "count": 20,
+    "title": "玄幻"
+   },
+   {
+    "title": "奇幻",
+    "count": 20,
+    "ms": 95,
+    "first": "全球灾难：我以举国之力，对抗异兽复苏|http://betam.taoyuewenhua.com/ajax/or/ty/book?sourceName=tf&sourceId=futian_150"
+   },
+   {
+    "title": "武侠",
+    "ms": 185,
+    "count": 20,
+    "first": "天下剑宗|http://betam.taoyuewenhua.com/ajax/or/ty/book?sourceName=tf&sourceId=yw_4229644904159803"
+   }
+  ]
+ },
+ {
+  "categories": 9,
+  "name": "无极书院",
+  "explore": [
+   {
+    "count": 12,
+    "ms": 8975,
+    "first": "重生成树，从零开始培养长生仙族|http://m.wjzxchina.com/wuji/113191/",
+    "title": "玄幻奇幻"
+   },
+   {
+    "count": 12,
+    "title": "仙侠武侠",
+    "ms": 2426,
+    "first": "玄鉴：从魔宗开始当人材|http://m.wjzxchina.com/wuji/112785/"
+   },
+   {
+    "count": 12,
+    "ms": 1944,
+    "title": "都市重生",
+    "first": "跑过山海，我们从未告别|http://m.wjzxchina.com/wuji/114355/"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ],
+  "index": 131
+ },
+ {
+  "explore": [
+   {
+    "count": 10,
+    "ms": 240,
+    "first": "神血至尊|https://api.midureader.com/fiction/book/getDetail,{",
+    "title": "玄幻"
+   },
+   {
+    "count": 10,
+    "title": "都市",
+    "ms": 188,
+    "first": "僵尸先生从白僵开始崛起|https://api.midureader.com/fiction/book/getDetail,{"
+   },
+   {
+    "count": 10,
+    "title": "仙侠",
+    "ms": 137,
+    "first": "长生：从炼制傀儡替我修行开始|https://api.midureader.com/fiction/book/getDetail,{"
+   }
+  ],
+  "groups": [
+   "⚧ 频道"
+  ],
+  "index": 132,
+  "name": "米读小说",
+  "categories": 98
+ },
+ {
+  "groups": [
+   "名著",
+   "女频",
+   "榜单",
+   "男频"
+  ],
+  "categories": 22,
+  "name": "乐读小说",
+  "explore": [
+   {
+    "first": "绝品相师|/Book/ArticleInfo,{\"method\":\"POST\",\"body\":\"{\\\"_id\\\":\\\"9060\\\",\\\"userID\\\":\\\"312818\\\",\\\"ver\\\":\\\"1.6.4\\\",\\\"md5\\\":\\\"05536694d3aa0723799f6218\\\"}\"}",
+    "ms": 958,
+    "title": "综合",
+    "count": 20
+   },
+   {
+    "ms": 755,
+    "title": "新书",
+    "count": 20,
+    "first": "重生古代田园|/Book/ArticleInfo,{\"method\":\"POST\",\"body\":\"{\\\"_id\\\":\\\"12918\\\",\\\"userID\\\":\\\"312818\\\",\\\"ver\\\":\\\"1.6.4\\\",\\\"md5\\\":\\\"7654292f69500efa54345bcf\\\"}\"}"
+   },
+   {
+    "count": 20,
+    "ms": 1297,
+    "first": "绝品相师|/Book/ArticleInfo,{\"method\":\"POST\",\"body\":\"{\\\"_id\\\":\\\"9060\\\",\\\"userID\\\":\\\"312818\\\",\\\"ver\\\":\\\"1.6.4\\\",\\\"md5\\\":\\\"05536694d3aa0723799f6218\\\"}\"}",
+    "title": "完结"
+   }
+  ],
+  "index": 138
+ },
+ {
+  "categories": 75,
+  "index": 139,
+  "name": "轻小说",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "first": "一周一次买同学的那些事～两个人的时间，借口的五千元～|https://lnovel.tw/books-3638",
+    "title": "全🌊部",
+    "ms": 129,
+    "count": 99
+   },
+   {
+    "first": "一周一次买同学的那些事～两个人的时间，借口的五千元～|https://lnovel.tw/books-3638",
+    "count": 99,
+    "ms": 178,
+    "title": "校园"
+   },
+   {
+    "first": "异世界一击无双姐姐|https://lnovel.tw/books-3811",
+    "ms": 571,
+    "count": 99,
+    "title": "爱情"
+   }
+  ]
+ },
+ {
+  "name": "灵猫小说",
+  "index": 141,
+  "categories": 23,
+  "groups": [
+   "女频",
+   "排行榜",
+   "男频"
+  ],
+  "explore": [
+   {
+    "count": 5,
+    "first": "龙婿医尊|https://quickapi.biduwenxue.com/api/book/info?appname=lingmao&channel=%E7%81%B5%E7%8C%AB%E5%B0%8F%E8%AF%B4&versionName=1.1.18&userId=8573311&device=OPM1.171019.019&androidid=d4dd57d6-93ea-4f4d-acaf-b3ea5c0271e9&mac=7C:03:AB:73:27:7E&bookId=223693&manufacturer=Xiaomi&",
+    "title": "男人气榜",
+    "ms": 280
+   },
+   {
+    "ms": 130,
+    "title": "男收藏榜",
+    "first": "大小姐的贴身神医2|https://quickapi.biduwenxue.com/api/book/info?appname=lingmao&channel=%E7%81%B5%E7%8C%AB%E5%B0%8F%E8%AF%B4&versionName=1.1.18&userId=8573311&device=OPM1.171019.019&androidid=d4dd57d6-93ea-4f4d-acaf-b3ea5c0271e9&mac=7C:03:AB:73:27:7E&bookId=222539&manufacturer=Xiaomi&",
+    "count": 6
+   },
+   {
+    "first": "",
+    "count": 0,
+    "ms": 57,
+    "title": "男字数榜"
+   }
+  ]
+ },
+ {
+  "explore": [
+   {
+    "title": "最新上传",
+    "count": 15,
+    "ms": 1493,
+    "first": "清秋婚恋 - 是鱼头星星呀|https://www.cunshu.la/read/NDg3MzZ8ZjJiZWVlMzViMmZl"
+   },
+   {
+    "title": "最多阅读",
+    "ms": 655,
+    "count": 15,
+    "first": "我的生活能开挂 加料修改|https://www.cunshu.la/read/MjUzMjl8NmQyYThjNGFiNDgx"
+   }
+  ],
+  "categories": 2,
+  "groups": [
+   "推荐"
+  ],
+  "index": 143,
+  "name": "存书啦"
+ },
+ {
+  "name": "️BL书阁️",
+  "categories": 9,
+  "groups": [
+   "推荐"
+  ],
+  "index": 145,
+  "explore": [
+   {
+    "error": "网络错误：The request timed out.",
+    "url": "https://www.blshuge.com/sort/1/{{page}}.html",
+    "title": "玄幻"
+   },
+   {
+    "error": "网络错误：The request timed out.",
+    "url": "https://www.blshuge.com/sort/2/{{page}}.html",
+    "title": "穿越"
+   },
+   {
+    "url": "https://www.blshuge.com/sort/3/{{page}}.html",
+    "error": "网络错误：The request timed out.",
+    "title": "架空"
+   }
+  ]
+ },
+ {
+  "categories": 19,
+  "index": 146,
+  "name": "耽美小说",
+  "explore": [
+   {
+    "url": "/top_lastupdate/{{page}}.html",
+    "error": "网络错误：The request timed out.",
+    "title": "最近更新"
+   },
+   {
+    "title": "最新入库",
+    "url": "/top_postdate/{{page}}.html",
+    "error": "网络错误：The request timed out."
+   },
+   {
+    "title": "总点击榜",
+    "url": "/top_allvisit/{{page}}.html",
+    "error": "网络错误：The request timed out."
+   }
+  ],
+  "groups": [
+   "分    类",
+   "榜    单"
+  ]
+ },
+ {
+  "name": "笔趣阁",
+  "index": 148,
+  "groups": [
+   "分    类",
+   "榜    单"
+  ],
+  "explore": [
+   {
+    "ms": 1411,
+    "title": "最近更新",
+    "count": 30,
+    "first": "孤屿之舟（还想不告而别？再跑一个试试！1v1）|https://www.layuzhaiwu.xyz/book/111968.html"
+   },
+   {
+    "title": "最新入库",
+    "first": "孤屿之舟（还想不告而别？再跑一个试试！1v1）|https://www.layuzhaiwu.xyz/book/111968.html",
+    "ms": 330,
+    "count": 30
+   },
+   {
+    "ms": 760,
+    "first": "赌 （校园，1V1）|https://www.layuzhaiwu.xyz/book/52728.html",
+    "title": "总点击榜",
+    "count": 30
+   }
+  ],
+  "categories": 19
+ },
+ {
+  "explore": [
+   {
+    "title": "百合",
+    "ms": 1506,
+    "count": 20,
+    "first": "贤妃失策|https://m.po18sf.com/book/118169.html"
+   },
+   {
+    "first": "阿德涅之线|https://m.po18sf.com/book/118028.html",
+    "ms": 286,
+    "title": "同人",
+    "count": 20
+   },
+   {
+    "ms": 307,
+    "count": 20,
+    "title": "校园言情",
+    "first": "临时起意（校园）|https://m.po18sf.com/book/114743.html"
+   }
+  ],
+  "name": "PO18全书",
+  "groups": [
+   "推荐"
+  ],
+  "index": 149,
+  "categories": 15
+ },
+ {
+  "categories": 51,
+  "index": 150,
+  "name": "PO文屋",
+  "groups": [
+   "全  本",
+   "分  类",
+   "总  榜"
+  ],
+  "explore": [
+   {
+    "title": "全部",
+    "error": "网络错误：The request timed out.",
+    "url": "/xclass/0/{{page}}.html"
+   },
+   {
+    "count": 10,
+    "title": "校园言情",
+    "ms": 2521,
+    "first": "临时起意（校园）|https://m.powenwu16.com/113_113235/"
+   },
+   {
+    "title": "都市言情",
+    "error": "网络错误：The request timed out.",
+    "url": "/xclass/2/{{page}}.html"
+   }
+  ]
+ },
+ {
+  "name": "新御书屋",
+  "explore": [
+   {
+    "ms": 1578,
+    "count": 15,
+    "title": "全    部",
+    "first": "孤屿之舟（还想不告而别？再跑一个试试！1v1）|https://www.xyushuwu.one/book/104266"
+   },
+   {
+    "count": 15,
+    "first": "临时起意（校园）|https://www.xyushuwu.one/book/100866",
+    "title": "校园言情",
+    "ms": 1193
+   },
+   {
+    "ms": 1135,
+    "title": "都市言情",
+    "first": "羁程（1v1，狗血古早）|https://www.xyushuwu.one/book/103156",
+    "count": 15
+   }
+  ],
+  "categories": 17,
+  "index": 151,
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "explore": [
+   {
+    "title": "玄幻奇幻",
+    "error": "网络错误：The request timed out.",
+    "url": "/xuanhuan/{{page}}.html"
+   },
+   {
+    "title": "武侠仙侠",
+    "url": "/wuxia/{{page}}.html",
+    "error": "网络错误：The request timed out."
+   },
+   {
+    "error": "网络错误：The request timed out.",
+    "title": "都市生活",
+    "url": "/dushi/{{page}}.html"
+   }
+  ],
+  "categories": 26,
+  "groups": [
+   "分    类",
+   "榜    单"
+  ],
+  "name": "肉文NP",
+  "index": 152
+ },
+ {
+  "groups": [
+   "推荐"
+  ],
+  "name": "夜书吧",
+  "index": 153,
+  "categories": 10,
+  "explore": [
+   {
+    "url": "/sort/0/{{page}}.html",
+    "title": "全部",
+    "error": "网络错误：The request timed out."
+   },
+   {
+    "error": "网络错误：The request timed out.",
+    "url": "/sort/1/{{page}}.html",
+    "title": "玄幻"
+   },
+   {
+    "url": "/sort/2/{{page}}.html",
+    "title": "穿越",
+    "error": "网络错误：The request timed out."
+   }
+  ]
+ },
+ {
+  "categories": 22,
+  "explore": [
+   {
+    "title": "全部",
+    "count": 13,
+    "first": "黑莲花选择复仇（乱伦、NP、高H）|https://www.yueseshufang.com/book/230824/",
+    "ms": 796
+   },
+   {
+    "first": "这个大佬画风不对|https://www.yueseshufang.com/book/71280/",
+    "title": "言情",
+    "count": 13,
+    "ms": 360
+   },
+   {
+    "ms": 258,
+    "first": "傻瓜指南|https://www.yueseshufang.com/book/118733/",
+    "title": "耽美",
+    "count": 13
+   }
+  ],
+  "name": "月色书屋",
+  "groups": [
+   "全部🌊分类"
+  ],
+  "index": 154
+ },
+ {
+  "categories": 3,
+  "explore": [
+   {
+    "title": "BL耽美",
+    "count": 23,
+    "first": "寡夫郎苏木|https://yanyan.life/novel/x7tCwLNBPNFK31JuXjAocA.html",
+    "ms": 72
+   },
+   {
+    "ms": 67,
+    "first": "不二臣|https://yanyan.life/novel/mU3aNQ_9wj1UImxS7dh7zg.html",
+    "title": "BG言情",
+    "count": 23
+   },
+   {
+    "count": 23,
+    "title": "GL百合",
+    "first": "莫道桑榆晚|https://yanyan.life/novel/EPZMz5YGrSJolW8kY3Q1zw.html",
+    "ms": 92
+   }
+  ],
+  "index": 155,
+  "name": "爱腐文",
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "explore": [
+   {
+    "title": "全 部",
+    "count": 13,
+    "ms": 1120,
+    "first": "次次挨操（1V1 现代）|https://www.pokanwen.com/book/217586764054597/"
+   },
+   {
+    "title": "现代言情",
+    "first": "将军的病弱美人又崩人设了|https://www.pokanwen.com/book/120487042064455/",
+    "ms": 412,
+    "count": 13
+   },
+   {
+    "ms": 78,
+    "first": "将军的病弱美人又崩人设了|https://www.pokanwen.com/book/120487042064455/",
+    "title": "古代言情",
+    "count": 13
+   }
+  ],
+  "categories": 18,
+  "name": "PO5",
+  "groups": [
+   "推荐"
+  ],
+  "index": 157
+ },
+ {
+  "explore": [
+   {
+    "title": "百合",
+    "ms": 1368,
+    "count": 20,
+    "first": "贤妃失策|https://wap.po18bl.com/book/118169.html"
+   },
+   {
+    "title": "同人",
+    "count": 20,
+    "first": "阿德涅之线|https://wap.po18bl.com/book/118028.html",
+    "ms": 846
+   },
+   {
+    "title": "校园言情",
+    "ms": 268,
+    "count": 20,
+    "first": "临时起意（校园）|https://wap.po18bl.com/book/114743.html"
+   }
+  ],
+  "name": "PO18文学",
+  "groups": [
+   "推荐"
+  ],
+  "index": 158,
+  "categories": 15
+ },
+ {
+  "explore": [
+   {
+    "count": 50,
+    "first": "全班地铁求生，只有我一个男生，多子多福|https://xn--vcsx64d.als1010.space/novel/50949.html",
+    "ms": 1536,
+    "title": "科幻"
+   },
+   {
+    "title": "校园",
+    "first": "获得超能力的我在学校里又一次将一个个女神操成肉便器那档子事|https://xn--vcsx64d.als1010.space/novel/44748.html",
+    "count": 50,
+    "ms": 530
+   },
+   {
+    "ms": 704,
+    "count": 50,
+    "first": "众香国|https://xn--vcsx64d.als1010.space/novel/35402.html",
+    "title": "玄幻"
+   }
+  ],
+  "categories": 32,
+  "index": 159,
+  "name": "爱丽丝书屋",
+  "groups": [
+   "分类"
+  ]
+ },
+ {
+  "name": "书耽",
+  "index": 160,
+  "categories": 13,
+  "explore": [
+   {
+    "title": "全部纯爱",
+    "url": "https://www.baidu.com/category_type=1&order=week_click&page={{page}}",
+    "error": "HTTP 404：https://www.baidu.com/category_type=1&order=week_click&page=1"
+   },
+   {
+    "title": "现纯",
+    "error": "HTTP 404：https://www.baidu.com/category_type=4&order=week_click&page=1",
+    "url": "https://www.baidu.com/category_type=4&order=week_click&page={{page}}"
+   },
+   {
+    "title": "幻纯",
+    "error": "HTTP 404：https://www.baidu.com/category_type=5&order=week_click&page=1",
+    "url": "https://www.baidu.com/category_type=5&order=week_click&page={{page}}"
+   }
+  ],
+  "groups": [
+   "推荐"
+  ]
+ },
+ {
+  "index": 161,
+  "name": "PO18文学",
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "count": 30,
+    "first": "孤屿之舟（还想不告而别？再跑一个试试！1v1）|https://www.po18m.vip/book/118615",
+    "ms": 1379,
+    "title": "全部"
+   },
+   {
+    "count": 30,
+    "title": "校园言情",
+    "ms": 380,
+    "first": "临时起意（校园）|https://www.po18m.vip/book/114743"
+   },
+   {
+    "title": "都市言情",
+    "first": "畸恋|https://www.po18m.vip/book/112189",
+    "ms": 429,
+    "count": 30
+   }
+  ],
+  "categories": 30
+ },
+ {
+  "categories": 21,
+  "index": 162,
+  "name": "PO18文学",
+  "explore": [
+   {
+    "url": "/book_lastupdate_0_0_0_0_0_0_0_0_{{page}}.html",
+    "error": "网络错误：The request timed out.",
+    "title": "更新时间"
+   },
+   {
+    "error": "网络错误：The request timed out.",
+    "title": "入库时间",
+    "url": "/book_postdate_0_0_0_0_0_0_0_0_{{page}}.html"
+   },
+   {
+    "title": "编辑推荐",
+    "error": "网络错误：The request timed out.",
+    "url": "/book_toptime_0_0_0_0_0_0_0_0_{{page}}.html"
+   }
+  ],
+  "groups": [
+   "书  库"
+  ]
+ },
+ {
+  "categories": 39,
+  "name": "蓝海搜书",
+  "index": 163,
+  "groups": [
+   "推荐"
+  ],
+  "explore": [
+   {
+    "title": "言情",
+    "ms": 986,
+    "first": "二婚盛宠：总裁疼入骨|https://www.bookseek2027.com/book/215456/",
+    "count": 12
+   },
+   {
+    "title": "耽美",
+    "ms": 253,
+    "first": "【耽美】望穿秋水|https://www.bookseek2027.com/book/867052/",
+    "count": 10
+   },
+   {
+    "first": "全职同人集|https://www.bookseek2027.com/book/277005/",
+    "count": 12,
+    "title": "同人",
+    "ms": 249
+   }
+  ]
+ }
+]

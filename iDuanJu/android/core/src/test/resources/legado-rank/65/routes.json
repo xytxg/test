@@ -1,0 +1,29 @@
+[
+  {
+    "body" : "17a33300430f6ef83e58975b27ee3ecc86da1f85b12580b1a3924db1d357bd082b234d446441a520f5e1513536cd34f7d86329324b2ef31cb260fc196d1f1768",
+    "contentType" : "application\/json;charset=UTF-8",
+    "file" : "000.bin",
+    "method" : "POST",
+    "responseURL" : "https:\/\/asgportal.kkyd.cn\/asg-portal\/portal\/client\/1110",
+    "status" : 200,
+    "url" : "https:\/\/asgportal.kkyd.cn\/asg-portal\/portal\/client\/1110"
+  },
+  {
+    "body" : "c404884e9987512077c04001843138b0d1e18feda3aadc5b2c54d164d437be0a550829f240721115c52a7562cf82740d",
+    "contentType" : "application\/json;charset=UTF-8",
+    "file" : "001.bin",
+    "method" : "POST",
+    "responseURL" : "https:\/\/asgportal.kkyd.cn\/asg-portal\/portal\/client\/1111",
+    "status" : 200,
+    "url" : "https:\/\/asgportal.kkyd.cn\/asg-portal\/portal\/client\/1111"
+  },
+  {
+    "body" : "c404884e9987512077c04001843138b0d1e18feda3aadc5b2c54d164d437be0a07c3f487b7ef7f043dab02f39a62f0432cae364fa4dc0a29fb455c7cb428e860",
+    "contentType" : "application\/json;charset=UTF-8",
+    "file" : "002.bin",
+    "method" : "POST",
+    "responseURL" : "https:\/\/asgportal.kkyd.cn\/asg-portal\/portal\/client\/1304",
+    "status" : 200,
+    "url" : "https:\/\/asgportal.kkyd.cn\/asg-portal\/portal\/client\/1304"
+  }
+]

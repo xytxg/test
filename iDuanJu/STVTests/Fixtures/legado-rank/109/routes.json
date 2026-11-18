@@ -1,0 +1,29 @@
+[
+  {
+    "body": "",
+    "contentType": "application/json;charset=UTF-8",
+    "file": "000.bin",
+    "method": "GET",
+    "status": 200,
+    "url": "http://qmbook.taoyuewenhua.net/book_mall/book_rank?appid=qmbook&brand=XIAOMI&brtype=100&channel=Tencent&ctype=1&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&page=0&pageSize=10&status=0&t=1794923361758&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=47C1DBFE575706E2C51DB69F9CEDEDF6",
+    "responseURL": "http://qmbook.taoyuewenhua.net/book_mall/book_rank?appid=qmbook&brand=XIAOMI&brtype=100&channel=Tencent&ctype=1&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&page=0&pageSize=10&status=0&t=1794923361758&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=47C1DBFE575706E2C51DB69F9CEDEDF6"
+  },
+  {
+    "body": "",
+    "contentType": "application/json;charset=UTF-8",
+    "file": "001.bin",
+    "method": "GET",
+    "status": 200,
+    "url": "http://qmbook.taoyuewenhua.net/tf/book?appid=qmbook&bid=yw_26179403609600604&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794923361948&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=5D17815106A69DD43D6D74C685405426",
+    "responseURL": "http://qmbook.taoyuewenhua.net/tf/book?appid=qmbook&bid=yw_26179403609600604&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794923361948&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=5D17815106A69DD43D6D74C685405426"
+  },
+  {
+    "body": "",
+    "contentType": "application/json",
+    "file": "002.bin",
+    "method": "GET",
+    "status": 200,
+    "url": "http://qmbook.taoyuewenhua.net/tf/chapter_list?appid=qmbook&bid=yw_26179403609600604&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794923362141&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=A8CC58240D823C7D5D015379C03DD65A",
+    "responseURL": "http://qmbook.taoyuewenhua.net/tf/chapter_list?appid=qmbook&bid=yw_26179403609600604&brand=XIAOMI&channel=Tencent&device_id=17af4cb0a45440e5b5bcba1798d760c6&model=10X&optype=3&ostype=0&osversion=7.1.2&package_name=com.martian.qmbook&t=1794923362141&token=489fecb8-532b-4ad9-b89f-4213768599bf&uid=74514329&version_code=410&version_name=1.5.9&sign=A8CC58240D823C7D5D015379C03DD65A"
+  }
+]

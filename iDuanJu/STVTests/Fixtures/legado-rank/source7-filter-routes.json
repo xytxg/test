@@ -1,0 +1,18 @@
+[
+  {
+    "file": "source7-filter-0.json",
+    "url": "https://api-bc.wtzw.com/api/v4/tag/index?gender=1&need_filters=1&page=1&tag_id=570&over=-99&words=-99&sort=0&book_preference=1&sign=98098891de10d8e9454783010d357b65"
+  },
+  {
+    "file": "source7-filter-1.json",
+    "url": "https://api-bc.wtzw.com/api/v4/tag/index?gender=1&need_filters=1&page=1&tag_id=570&over=1&words=-99&sort=0&book_preference=1&sign=d4d3b634a59ce6da4914f77b137224f0"
+  },
+  {
+    "file": "source7-filter-2.json",
+    "url": "https://api-bc.wtzw.com/api/v4/tag/index?gender=1&need_filters=1&page=1&tag_id=570&over=1&words=2&sort=0&book_preference=1&sign=ae6f699d0e639e868e89de3056d44c4e"
+  },
+  {
+    "file": "source7-filter-3.json",
+    "url": "https://api-bc.wtzw.com/api/v4/tag/index?gender=1&need_filters=1&page=1&tag_id=570&over=1&words=2&sort=2&book_preference=1&sign=d4a4737e45658dcb0d48126fbeb2751a"
+  }
+]

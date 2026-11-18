@@ -1,0 +1,29 @@
+[
+  {
+    "body" : "",
+    "contentType" : "text\/html",
+    "file" : "000.bin",
+    "method" : "GET",
+    "responseURL" : "https:\/\/www.sunnyread6.com\/category\/32705821835333\/1.html",
+    "status" : 200,
+    "url" : "https:\/\/www7.mysadhappy.com\/category\/32705821835333\/1.html"
+  },
+  {
+    "body" : "",
+    "contentType" : "text\/html",
+    "file" : "001.bin",
+    "method" : "GET",
+    "responseURL" : "https:\/\/www.sunnyread6.com\/book\/7351899704729709\/",
+    "status" : 200,
+    "url" : "https:\/\/www.sunnyread6.com\/book\/7351899704729709\/"
+  },
+  {
+    "body" : "",
+    "contentType" : "text\/html",
+    "file" : "002.bin",
+    "method" : "GET",
+    "responseURL" : "https:\/\/www.sunnyread6.com\/book\/7351899704729709\/catalog\/",
+    "status" : 200,
+    "url" : "https:\/\/www.sunnyread6.com\/book\/7351899704729709\/catalog\/"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "body" : "",
+    "contentType" : "text\/html; charset=utf-8",
+    "file" : "000.bin",
+    "method" : "GET",
+    "responseURL" : "http:\/\/m.suixkan.com\/l\/s\/28\/1.html",
+    "status" : 200,
+    "url" : "http:\/\/m.suixkan.com\/l\/s\/28\/1.html"
+  },
+  {
+    "body" : "",
+    "contentType" : "text\/html; charset=utf-8",
+    "file" : "001.bin",
+    "method" : "GET",
+    "responseURL" : "http:\/\/m.suixkan.com\/b\/212201.html",
+    "status" : 200,
+    "url" : "http:\/\/m.suixkan.com\/b\/212201.html"
+  },
+  {
+    "body" : "",
+    "contentType" : "text\/html; charset=utf-8",
+    "file" : "002.bin",
+    "method" : "GET",
+    "responseURL" : "http:\/\/m.suixkan.com\/c\/212201.html",
+    "status" : 200,
+    "url" : "http:\/\/m.suixkan.com\/c\/212201.html"
+  }
+]

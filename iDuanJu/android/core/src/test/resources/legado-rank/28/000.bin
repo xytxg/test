@@ -1,0 +1,81 @@
+  <!DOCTYPE html>
+<html>
+<head>
+<meta charset="gbk" />
+<title>分类列表-爱看小说网</title>
+<meta name="keywords" content="分类列表,小说分类列表" />
+<meta name="description" content="" />
+<meta name="MobileOptimized" content="240"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<meta http-equiv="Cache-Control" content="max-age=0" />
+<meta http-equiv="Cache-Control" content="no-transform " />
+<link rel="stylesheet" type="text/css" href="/style/style.css" />
+<script src="/js/wap.js"></script>
+</head>
+<body>
+<div class="header" id="_52mb_head">
+    <div class="back"><a href="javascript:history.go(-1);">返回</a></div>
+	<h1 id="_52mb_h1">分类列表</h1>
+	<div class="back_r"><a href="/">首页</a></div>
+    <script>fixwidth();</script>
+</div> 
+<div class="nav">
+    <ul>
+    	<li><a href="/sort.html">分类</a></li>
+        <li><a href="/top.html">排行</a></li>
+        <li><a href="/full-1/">全本</a></li>
+        <li><a href="/top-postdate-1/">新书</a></li>
+        <li><a href="/mybook.php">书架</a></li>        
+      
+        <div class="cc"></div>
+    </ul>
+</div>
+<div class="search">
+            <form name="articlesearch" method="post" action="/s11.php" onsubmit="return checkInput();">  
+                <table cellpadding="0" cellspacing="0" style="width:100%;">
+                    <tr>
+                        <td style="width:50px;"><div id="type" class="type" onClick="show_search()">书名</div><select id=searchType name=type style="display:none"><option value="articlename"></option><option value="author"></option></select></td>
+                        <td style=" background-color:#fff; border:1px solid #CCC;"><input id="s_key" name="s" type="text" class="key"  onclick="this.value=''" value="输入书名或作者"/></td>
+                        <td style="width:35px; background-color:#0080C0; background-image:url('/style/search.png'); background-repeat:no-repeat; background-position:center"><input name="submit" type="submit" value="" class="go"></td>
+                    </tr>
+                </table>
+            </form>
+  </div>
+
+<div class="content">
+
+<ul>
+<li class="prev"><a id="s1" href="/sort-1-1/">玄幻小说</a></li>
+<li class="prev"><a id="s2" href="/sort-2-1/">仙侠小说</a></li>
+<li class="prev"><a id="s3" href="/sort-3-1/">都市小说</a></li>
+</ul>
+
+<ul>
+<li class="prev"><a id="s4" href="/sort-4-1/">历史小说</a></li>
+<li class="prev"><a id="s5" href="/sort-5-1/">游戏小说</a></li>
+<li class="prev"><a id="s6" href="/sort-6-1/">科幻小说</a></li>
+</ul>
+
+
+
+</div>
+
+<div class="cover">
+</div>
+
+
+
+<script>_17mb_tj();</script>
+<div class="footer">
+  <ul>
+  	<li><a href="https://m.aikanxs.cc">首页</a></li>
+    <li><a href="https://www.xtxtaikan.com">电脑版</a></li>
+    <li><a href="/mybook.php">书架</a></li>
+    <li><a href="/" >报错</a></li>
+  </ul>
+</div>
+
+
+</body>
+</html> 

@@ -1,0 +1,11 @@
+gradle.projectsEvaluated {
+    def core = gradle.rootProject.project(':core')
+    core.tasks.register('novelProbeClasspath') {
+        dependsOn(core.tasks.named('testClasses'))
+        doLast {
+            def target = core.findProperty('novelClasspathFile')
+            if (target == null) throw new GradleException('Pass -PnovelClasspathFile=/absolute/path')
+            new File(target.toString()).text = core.sourceSets.test.runtimeClasspath.asPath
+        }
+    }
+}

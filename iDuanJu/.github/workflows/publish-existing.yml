@@ -1,0 +1,177 @@
+name: publish existing packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run:
+        description: Successful package run already merged into main (no rebuild)
+        required: true
+        default: '43880743545'
+      suffix:
+        description: Release suffix, without changing the package version
+        required: true
+        default: hgfix
+      release_label:
+        description: Display label for this release
+        required: true
+        default: 红果修复版
+      notes_file:
+        description: Optional committed release notes under docs/releases/
+        required: false
+      replace_draft:
+        description: Replace assets and tags only for existing unpublished draft releases
+        type: boolean
+        default: false
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_RUN: ${{ inputs.build_run }}
+      SUFFIX: ${{ inputs.suffix }}
+      RELEASE_LABEL: ${{ inputs.release_label }}
+      NOTES_FILE: ${{ inputs.notes_file }}
+      REPLACE_DRAFT: ${{ inputs.replace_draft }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify successful source build
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
+          [[ "$SUFFIX" =~ ^[a-z0-9][a-z0-9-]{0,30}$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > run.json
+          python3 - <<'PY'
+          import json, os, re
+          run = json.load(open('run.json'))
+          assert run['conclusion'] == 'success'
+          assert run['path'] == '.github/workflows/package.yml'
+          assert run['repository']['full_name'] == os.environ['GH_REPO']
+          assert re.fullmatch('[0-9a-f]{40}', run['head_sha'])
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write('BUILD_SHA=' + run['head_sha'] + '\n')
+          PY
+          SHA=$(python3 -c 'import json; print(json.load(open("run.json"))["head_sha"])')
+          git merge-base --is-ancestor "$SHA" origin/main
+          gh run download "$BUILD_RUN" -n ios-unsigned -D dist/ios
+          gh run download "$BUILD_RUN" -n android-apk -D dist/android
+      - name: Verify existing APK signature and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          TOOLS=$(find "${ANDROID_HOME}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$TOOLS/apksigner" verify --verbose --print-certs dist/android/app-release.apk > apk-signature.txt
+          grep -qi 'a0750fb0907f21febe1ea3658ac595f4578d18cf9a8627ad59adfea37037c9c4' apk-signature.txt
+          "$TOOLS/aapt" dump badging dist/android/app-release.apk > apk-manifest.txt
+      - name: Verify IPA and prepare checksums
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, os, pathlib, plistlib, re, zipfile
+          badging = pathlib.Path('apk-manifest.txt').read_text()
+          m = re.search(r"package: name='app.iduanju' versionCode='(\d+)' versionName='([\d.]+)-android'", badging)
+          assert m, 'Unexpected APK package/version'
+          code, android_version = m.groups()
+          ipa_files = list(pathlib.Path('dist/ios').glob('*.ipa'))
+          assert len(ipa_files) == 1
+          ipa = ipa_files[0]
+          with zipfile.ZipFile(ipa) as archive:
+              assert archive.testzip() is None
+              info = plistlib.loads(archive.read('Payload/STV.app/Info.plist'))
+              assert info['CFBundleIdentifier'] == 'com.xylyra.iduanju'
+              assert 'iPhoneOS' in info['CFBundleSupportedPlatforms']
+              assert archive.getinfo('Payload/STV.app/STV').file_size > 0
+          version, build = info['CFBundleShortVersionString'], info['CFBundleVersion']
+          assert re.fullmatch(r'\d+\.\d+(?:\.\d+)?', version)
+          assert re.fullmatch(r'\d+', build)
+          suffix = os.environ['SUFFIX']
+          apk = pathlib.Path('dist/android/app-release.apk')
+          apk = apk.rename(apk.with_name(f'iDuanJu-{android_version}-{suffix}-android.apk'))
+          for package in [apk, ipa]:
+              digest = hashlib.sha256(package.read_bytes()).hexdigest()
+              package.with_name('SHA256SUMS.txt').write_text(f'{digest}  {package.name}\n')
+              print(f'{package}: SHA256 {digest}')
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write(f'ANDROID_VERSION={android_version}\nANDROID_CODE={code}\n')
+              out.write(f'IOS_VERSION={version}\nIOS_BUILD={build}\n')
+              out.write(f'ANDROID_TAG=v{android_version}-{suffix}-android\nIOS_TAG=v{version}b{build}-{suffix}\n')
+          PY
+      - name: Publish existing files without rebuilding
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Validate both destinations before changing either. Public releases are never overwritten.
+          for tag in "$ANDROID_TAG" "$IOS_TAG"; do
+            if gh release view "$tag" --json isDraft > existing.json 2>/dev/null; then
+              [ "$REPLACE_DRAFT" = true ]
+              python3 -c 'import json; assert json.load(open("existing.json"))["isDraft"], "Refusing to replace a public release"'
+            else
+              [ "$REPLACE_DRAFT" != true ] || { echo "Expected draft $tag is missing" >&2; exit 1; }
+            fi
+          done
+          for platform in android ios; do
+            if [ "$platform" = android ]; then
+              tag="$ANDROID_TAG"
+              title="i短剧 Android $ANDROID_VERSION · $RELEASE_LABEL"
+              install="包内版本为 $ANDROID_VERSION-android（$ANDROID_CODE），直接发布已验证产物。与 1.5.8 起的发布包使用同一分发签名，可覆盖安装。"
+            else
+              tag="$IOS_TAG"
+              title="i短剧 iOS ${IOS_VERSION}b${IOS_BUILD} · $RELEASE_LABEL"
+              install="包内版本为 $IOS_VERSION build $IOS_BUILD，直接发布已验证产物。IPA 未签名，最低 iOS 18，请自行重签侧载。"
+            fi
+            cat > "$platform-notes.md" <<EOF
+          $title
+
+          - 修复红果取流失败：同步 gateway 0613b49 当前 Medusa 签名、服务器时间校准、健康匿名身份复用与有界端点回退。
+          - 修复筛选条件：独立 551 签名；真人剧、漫剧、AI 剧分别加载面板，切换后清理旧条件，修正场景和分页去重参数。
+          - Swift/Kotlin 102 组合成向量通过；Android 连续 6 集实网取流与三类筛选前两页通过；双端设备构建通过。本轮没有真机 UI 验收。
+
+          $install
+
+          请选择 Assets 中的 APK / IPA，不要下载 Source code。SHA-256 见附件。
+          构建源码：$BUILD_SHA
+          原始成功构建：https://github.com/$GH_REPO/actions/runs/$BUILD_RUN
+          EOF
+            if [ -n "$NOTES_FILE" ]; then
+              python3 - <<'PY'
+          import os, pathlib
+          path = pathlib.Path(os.environ['NOTES_FILE']).resolve()
+          root = pathlib.Path('docs/releases').resolve()
+          assert path.is_relative_to(root) and path.suffix == '.md' and path.is_file()
+          PY
+              cp -- "$NOTES_FILE" "$platform-notes.md"
+              printf '\n%s\n\n构建源码：%s\n构建：https://github.com/%s/actions/runs/%s\n' "$install" "$BUILD_SHA" "$GH_REPO" "$BUILD_RUN" >> "$platform-notes.md"
+            fi
+            if [ "$REPLACE_DRAFT" = true ]; then
+              gh release upload "$tag" dist/"$platform"/* --clobber
+              gh api --method PATCH "repos/$GH_REPO/git/refs/tags/$tag" -f sha="$BUILD_SHA" -F force=true >/dev/null
+              gh release edit "$tag" --target "$BUILD_SHA" --title "$title" --notes-file "$platform-notes.md" --prerelease --draft=true
+            else
+              gh release create "$tag" dist/"$platform"/* --target "$BUILD_SHA" --title "$title" --notes-file "$platform-notes.md" --prerelease --draft
+            fi
+            gh release view "$tag" --json assets > "$platform-assets.json"
+            PLATFORM="$platform" python3 - <<'PY'
+          import hashlib, json, os, pathlib
+          platform = os.environ['PLATFORM']
+          assets = {a['name']: a for a in json.load(open(platform + '-assets.json'))['assets']}
+          for file in pathlib.Path('dist', platform).iterdir():
+              asset = assets[file.name]
+              assert asset['size'] == file.stat().st_size
+              digest = asset.get('digest')
+              if digest:
+                  assert digest == 'sha256:' + hashlib.sha256(file.read_bytes()).hexdigest()
+          PY
+          done
+          # Both platforms are staged and verified before making either visible.
+          for tag in "$ANDROID_TAG" "$IOS_TAG"; do
+            gh release edit "$tag" --draft=false --prerelease
+          done

@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+description = "Synthetic native transform test keys imported from gateway 0613b49; not service credentials."
+condition = "AND"
+paths = ['''^(STVTests/Fixtures/hongguo|android/core/src/test/resources/hongguo)/current_crypto\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"key": "[A-Za-z0-9+/]{22}==",\s*$''']

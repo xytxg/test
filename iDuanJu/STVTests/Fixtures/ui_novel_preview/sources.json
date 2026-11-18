@@ -1,0 +1,399 @@
+[
+  {
+    "bookSourceUrl": "https://a.source.invalid",
+    "bookSourceName": "合成书源 · 甲",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    },
+    "loginUrl": "function login() { return \"仅离线合成测试，无真实账号\"; }",
+    "loginUi": "[{\"name\":\"离线测试\",\"type\":\"text\"}]"
+  },
+  {
+    "bookSourceUrl": "https://b.source.invalid",
+    "bookSourceName": "合成书源 · 乙",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://c.source.invalid",
+    "bookSourceName": "合成书源 · 丙",
+    "bookSourceGroup": "出版",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    },
+    "loginUrl": "function login() { return \"仅离线合成测试，无真实账号\"; }",
+    "loginUi": "[{\"name\":\"离线测试\",\"type\":\"text\"}]"
+  },
+  {
+    "bookSourceUrl": "https://d.source.invalid",
+    "bookSourceName": "合成书源 · 丁",
+    "bookSourceGroup": "玄幻",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://e.source.invalid",
+    "bookSourceName": "合成书源 · 戊",
+    "bookSourceGroup": "有声",
+    "bookSourceType": 1,
+    "enabled": false,
+    "searchUrl": "",
+    "exploreUrl": "",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://f.source.invalid",
+    "bookSourceName": "合成书源 · 己",
+    "bookSourceGroup": "言情",
+    "bookSourceType": 0,
+    "enabled": false,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://g.source.invalid",
+    "bookSourceName": "合成书源 · 庚",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://h.source.invalid",
+    "bookSourceName": "合成书源 · 辛",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": false,
+    "searchUrl": "",
+    "exploreUrl": "",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://i.source.invalid",
+    "bookSourceName": "合成书源 · 壬",
+    "bookSourceGroup": "都市",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://j.source.invalid",
+    "bookSourceName": "合成书源 · 癸",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://k.source.invalid",
+    "bookSourceName": "合成书源 · 子",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://l.source.invalid",
+    "bookSourceName": "合成书源 · 丑",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://m.source.invalid",
+    "bookSourceName": "合成书源 · 寅",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://n.source.invalid",
+    "bookSourceName": "合成书源 · 卯",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://o.source.invalid",
+    "bookSourceName": "合成书源 · 辰",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://p.source.invalid",
+    "bookSourceName": "合成书源 · 巳",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://q.source.invalid",
+    "bookSourceName": "合成书源 · 午",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://r.source.invalid",
+    "bookSourceName": "合成书源 · 未",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://s.source.invalid",
+    "bookSourceName": "合成书源 · 申",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://t.source.invalid",
+    "bookSourceName": "合成书源 · 酉",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://u.source.invalid",
+    "bookSourceName": "合成书源 · 戌",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    },
+    "loginUrl": "function login() { return \"仅离线合成测试，无真实账号\"; }",
+    "loginUi": "[{\"name\":\"离线测试\",\"type\":\"text\"}]"
+  },
+  {
+    "bookSourceUrl": "https://v.source.invalid",
+    "bookSourceName": "合成书源 · 亥",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 0,
+    "enabled": false,
+    "searchUrl": "/search?q={{key}}",
+    "exploreUrl": "全部::\n月票榜::/rank/month\n畅销榜::/rank/sales\n热门榜::/rank/hot\n玄幻::\n推荐榜::/rank/fantasy",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  },
+  {
+    "bookSourceUrl": "https://w.source.invalid",
+    "bookSourceName": "合成书源 · 天",
+    "bookSourceGroup": "综合",
+    "bookSourceType": 1,
+    "enabled": false,
+    "searchUrl": "",
+    "exploreUrl": "",
+    "ruleSearch": {
+      "bookList": "class.result-list@class.item",
+      "name": "class.title@text",
+      "bookUrl": "class.title@href",
+      "author": "class.author@text",
+      "kind": "class.kind@text",
+      "lastChapter": "class.latest@text"
+    }
+  }
+]

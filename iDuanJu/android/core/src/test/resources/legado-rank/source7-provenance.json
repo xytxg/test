@@ -1,0 +1,43 @@
+{
+  "collection": "https://www.yckceo.com/yuedu/shuyuans/json/id/1335.json",
+  "collectionSha256": "874efe33cbe38b7dcf830704b5bd0614b9485fe1974a20d9c09030ebec07df30",
+  "entryIndex": 7,
+  "sourceName": "七猫小说",
+  "entryExport": "source7-exact.json preserves entry values; collection entry reserialized as JSON, not claimed byte-identical to the whole collection",
+  "capture": "Unmodified user jsLib qmIndex/qmRankIndex/qmTag and actual public API responses; no invented data",
+  "recordedAtShanghai": "2026-11-18T00:35:56.036063+08:00",
+  "files": {
+    "source7-rank-index.json": {
+      "sha256": "5689b793b84c9726114d64c3b26564892d126517efa4fbe88f4c4829c9968a60",
+      "bytes": 50387
+    },
+    "source7-filter-2.json": {
+      "sha256": "7464b5856d37b9ffee4324e9e823552c19f9ea5e85e57a7b55a51ad58546a9ab",
+      "bytes": 13707
+    },
+    "source7-filter-3.json": {
+      "sha256": "e42bd1514eb9a494aa2c470802a2dfba80a4a6bb97a3d579015bbacd737715ed",
+      "bytes": 14102
+    },
+    "source7-filter-0.json": {
+      "sha256": "4a4478aaafb4d699d84029b0f37db08b9daf5d04dfd4945c43352a4404a9d52f",
+      "bytes": 7885
+    },
+    "source7-filter-1.json": {
+      "sha256": "66057b6cefbface8555cf6522431e7e9bccc0296861b4e5e4c651b2781db4f84",
+      "bytes": 7920
+    },
+    "source7-filter-routes.json": {
+      "sha256": "ca402cd3fef9ca09020f38ac414f5e0c253201725c2740e1126827d2b83f9abf",
+      "bytes": 888
+    },
+    "source7-category-index.json": {
+      "sha256": "307a6626417d68dec082a509ca2b4a2edbd182680443fe8110710e8622ba8ad0",
+      "bytes": 78771
+    },
+    "source7-exact.json": {
+      "sha256": "4e2e394cf50ac1b32ed84820dcb9f3a2aab013868f9655be45c1e4434b8ffa29",
+      "bytes": 78995
+    }
+  }
+}

@@ -1,0 +1,92 @@
+name: package
+
+# Packaging only builds and uploads artifacts. Regression tests live in the separate validation workflows.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    name: unsigned iOS package
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            DerivedDataRelease/SourcePackages
+          key: ${{ runner.os }}-swift-packages-${{ hashFiles('project.yml', 'Packages/**/Package.swift') }}
+          restore-keys: ${{ runner.os }}-swift-packages-
+      - name: Build unsigned IPA
+        env:
+          STV_RUN_TESTS: '0'
+          STV_BUILD_SIMULATOR: '0'
+        run: scripts/package.sh "$RUNNER_TEMP/dist"
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs
+          path: ${{ runner.temp }}/dist/logs/*.log
+          if-no-files-found: ignore
+      - name: Save resolved Swift packages
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            DerivedDataRelease/SourcePackages
+          key: ${{ runner.os }}-swift-packages-${{ hashFiles('project.yml', 'Packages/**/Package.swift') }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned
+          path: |
+            ${{ runner.temp }}/dist/*.ipa
+          if-no-files-found: error
+
+  apk:
+    name: Android APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Restore distribution signing key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then
+            printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/iduanju.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/iduanju.jks" >> "$GITHUB_ENV"
+          fi
+      - name: Build release APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        working-directory: android
+        shell: bash
+        run: |
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            ./gradlew :app:assembleRelease --stacktrace && exit 0
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep $((attempt * 20))
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error

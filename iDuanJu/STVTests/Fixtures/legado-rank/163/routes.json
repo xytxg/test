@@ -1,0 +1,29 @@
+[
+  {
+    "body" : "",
+    "contentType" : "text\/html;charset=utf-8",
+    "file" : "000.bin",
+    "method" : "GET",
+    "responseURL" : "https:\/\/www.bookseek2027.com\/s\/new\/%E8%A8%80%E6%83%85\/1\/",
+    "status" : 200,
+    "url" : "https:\/\/www.booksoyes.com\/s\/new\/%E8%A8%80%E6%83%85\/1\/"
+  },
+  {
+    "body" : "",
+    "contentType" : "text\/html;charset=utf-8",
+    "file" : "001.bin",
+    "method" : "GET",
+    "responseURL" : "https:\/\/www.bookseek2027.com\/book\/215456\/",
+    "status" : 200,
+    "url" : "https:\/\/www.bookseek2027.com\/book\/215456\/"
+  },
+  {
+    "body" : "",
+    "contentType" : "text\/html",
+    "file" : "002.bin",
+    "method" : "GET",
+    "responseURL" : "https:\/\/www.wanbenshuwu.com\/book\/268139\/catalog\/",
+    "status" : 200,
+    "url" : "https:\/\/www.wanbenshuwu.com\/book\/268139\/catalog\/"
+  }
+]

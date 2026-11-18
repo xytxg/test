@@ -1,0 +1,91 @@
+name: publish iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run:
+        description: Successful package workflow run ID on main
+        required: true
+      tag:
+        description: New release tag (for example v1.5b8)
+        required: true
+        default: v1.5b8
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_RUN: ${{ inputs.build_run }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source build and download IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+b[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > run.json
+          python3 - <<'PY'
+          import json, os
+          run = json.load(open('run.json'))
+          assert run['conclusion'] == 'success', 'Build must succeed'
+          assert run['head_branch'] == 'main', 'Build must be from main'
+          assert run['path'] == '.github/workflows/package.yml', 'Unexpected workflow'
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write('BUILD_SHA=' + run['head_sha'] + '\n')
+          PY
+          gh run download "$BUILD_RUN" -n ios-unsigned -D dist
+      - name: Validate bundle and calculate checksum
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, os, pathlib, plistlib, re, zipfile
+          files = list(pathlib.Path('dist').glob('*.ipa'))
+          assert len(files) == 1, 'Expected one IPA'
+          ipa = files[0]
+          version, build = re.fullmatch(r'v(\d+\.\d+)b(\d+)', os.environ['RELEASE_TAG']).groups()
+          with zipfile.ZipFile(ipa) as archive:
+              assert archive.testzip() is None, 'Corrupt IPA'
+              info = plistlib.loads(archive.read('Payload/STV.app/Info.plist'))
+              assert info['CFBundleIdentifier'] == 'com.xylyra.iduanju'
+              assert info['CFBundleShortVersionString'] == version
+              assert info['CFBundleVersion'] == build
+              assert 'iPhoneOS' in info['CFBundleSupportedPlatforms']
+              assert archive.getinfo('Payload/STV.app/STV').file_size > 0
+          digest = hashlib.sha256(ipa.read_bytes()).hexdigest()
+          pathlib.Path('dist/SHA256SUMS.txt').write_text(f'{digest}  {ipa.name}\n')
+          print(f'Validated {ipa.name}: iOS {version} build {build}; SHA256 {digest}')
+          PY
+      - name: Publish verified release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'Release already exists; refusing to overwrite it.' >&2
+            exit 1
+          fi
+          cat > notes.md <<EOF
+          iOS ${RELEASE_TAG#v} · 未签名 IPA（最低 iOS 18）
+
+          - 修复 Xcode 编译失败：分类请求 session 遮蔽、数值类型歧义、时长表达式推导超时。
+          - 苹果 CMS 分类独立分页、完整分类刷新、错误提示与父分类空结果说明。
+          - 小说新增「发现好书」，读取导入书源的 exploreUrl / ruleExplore，支持文本、JSON 和 JS 生成栏目。
+          - 同步更新 README、Android 功能与固定签名发布流程。
+
+          IPA 未签名，需自行重签侧载。推荐来自用户导入书源，不内置第三方榜单。
+          验证：双端默认打包 Actions 成功；IPA 包结构、平台、版本及 SHA-256 均已校验。可选模拟器回归单独运行，本轮不宣称真机验证通过。
+
+          源码：$BUILD_SHA
+          构建：https://github.com/$GH_REPO/actions/runs/$BUILD_RUN
+          文件校验见 SHA256SUMS.txt。
+          EOF
+          gh release create "$RELEASE_TAG" dist/*.ipa dist/SHA256SUMS.txt --target "$BUILD_SHA" \
+            --title "i短剧 iOS ${RELEASE_TAG#v}" --notes-file notes.md --prerelease

@@ -1,0 +1,32 @@
+name: hongguo contracts
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/hongguo-current-player]
+permissions:
+  contents: read
+jobs:
+  swift:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile production signer and check native synthetic vectors
+        run: |
+          swiftc -O -swift-version 5 -o "$RUNNER_TEMP/check-hg-current" \
+            STV/Providers/Common/ByteUtils.swift STV/Providers/Hongguo/Medusa.swift \
+            STV/Providers/Hongguo/HGPlayerSign.swift STV/Providers/Hongguo/HGCurrentProfile.swift \
+            STV/Providers/Hongguo/HGCurrentPlayer.swift scripts/check-hg-current.swift
+          "$RUNNER_TEMP/check-hg-current" STVTests/Fixtures/hongguo
+  kotlin:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew && ./gradlew :core:test --tests '*HGCurrentPlayerTest' --tests '*HGCategoryTest' --tests '*HGPlaybackSignTest' --console=plain
+        working-directory: android
