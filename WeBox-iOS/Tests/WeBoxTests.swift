@@ -15,16 +15,7 @@ final class MockURLProtocol: URLProtocol {
         }catch{client?.urlProtocol(self,didFailWithError:error)}
     }
     override func stopLoading(){}
-    static func client(classicLoading: Bool = false) -> HTTPClient {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [MockURLProtocol.self]
-        if #available(iOS 27.0, *), classicLoading {
-            // The new iOS 27 loader can lose the URLProtocol state when this
-            // mock fails during startLoading and the next POST succeeds.
-            configuration.usesClassicLoadingMode = true
-        }
-        return HTTPClient(configuration: configuration)
-    }
+    static func client()->HTTPClient{let configuration=URLSessionConfiguration.ephemeral;configuration.protocolClasses=[MockURLProtocol.self];return HTTPClient(configuration:configuration)}
 }
 final class WeBoxTests:XCTestCase{
     func fixture(_ name:String,_ ext:String="js")throws->URL{try XCTUnwrap(Bundle(for:Self.self).url(forResource:name,withExtension:ext))}
@@ -64,8 +55,8 @@ final class WeBoxTests:XCTestCase{
         XCTAssertFalse(HTTPClient.valid(URL(string:"http://example.test")!,httpsOnly:true))
         XCTAssertFalse(HTTPClient.valid(URL(string:"https://user:pass@example.test")!,httpsOnly:false))
     }
-    @MainActor func testSourceRequestCanRecoverFromDNSFailureBeforeSending() async throws {
-        let runtime = SourceRuntime(namespace: "network-recovery", client: MockURLProtocol.client(classicLoading: true))
+    @MainActor func testSourceNetworkFailurePreservesHostAndRedactsRequest() async throws {
+        let runtime = SourceRuntime(namespace: "network-recovery", client: MockURLProtocol.client())
         defer { runtime.close() }
         _ = try await runtime.load(script: """
             WeBox.define({api:'1.5',id:'test.network',name:'Network',version:'1.0.0',allowHttp:false,
@@ -80,37 +71,19 @@ final class WeBoxTests:XCTestCase{
         MockURLProtocol.response = { request in
             requests += 1
             XCTAssertEqual(request.httpMethod, "POST")
-            if requests == 1 { throw URLError(.cannotFindHost) }
-            let body = Data("{\"items\":[]}".utf8)
-            return (200, ["Content-Type":"application/json", "Content-Length":String(body.count)], body)
+            throw URLError(.cannotFindHost)
         }
-        let result = try await runtime.invoke("list", ["filters": [:]]) as? [String: Any]
-        XCTAssertEqual(result?["items"] as? [String], [])
-        XCTAssertEqual(requests, 2)
 
-        requests = 0
-        MockURLProtocol.response = { _ in requests += 1; throw URLError(.dnsLookupFailed) }
         do {
-            _ = try await runtime.invoke("list", ["filters": [:], "refresh": true])
+            _ = try await runtime.invoke("list", ["filters": [:]])
             XCTFail("Expected DNS failure")
         } catch let error as HTTPNetworkError {
-            XCTAssertEqual(error.code, .dnsLookupFailed)
+            XCTAssertEqual(error.code, .cannotFindHost)
             XCTAssertEqual(error.host, "source.test")
             XCTAssertTrue(error.localizedDescription.contains("域名解析失败"))
             XCTAssertFalse(error.localizedDescription.contains("redact-me"))
         }
-        XCTAssertEqual(requests, 2, "DNS retry must be bounded")
-
-        requests = 0
-        MockURLProtocol.response = { _ in requests += 1; throw URLError(.networkConnectionLost) }
-        do {
-            _ = try await runtime.invoke("list", ["filters": [:], "refresh": true])
-            XCTFail("Expected interrupted connection")
-        } catch let error as HTTPNetworkError {
-            XCTAssertEqual(error.code, .networkConnectionLost)
-            XCTAssertFalse(error.canRetryResolution)
-        }
-        XCTAssertEqual(requests, 1, "Do not replay a POST on connection loss")
+        XCTAssertEqual(requests, 1, "Do not silently replay a source POST")
     }
     func testCENCBlockCacheAndCrossSegmentRanges()async throws{
         let key=Data(repeating:3,count:16),iv8=Data(repeating:2,count:8),plain=Data((0..<64).map(UInt8.init))

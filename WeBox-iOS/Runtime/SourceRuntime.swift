@@ -214,7 +214,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         if let body = p["bodyBase64"] as? String { request.httpBody = try SourceCrypto.decode(body, "base64") }
         else if let text = p["data"] as? String { request.httpBody = Data(text.utf8) }
         else if let data = p["data"], !(data is NSNull) { request.httpBody = try JSONSerialization.data(withJSONObject: data) }
-        let result = try await client.fetch(request, limit: min(8_388_608,max(1,p["maxResponseBytes"] as? Int ?? 4_194_304)), httpsOnly: !permitsHTTP || p["httpsOnly"] as? Bool == true, retryDNS: true)
+        let result = try await client.fetch(request, limit: min(8_388_608,max(1,p["maxResponseBytes"] as? Int ?? 4_194_304)), httpsOnly: !permitsHTTP || p["httpsOnly"] as? Bool == true)
         let value: Any
         if p["base64Data"] as? Bool == true { value = result.data.base64EncodedString() }
         else if p["decodable"] as? Bool != false, let json = try? JSONSerialization.jsonObject(with: result.data) { value = json }

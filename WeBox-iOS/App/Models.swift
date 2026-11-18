@@ -221,7 +221,7 @@ final class AppModel: ObservableObject {
             guard var url = URL(string: address), HTTPClient.valid(url, httpsOnly: false) else { throw WeBoxError("请输入 HTTP(S) 脚本直链") }
             if url.host == "github.com", url.path.contains("/blob/"), var raw = URLComponents(url: url, resolvingAgainstBaseURL: false) { raw.host = "raw.githubusercontent.com"; raw.path = raw.path.replacingOccurrences(of: "/blob/", with: "/"); url = raw.url ?? url }
             let client = HTTPClient(); defer { client.close() }
-            let response = try await client.fetch(URLRequest(url: url, timeoutInterval: 30), limit: ScriptDocument.limit, httpsOnly: url.scheme == "https", retryDNS: true)
+            let response = try await client.fetch(URLRequest(url: url, timeoutInterval: 30), limit: ScriptDocument.limit, httpsOnly: url.scheme == "https")
             guard response.response.statusCode == 200 else { throw WeBoxError("下载脚本失败：HTTP \(response.response.statusCode)") }
             var origin = URLComponents(url: url, resolvingAgainstBaseURL: false); origin?.query = nil; origin?.fragment = nil
             let installed = try await install(response.data, origin: origin?.string)

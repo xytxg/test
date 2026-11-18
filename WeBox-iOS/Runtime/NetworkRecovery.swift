@@ -23,7 +23,6 @@ struct HTTPNetworkError: LocalizedError {
     let code: URLError.Code
     let host: String?
     let cellularDenied: Bool
-    let canRetryResolution: Bool
 
     var isResolutionFailure: Bool {
         code == .cannotFindHost || code == .dnsLookupFailed
