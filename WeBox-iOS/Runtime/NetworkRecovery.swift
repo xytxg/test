@@ -1,28 +1,11 @@
 import Foundation
-import Network
-
-enum AppDNS {
-    static let preferenceKey = "webox.encryptedDNS"
-
-    @MainActor
-    static func apply(encrypted: Bool) {
-        let context = NWParameters.PrivacyContext.default
-        let resolver: NWParameters.PrivacyContext.ResolverConfiguration? = encrypted
-            ? .https(URL(string: "https://dns.google/dns-query")!, serverAddresses: [
-                .hostPort(host: "8.8.8.8", port: 443),
-                .hostPort(host: "8.8.4.4", port: 443),
-                .hostPort(host: "2001:4860:4860::8888", port: 443)
-            ])
-            : nil
-        context.requireEncryptedNameResolution(encrypted, fallbackResolver: resolver)
-        context.flushCache()
-    }
-}
 
 struct HTTPNetworkError: LocalizedError {
     let code: URLError.Code
     let host: String?
     let cellularDenied: Bool
+    var canUseAlternateDNS = false
+    var recoveryResult: String? = nil
 
     var isResolutionFailure: Bool {
         code == .cannotFindHost || code == .dnsLookupFailed
@@ -46,7 +29,7 @@ struct HTTPNetworkError: LocalizedError {
             default: reason = "网络请求失败。"
             }
         }
-        return [reason, host.map { "域名：\($0)" }, "网络错误 \(code.rawValue)"]
+        return [reason, host.map { "域名：\($0)" }, "网络错误 \(code.rawValue)", recoveryResult]
             .compactMap { $0 }.joined(separator: "\n")
     }
 }

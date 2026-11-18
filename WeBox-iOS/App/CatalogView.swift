@@ -168,8 +168,8 @@ struct CatalogView: View {
                                 if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                             }
                         } else if failure.isResolutionFailure && !app.encryptedDNS {
-                            Button("用 Google 加密 DNS 重试") { app.setEncryptedDNS(true) }
-                            Text("仅用于 WeBox。可以在设置中关闭。")
+                            Button("用备用 DNS 重试") { app.setEncryptedDNS(true) }
+                            Text("只在源的 HTTPS 域名解析失败时使用。可在设置中关闭。")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                     }

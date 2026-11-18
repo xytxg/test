@@ -41,7 +41,8 @@ jobs:
           test ! -f build/simulator/Build/Products/Debug-iphonesimulator/WeBox.app/hongguo.webox.js
       - name: Start local media fixtures
         run: |
-          python3 Scripts/fixture-server.py > fixture-server.log 2>&1 &
+          bash Scripts/test-tls-cert.sh build/test-tls
+          python3 Scripts/fixture-server.py build/test-tls > fixture-server.log 2>&1 &
           echo "$!" > build/fixture-server.pid
           python3 - <<'PY'
           import urllib.request,time
@@ -74,6 +75,8 @@ jobs:
         timeout-minutes: 24
         run: |
           set -o pipefail
+          xcrun simctl bootstatus '${{ steps.sim.outputs.id }}' -b
+          xcrun simctl keychain '${{ steps.sim.outputs.id }}' add-root-cert build/test-tls/root.pem
           xcodebuild test-without-building -project WeBox.xcodeproj -scheme WeBox \
             -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.id }}' \
             -retry-tests-on-failure -test-iterations 3 -test-repetition-relaunch-enabled YES \
@@ -124,9 +127,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="webox-ios-0.2.1-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.1 · 网络修复 · build ${GITHUB_RUN_NUMBER}" \
-            --notes-file docs/RELEASE-0.2.1.md --prerelease \
+          TAG="webox-ios-0.2.2-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "WeBox iOS 0.2.2 · DNS 备用连接 · build ${GITHUB_RUN_NUMBER}" \
+            --notes-file docs/RELEASE-0.2.2.md --prerelease \
             build/WeBox-iOS-unsigned.ipa build/SHA256SUMS.txt build/WeBox-iOS-screenshots.zip build/screenshots/*.png
       - name: Save diagnostics
         if: failure()

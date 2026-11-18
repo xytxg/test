@@ -1,5 +1,6 @@
 import Foundation
 import WebKit
+import Network
 
 actor InvocationGate {
     private var locked = false
@@ -214,7 +215,9 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         if let body = p["bodyBase64"] as? String { request.httpBody = try SourceCrypto.decode(body, "base64") }
         else if let text = p["data"] as? String { request.httpBody = Data(text.utf8) }
         else if let data = p["data"], !(data is NSNull) { request.httpBody = try JSONSerialization.data(withJSONObject: data) }
-        let result = try await client.fetch(request, limit: min(8_388_608,max(1,p["maxResponseBytes"] as? Int ?? 4_194_304)), httpsOnly: !permitsHTTP || p["httpsOnly"] as? Bool == true)
+        let limit = min(8_388_608, max(1, p["maxResponseBytes"] as? Int ?? 4_194_304))
+        let httpsOnly = !permitsHTTP || p["httpsOnly"] as? Bool == true
+        let result = try await fetchSource(request, limit: limit, httpsOnly: httpsOnly)
         let value: Any
         if p["base64Data"] as? Bool == true { value = result.data.base64EncodedString() }
         else if p["decodable"] as? Bool != false, let json = try? JSONSerialization.jsonObject(with: result.data) { value = json }
@@ -222,6 +225,35 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         var headers: [String:String] = [:]; for (key,value) in result.response.allHeaderFields { headers[String(describing: key).lowercased()] = String(describing: value) }
         return ["statusCode":result.response.statusCode,"headers":headers,"data":value,"url":result.response.url?.absoluteString ?? raw]
     }
+
+    private func fetchSource(_ request: URLRequest, limit: Int, httpsOnly: Bool) async throws -> HTTPResult {
+        do {
+            return try await client.fetch(request, limit: limit, httpsOnly: httpsOnly)
+        } catch var failure as HTTPNetworkError {
+            guard failure.isResolutionFailure, failure.canUseAlternateDNS,
+                  UserDefaults.standard.bool(forKey: AlternateDNS.preferenceKey),
+                  request.url?.scheme == "https", let host = request.url?.host else { throw failure }
+            let addresses: [NWEndpoint.Host]
+            do {
+                addresses = try await AlternateDNS.resolve(host)
+            } catch {
+                try Task.checkCancellation()
+                failure.recoveryResult = "备用 DNS 查询失败。"
+                throw failure
+            }
+            do {
+                return try await AlternateDNS.fetch(request, limit: limit, addresses: addresses)
+            } catch {
+                try Task.checkCancellation()
+                failure.recoveryResult = "备用 DNS 已解析，HTTPS 连接未成功。"
+                if let connectionError = error as? HTTPNetworkError {
+                    failure.recoveryResult = "备用 DNS 已解析，HTTPS 连接失败（\(connectionError.code.rawValue)）。"
+                }
+                throw failure
+            }
+        }
+    }
+
 }
 @MainActor
 private final class WeakScriptHandler: NSObject, WKScriptMessageHandler {

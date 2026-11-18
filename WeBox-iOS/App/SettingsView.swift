@@ -10,13 +10,13 @@ struct SettingsView:View{
                 NavigationLink{PlayerSettingsView()}label:{Label("播放设置",systemImage:"play.rectangle")}
             }
             Section {
-                Toggle("Google 加密 DNS", isOn: Binding(
+                Toggle("备用 DNS 连接", isOn: Binding(
                     get: { app.encryptedDNS }, set: { app.setEncryptedDNS($0) }
                 ))
             } header: {
                 Text("网络")
             } footer: {
-                Text("域名解析失败时可以开启。仅影响 WeBox，iOS 已配置的 DNS 优先。")
+                Text("系统解析失败时，使用公共 DNS 查询地址并重连 HTTPS 源。此时 VPN 的按域名分流可能无法识别该连接。")
             }
             Section("存储"){
                 Button{Task{await ArtworkCache.shared.clear();cleared=true}}label:{Label(cleared ? "图片内存缓存已清理":"清理图片内存缓存",systemImage:"photo.stack")}

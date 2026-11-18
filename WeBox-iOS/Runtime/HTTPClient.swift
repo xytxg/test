@@ -12,12 +12,15 @@ final class HTTPClient: NSObject, @unchecked Sendable {
         var data = Data()
         var response: HTTPURLResponse?
         var failure: Error?
+        var redirected = false
     }
     private let lock = NSLock()
     private var transfers: [Int: Transfer] = [:]
     private var stopped = false
     private var session: URLSession!
-    init(configuration: URLSessionConfiguration = .ephemeral) {
+    private let followRedirects: Bool
+    init(configuration: URLSessionConfiguration = .ephemeral, followRedirects: Bool = true) {
+        self.followRedirects = followRedirects
         super.init()
         configuration.timeoutIntervalForRequest = 20
         configuration.timeoutIntervalForResource = 60
@@ -75,7 +78,9 @@ final class HTTPClient: NSObject, @unchecked Sendable {
             let host = error.failingURL?.host ?? task.currentRequest?.url?.host ?? task.originalRequest?.url?.host
             let cellularDenied = error.code == .dataNotAllowed || error.networkUnavailableReason == .cellular
             transfer.continuation.resume(throwing: HTTPNetworkError(
-                code: error.code, host: host, cellularDenied: cellularDenied
+                code: error.code, host: host, cellularDenied: cellularDenied,
+                canUseAlternateDNS: !cellularDenied && !transfer.redirected && transfer.response == nil &&
+                    task.countOfBytesSent == 0 && host?.lowercased() == task.originalRequest?.url?.host?.lowercased()
             ))
         } else if let error {
             transfer.continuation.resume(throwing: error)
@@ -88,7 +93,9 @@ final class HTTPClient: NSObject, @unchecked Sendable {
     fileprivate func redirect(_ task: URLSessionTask, _ request: URLRequest, _ completion: @escaping (URLRequest?) -> Void) {
         lock.lock()
         let httpsOnly = transfers[task.taskIdentifier]?.httpsOnly ?? true
+        transfers[task.taskIdentifier]?.redirected = true
         lock.unlock()
+        guard followRedirects else { completion(nil); return }
         completion(request.url.flatMap { Self.valid($0, httpsOnly: httpsOnly) ? request : nil })
     }
 }

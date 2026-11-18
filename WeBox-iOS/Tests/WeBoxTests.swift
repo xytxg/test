@@ -2,6 +2,7 @@ import XCTest
 import AVFoundation
 import CommonCrypto
 import UniformTypeIdentifiers
+import Network
 @testable import WeBox
 
 final class MockURLProtocol: URLProtocol {
@@ -84,6 +85,22 @@ final class WeBoxTests:XCTestCase{
             XCTAssertFalse(error.localizedDescription.contains("redact-me"))
         }
         XCTAssertEqual(requests, 1, "Do not silently replay a source POST")
+    }
+    func testAlternateDNSUsesRealTLSAndPreservesPostBytes() async throws {
+        let url = try XCTUnwrap(URL(string: "https://webox-transport.test:8766/register?signature=a%2Bb"))
+        var request = URLRequest(url: url, timeoutInterval: 8)
+        request.httpMethod = "POST"
+        request.httpBody = Data([0, 0xff, 0x78, 0x2b, 0x3d])
+        let result = try await AlternateDNS.fetch(request, limit: 1024, addresses: ["127.0.0.1"])
+        XCTAssertEqual(result.response.statusCode, 200)
+        XCTAssertEqual(result.response.url?.host, url.host)
+        XCTAssertEqual(result.data, request.httpBody)
+
+        XCTAssertNil(AlternateDNS.publicAddress("127.0.0.1"))
+        XCTAssertNil(AlternateDNS.publicAddress("192.168.1.1"))
+        XCTAssertNil(AlternateDNS.publicAddress("fd00::1"))
+        XCTAssertNotNil(AlternateDNS.publicAddress("1.1.1.1"))
+        XCTAssertNotNil(AlternateDNS.publicAddress("2606:4700:4700::1111"))
     }
     func testCENCBlockCacheAndCrossSegmentRanges()async throws{
         let key=Data(repeating:3,count:16),iv8=Data(repeating:2,count:8),plain=Data((0..<64).map(UInt8.init))

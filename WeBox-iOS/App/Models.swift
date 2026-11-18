@@ -123,14 +123,12 @@ final class AppModel: ObservableObject {
         }
         if !sources.contains(where: { $0.id == selectedID && $0.isEnabled }) { selectedID = sources.first(where: \.isEnabled)?.id ?? "" }
         playback.onProgress = { [weak self] context, seconds, duration in self?.record(context, seconds: seconds, duration: duration) }
-        encryptedDNS = defaults.bool(forKey: AppDNS.preferenceKey)
-        if encryptedDNS { AppDNS.apply(encrypted: true) }
+        encryptedDNS = defaults.bool(forKey: AlternateDNS.preferenceKey)
         persist()
     }
     func setEncryptedDNS(_ enabled: Bool) {
         guard encryptedDNS != enabled else { return }
-        AppDNS.apply(encrypted: enabled)
-        defaults.set(enabled, forKey: AppDNS.preferenceKey)
+        defaults.set(enabled, forKey: AlternateDNS.preferenceKey)
         encryptedDNS = enabled
     }
     static func read<T: Decodable>(_ key: String, fallback: T, defaults: UserDefaults = .standard) -> T {
