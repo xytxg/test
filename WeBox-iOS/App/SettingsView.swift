@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SettingsView:View{
     @EnvironmentObject private var app:AppModel
@@ -13,8 +14,11 @@ struct SettingsView:View{
                 NavigationLink {
                     SourceNetworkSettingsView()
                 } label: {
-                    LabeledContent("源网络线路", value: app.sourceHTTPSProxy == nil ? "自动" : "手动代理")
+                    LabeledContent("源网络线路", value: app.useSurgeVIF ? "Surge VPN" : (app.sourceHTTPSProxy == nil ? "自动" : "手动代理"))
                 }
+            }
+            Section {
+                NavigationLink("源请求日志") { SourceRequestLogView() }
             }
             Section("存储"){
                 Button{Task{await ArtworkCache.shared.clear();cleared=true}}label:{Label(cleared ? "图片内存缓存已清理":"清理图片内存缓存",systemImage:"photo.stack")}
@@ -36,9 +40,19 @@ struct SourceNetworkSettingsView: View {
     var body: some View {
         Form {
             Section {
+                Toggle("Surge VPN 接管", isOn: Binding(
+                    get: { app.useSurgeVIF }, set: { enabled in
+                        app.setSurgeVIF(enabled)
+                        if enabled { address = "" }
+                    }
+                ))
+            } footer: {
+                Text("适用于已启动的 Surge iOS VPN。使用 Surge 的域名接管，无需填写本机代理端口。")
+            }
+            Section {
                 Toggle("备用 DNS 连接", isOn: Binding(
                     get: { app.encryptedDNS }, set: { app.setEncryptedDNS($0) }
-                )).disabled(app.sourceHTTPSProxy != nil)
+                )).disabled(app.sourceHTTPSProxy != nil || app.useSurgeVIF)
             } footer: {
                 Text("系统解析失败时，使用公共 DNS 查询地址并重连 HTTPS 源。VPN 的按域名分流可能无法识别备用连接。")
             }
@@ -60,6 +74,9 @@ struct SourceNetworkSettingsView: View {
             }
         }
         .navigationTitle("源网络线路")
+        .toolbar {
+            NavigationLink("请求日志") { SourceRequestLogView() }
+        }
         .onAppear { address = app.sourceHTTPSProxy?.address ?? "" }
     }
 
@@ -70,6 +87,49 @@ struct SourceNetworkSettingsView: View {
             saved = true
         } catch {
             self.error = error.localizedDescription
+        }
+    }
+}
+struct SourceRequestLogView: View {
+    @ObservedObject private var log = SourceRequestLog.shared
+    @State private var copied = false
+
+    var body: some View {
+        List {
+            if log.entries.isEmpty {
+                ContentUnavailableView("暂无请求", systemImage: "list.bullet.rectangle",
+                                       description: Text("回首页重新加载内容源。"))
+            } else {
+                Section {
+                    ForEach(log.entries.reversed()) { item in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.request).font(.footnote.weight(.semibold))
+                            Text(item.event)
+                            Text(item.time.formatted(date: .omitted, time: .standard)).foregroundStyle(.secondary)
+                        }
+                        .font(.footnote.monospaced())
+                        .textSelection(.enabled)
+                    }
+                } header: {
+                    Text("最近 \(log.entries.count) 条")
+                } footer: {
+                    Text("只保留在本次运行中。请求参数、正文和认证信息不会写入日志。")
+                }
+            }
+        }
+        .navigationTitle("源请求日志")
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button(copied ? "已复制" : "复制") {
+                    UIPasteboard.general.string = log.report
+                    copied = true
+                }.disabled(log.entries.isEmpty)
+                ShareLink(item: log.report).disabled(log.entries.isEmpty)
+            }
+            ToolbarItem(placement: .bottomBar) {
+                Button("清除日志", role: .destructive) { log.clear(); copied = false }
+                    .disabled(log.entries.isEmpty)
+            }
         }
     }
 }

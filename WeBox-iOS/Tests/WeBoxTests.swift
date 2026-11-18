@@ -129,11 +129,46 @@ final class WeBoxTests:XCTestCase{
         XCTAssertThrowsError(try SourceHTTPSProxy("http://name:secret@127.0.0.1:6152"))
         XCTAssertThrowsError(try SourceHTTPSProxy("http://127.0.0.1:6152/redirect"))
         let runtime = SourceRuntime(namespace: "manual-proxy-test", sourceProxy: proxy)
-        defer { runtime.close() }
+        let log = SourceRequestLog.shared
+        log.clear()
+        defer { runtime.close(); log.clear() }
         _ = try await runtime.load(script: script("network-proxy.webox"))
         let reply = try await runtime.invoke("list", ["filters": [:]]) as? [String: Any]
         let rows = try XCTUnwrap(reply?["items"] as? [[String: Any]])
         XCTAssertEqual(rows.first?["title"] as? String, "AP94Kz0=")
+        XCTAssertTrue(log.report.contains("list POST webox-transport.test"))
+        XCTAssertTrue(log.report.contains("手动 HTTP CONNECT"))
+        XCTAssertTrue(log.report.contains("HTTP 200"))
+        XCTAssertFalse(log.report.contains("signature="))
+        XCTAssertFalse(log.report.contains("AP94Kz0="))
+    }
+
+    func testSurgeDNSOnlyAcceptsMatchingVirtualAddresses() throws {
+        let query = try SurgeVIFDNS.query("Example.Test", id: 0x1234)
+        var header = Array(query)
+        header[2] = 0x81
+        header[3] = 0x80
+        header[7] = 2
+        let record: [UInt8] = [0xc0, 12, 0, 1, 0, 1, 0, 0, 0, 1, 0, 4]
+        let response = Data(header + record + [1, 1, 1, 1] + record + [198, 18, 1, 9])
+        XCTAssertEqual(SurgeVIFDNS.virtualAddresses(response, matching: query), ["198.18.1.9"])
+        XCTAssertTrue(SurgeVIFDNS.virtualAddresses(Data(response.dropLast()), matching: query).isEmpty)
+        var wrongID = response
+        wrongID[0] = 0
+        XCTAssertTrue(SurgeVIFDNS.virtualAddresses(wrongID, matching: query).isEmpty)
+    }
+
+    func testSourceProxyHonorsRedirectSetting() async throws {
+        let url = try XCTUnwrap(URL(string: "https://webox-transport.test:8766/redirect-test"))
+        let tunnel = try DNSConnectTunnel(host: "webox-transport.test", port: 8766, addresses: ["127.0.0.1"])
+        defer { tunnel.close() }
+        guard case .hostPort(_, let port) = try await tunnel.start() else { return XCTFail("Missing listener") }
+        let client = try SourceHTTPSProxy("http://127.0.0.1:\(port.rawValue)").makeClient()
+        defer { client.close() }
+        let response = try await client.fetch(URLRequest(url: url, timeoutInterval: 8), limit: 1024,
+                                              httpsOnly: true, followRedirects: false)
+        XCTAssertEqual(response.response.statusCode, 302)
+        XCTAssertEqual(response.response.url?.path, "/redirect-test")
     }
 
     func testCENCBlockCacheAndCrossSegmentRanges()async throws{

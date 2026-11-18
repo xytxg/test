@@ -1,6 +1,28 @@
 import Foundation
 
-struct HTTPResult { let data: Data; let response: HTTPURLResponse }
+struct HTTPResult {
+    let data: Data
+    let response: HTTPURLResponse
+    var trace: HTTPTrace? = nil
+}
+
+struct HTTPTrace {
+    var protocolName: String?
+    var dns = false
+    var connected = false
+    var tls = false
+    var sent = false
+    var received = false
+    var proxy = false
+    var redirects = 0
+
+    var summary: String {
+        let stages = [(dns, "DNS"), (connected, "TCP"), (tls, "TLS"),
+                      (sent, "已发送"), (received, "已响应"), (proxy, "代理")]
+            .filter { $0.0 }.map { $0.1 }
+        return (stages + [protocolName, redirects > 0 ? "重定向 \(redirects) 次" : nil].compactMap { $0 }).joined(separator: " · ")
+    }
+}
 
 // One URLSession per client preserves HTTP/2 connections. Responses are accumulated
 // in chunks with an enforced bound, rather than one Swift async suspension per byte.
@@ -9,10 +31,12 @@ final class HTTPClient: NSObject, @unchecked Sendable {
         let continuation: CheckedContinuation<HTTPResult, Error>
         let limit: Int
         let httpsOnly: Bool
+        let followRedirects: Bool
         var data = Data()
         var response: HTTPURLResponse?
         var failure: Error?
         var redirected = false
+        var trace: HTTPTrace?
     }
     private let lock = NSLock()
     private var transfers: [Int: Transfer] = [:]
@@ -31,7 +55,7 @@ final class HTTPClient: NSObject, @unchecked Sendable {
     }
     deinit { session.invalidateAndCancel() }
     func close() { lock.lock(); stopped = true; lock.unlock(); session.invalidateAndCancel() }
-    func fetch(_ request: URLRequest, limit: Int, httpsOnly: Bool = false) async throws -> HTTPResult {
+    func fetch(_ request: URLRequest, limit: Int, httpsOnly: Bool = false, followRedirects: Bool = true) async throws -> HTTPResult {
         guard let url = request.url, Self.valid(url, httpsOnly: httpsOnly), limit > 0 else { throw WeBoxError("请求地址或响应上限无效") }
         let cancellation = TransferCancellation()
         return try await withTaskCancellationHandler {
@@ -40,7 +64,8 @@ final class HTTPClient: NSObject, @unchecked Sendable {
                 lock.lock()
                 if stopped { lock.unlock(); continuation.resume(throwing: CancellationError()); return }
                 let task = session.dataTask(with: request)
-                transfers[task.taskIdentifier] = Transfer(continuation: continuation, limit: limit, httpsOnly: httpsOnly)
+                transfers[task.taskIdentifier] = Transfer(continuation: continuation, limit: limit, httpsOnly: httpsOnly,
+                                                             followRedirects: self.followRedirects && followRedirects)
                 lock.unlock()
                 cancellation.install(task); task.resume()
             }
@@ -80,24 +105,53 @@ final class HTTPClient: NSObject, @unchecked Sendable {
             transfer.continuation.resume(throwing: HTTPNetworkError(
                 code: error.code, host: host, cellularDenied: cellularDenied,
                 canUseAlternateDNS: !cellularDenied && !transfer.redirected && transfer.response == nil &&
-                    task.countOfBytesSent == 0 && host?.lowercased() == task.originalRequest?.url?.host?.lowercased()
+                    task.countOfBytesSent == 0 && transfer.trace?.sent != true &&
+                    host?.lowercased() == task.originalRequest?.url?.host?.lowercased(),
+                trace: transfer.trace
             ))
         } else if let error {
             transfer.continuation.resume(throwing: error)
         } else if let response = transfer.response {
-            transfer.continuation.resume(returning: HTTPResult(data: transfer.data, response: response))
+            transfer.continuation.resume(returning: HTTPResult(data: transfer.data, response: response, trace: transfer.trace))
         } else {
             transfer.continuation.resume(throwing: WeBoxError("服务器没有返回响应"))
         }
     }
     fileprivate func redirect(_ task: URLSessionTask, _ request: URLRequest, _ completion: @escaping (URLRequest?) -> Void) {
         lock.lock()
-        let httpsOnly = transfers[task.taskIdentifier]?.httpsOnly ?? true
+        let transfer = transfers[task.taskIdentifier]
         transfers[task.taskIdentifier]?.redirected = true
         lock.unlock()
-        guard followRedirects else { completion(nil); return }
-        completion(request.url.flatMap { Self.valid($0, httpsOnly: httpsOnly) ? request : nil })
+        guard let transfer, transfer.followRedirects,
+              let url = request.url, Self.valid(url, httpsOnly: transfer.httpsOnly) else { completion(nil); return }
+        var next = request
+        if let previous = task.currentRequest?.url, previous.host != url.host ||
+            previous.scheme != url.scheme || Self.port(previous) != Self.port(url) {
+            for header in ["Authorization", "Cookie", "Proxy-Authorization"] {
+                next.setValue(nil, forHTTPHeaderField: header)
+            }
+        }
+        completion(next)
     }
+
+    private static func port(_ url: URL) -> Int { url.port ?? (url.scheme == "https" ? 443 : 80) }
+
+    fileprivate func metrics(_ task: URLSessionTask, _ metrics: URLSessionTaskMetrics) {
+        let transactions = metrics.transactionMetrics
+        var trace = HTTPTrace()
+        trace.protocolName = transactions.last?.networkProtocolName
+        trace.dns = transactions.contains { $0.domainLookupStartDate != nil }
+        trace.connected = transactions.contains { $0.connectEndDate != nil }
+        trace.tls = transactions.contains { $0.secureConnectionEndDate != nil }
+        trace.sent = transactions.contains { $0.countOfRequestHeaderBytesSent > 0 || $0.countOfRequestBodyBytesSent > 0 }
+        trace.received = transactions.contains { $0.responseStartDate != nil }
+        trace.proxy = transactions.contains { $0.isProxyConnection }
+        trace.redirects = metrics.redirectCount
+        lock.lock()
+        transfers[task.taskIdentifier]?.trace = trace
+        lock.unlock()
+    }
+
 }
 private final class TransferCancellation: @unchecked Sendable {
     private let lock = NSLock()
@@ -111,6 +165,7 @@ private final class HTTPDelegate: NSObject, URLSessionDataDelegate, @unchecked S
     init(_ owner: HTTPClient) { self.owner = owner }
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) { owner?.response(dataTask, response, completionHandler) ?? completionHandler(.cancel) }
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) { owner?.data(dataTask, data) }
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) { owner?.metrics(task, metrics) }
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) { owner?.complete(task, error) }
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { owner?.redirect(task, request, completionHandler) ?? completionHandler(nil) }
 }

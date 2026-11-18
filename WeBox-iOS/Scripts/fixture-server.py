@@ -40,9 +40,24 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 outputfile.write(block); remaining -= len(block)
         except (BrokenPipeError, ConnectionResetError): pass
 class TransportFixture(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/redirect-test":
+            self.send_response(302)
+            self.send_header("Location", "/redirect-target")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        elif self.path == "/redirect-target":
+            body = b"redirect followed"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        else:
+            self.send_error(404)
+
     def do_POST(self):
         expected_host = "webox-transport.test:8766"
-        if self.path != "/register?signature=a%2Bb" or self.headers.get("Host") != expected_host:
+        if self.path not in ("/register?signature=a%2Bb", "/register?signature=a%2Bb&extra=a%2Bb%20c") or self.headers.get("Host") != expected_host:
             self.send_error(400, "Wrong host or target")
             return
         size = int(self.headers.get("Content-Length", "0"))

@@ -168,10 +168,11 @@ struct CatalogView: View {
                                 if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                             }
                         } else {
-                            if failure.isResolutionFailure && !app.encryptedDNS && app.sourceHTTPSProxy == nil {
+                            if failure.isResolutionFailure && !app.encryptedDNS && app.sourceHTTPSProxy == nil && !app.useSurgeVIF {
                                 Button("用备用 DNS 重试") { app.setEncryptedDNS(true) }
                             }
                             NavigationLink("设置源网络线路") { SourceNetworkSettingsView() }
+                            NavigationLink("查看请求日志") { SourceRequestLogView() }
                         }
                     }
                 }

@@ -20,7 +20,7 @@ async function engine(filename){
   if(r.args.url.includes('search/result'))data='{"searchList":[{"video_data":{"series_id":7470092475068071998,"series_name":"测试短剧","episode_cnt":24}}],"hasMore":true}';
   else if(r.args.url.startsWith('https://webox-transport.test:8766/')){
    assert.equal(r.args.url,'https://webox-transport.test:8766/register?signature=a%2Bb');
-   assert.equal(r.args.method,'POST');assert.equal(r.args.bodyBase64,'AP94Kz0=');assert.equal(r.args.base64Data,true);data=r.args.bodyBase64;
+   assert.equal(r.args.method,'POST');assert.equal(r.args.params.extra,'a+b c');assert.equal(r.args.bodyBase64,'AP94Kz0=');assert.equal(r.args.base64Data,true);data=r.args.bodyBase64;
   }
   else data='<script>window._ROUTER_DATA={"loaderData":{"player_(series_id)/page":{"seriesDetail":{"series_id":"7470092475068071998","series_name":"测试短剧","vid_list":["11","22"]}}}}</script>';
   queueMicrotask(()=>context.__reply(r.id,{ok:true,value:{statusCode:200,data,headers:{},url:r.args.url}}));

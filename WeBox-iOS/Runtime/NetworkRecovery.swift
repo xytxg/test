@@ -6,6 +6,7 @@ struct HTTPNetworkError: LocalizedError {
     let cellularDenied: Bool
     var canUseAlternateDNS = false
     var recoveryResult: String? = nil
+    var trace: HTTPTrace? = nil
 
     var isResolutionFailure: Bool {
         code == .cannotFindHost || code == .dnsLookupFailed
@@ -19,6 +20,7 @@ struct HTTPNetworkError: LocalizedError {
             reason = "域名解析失败。请检查当前网络的 DNS 或代理设置。"
         } else {
             switch code {
+            case .badURL: reason = "iOS 未能建立此 URL 请求。请查看请求日志中的线路和代理握手结果。"
             case .notConnectedToInternet: reason = "当前没有可用网络。"
             case .timedOut: reason = "网络请求超时。"
             case .cannotConnectToHost: reason = "无法连接到服务器。"

@@ -31,7 +31,7 @@ enum SDKCrypto {
         default: throw WeBoxError("未支持的加密方法：" + method)
         }
     }
-    static func gunzip(_ input: Data) throws -> Data {
+    static func gunzip(_ input: Data, limit: Int = 524288) throws -> Data {
         var stream = z_stream()
         guard inflateInit2_(&stream, 47, ZLIB_VERSION, Int32(MemoryLayout<z_stream>.size)) == Z_OK else { throw WeBoxError("解压初始化失败") }
         defer { inflateEnd(&stream) }
@@ -47,7 +47,7 @@ enum SDKCrypto {
                 }
                 guard status == Z_OK || status == Z_STREAM_END else { throw WeBoxError("压缩脚本无效") }
                 output.append(contentsOf: block.prefix(32768 - Int(stream.avail_out)))
-                guard output.count <= 524288 else { throw WeBoxError("解压脚本过大") }
+                guard output.count <= limit else { throw WeBoxError("解压内容超过大小上限") }
             } while status != Z_STREAM_END
         }; return output
     }

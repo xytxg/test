@@ -13,6 +13,7 @@ actor InvocationGate {
 final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigationDelegate {
     private(set) var webView: WKWebView!
     private var continuations: [String: CheckedContinuation<Any, Error>] = [:]
+    private var operationNames: [String: String] = [:]
     private var timers: [String: Task<Void, Never>] = [:]
     private var network: [String: Task<Void, Never>] = [:]
     private var networkFailures: [String: [HTTPNetworkError]] = [:]
@@ -25,10 +26,14 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     private var closed = false
     private let client: HTTPClient
     private let proxyClient: HTTPClient?
+    private let sourceProxy: SourceHTTPSProxy?
+    private let useSurgeVIF: Bool
     private let gate = InvocationGate()
-    init(namespace: String, client: HTTPClient = HTTPClient(), sourceProxy: SourceHTTPSProxy? = nil) {
+    init(namespace: String, client: HTTPClient = HTTPClient(), sourceProxy: SourceHTTPSProxy? = nil, useSurgeVIF: Bool = false) {
         self.namespace = namespace; self.client = client
+        self.sourceProxy = sourceProxy
         self.proxyClient = sourceProxy?.makeClient()
+        self.useSurgeVIF = useSurgeVIF
         super.init()
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
@@ -42,7 +47,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         for task in network.values { task.cancel() }; network.removeAll(); networkFailures.removeAll()
         for task in timers.values { task.cancel() }; timers.removeAll(); loadTimer?.cancel(); evaluationTimer?.cancel()
         evaluationContinuation?.resume(throwing: CancellationError()); evaluationContinuation = nil
-        let pending = Array(continuations.values); continuations.removeAll()
+        let pending = Array(continuations.values); continuations.removeAll(); operationNames.removeAll()
         for continuation in pending { continuation.resume(throwing: CancellationError()) }
         loadContinuation?.resume(throwing: CancellationError()); loadContinuation = nil
         let view = webView; webView = nil
@@ -106,6 +111,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 continuations[id] = continuation
+                operationNames[id] = method
                 timers[id] = Task { [weak self] in
                     do { try await Task.sleep(for: .seconds(75)) } catch { return }
                     self?.cancel(id, error: WeBoxError("源请求超过 75 秒，请重试或切换源"))
@@ -127,6 +133,7 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
     private func finish(_ id: String, result: Result<Any, Error>) {
         timers.removeValue(forKey: id)?.cancel()
         networkFailures.removeValue(forKey: id)
+        operationNames.removeValue(forKey: id)
         for (key, task) in network where key.hasPrefix(id + ":") { task.cancel() }
         guard let continuation = continuations.removeValue(forKey: id) else { return }; continuation.resume(with: result)
     }
@@ -210,40 +217,116 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
         guard body["method"] as? String == "request" else { throw WeBoxError("源使用了尚未支持的异步接口") }
         let p = body["args"] as? [String: Any] ?? [:]
         guard let raw = p["url"] as? String, var components = URLComponents(string: raw) else { throw WeBoxError("请求 URL 无效") }
-        if let query = p["params"] as? [String: Any] { components.queryItems = (components.queryItems ?? []) + query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: String(describing: $0.value)) } }
+        if let query = p["params"] as? [String: Any], !query.isEmpty {
+            // Append without decoding and re-encoding the existing (possibly signed) query.
+            let encoded = query.keys.sorted().map { name in
+                Self.queryEncode(name) + "=" + Self.queryEncode(Self.queryString(query[name] ?? NSNull()))
+            }.joined(separator: "&")
+            let original = components.percentEncodedQuery ?? ""
+            components.percentEncodedQuery = original.isEmpty ? encoded : original + "&" + encoded
+        }
         guard let url = components.url else { throw WeBoxError("请求 URL 无效") }
         var request = URLRequest(url: url, timeoutInterval: min(60,max(1,p["timeout"] as? Double ?? 18)))
-        request.httpMethod = p["method"] as? String ?? "GET"
+        let method = (p["method"] as? String ?? "GET").uppercased()
+        guard ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"].contains(method) else {
+            throw WeBoxError("源请求使用了不支持的 HTTP 方法")
+        }
+        request.httpMethod = method
         for (name,value) in p["headers"] as? [String:String] ?? [:] { guard !name.contains("\n"),!value.contains("\r"),!value.contains("\n") else { throw WeBoxError("请求头格式无效") }; request.setValue(value, forHTTPHeaderField: name) }
         if let body = p["bodyBase64"] as? String { request.httpBody = try SourceCrypto.decode(body, "base64") }
         else if let text = p["data"] as? String { request.httpBody = Data(text.utf8) }
         else if let data = p["data"], !(data is NSNull) { request.httpBody = try JSONSerialization.data(withJSONObject: data) }
         let limit = min(8_388_608, max(1, p["maxResponseBytes"] as? Int ?? 4_194_304))
         let httpsOnly = !permitsHTTP || p["httpsOnly"] as? Bool == true
-        let result = try await fetchSource(request, limit: limit, httpsOnly: httpsOnly)
+        if method == "GET" || method == "HEAD" { request.httpBody = nil }
+        let operation = operationNames[body["operation"] as? String ?? ""] ?? "source"
+        let log = SourceRequestLog.shared
+        let ticket = log.begin(request, operation: operation)
+        let started = ContinuousClock.now
+        let result: HTTPResult
+        do {
+            result = try await fetchSource(request, limit: limit, httpsOnly: httpsOnly,
+                                           redirects: p["allow_redirects"] as? Bool != false, ticket: ticket)
+            let elapsed = started.duration(to: .now).components
+            let milliseconds = elapsed.seconds * 1000 + elapsed.attoseconds / 1_000_000_000_000_000
+            let stages = result.trace?.summary ?? ""
+            let finalHost = result.response.url?.host
+            let destination = finalHost != request.url?.host ? finalHost.map { " → " + $0 } ?? "" : ""
+            log.append(ticket, "HTTP \(result.response.statusCode)\(destination) · \(milliseconds) ms" + (stages.isEmpty ? "" : " · " + stages))
+        } catch {
+            if let network = error as? HTTPNetworkError {
+                let stages = network.trace?.summary ?? ""
+                let stageText = stages.isEmpty ? "系统未返回阶段信息" : stages
+                log.append(ticket, "iOS \(network.code.rawValue) · " + stageText)
+                if let detail = network.recoveryResult { log.append(ticket, detail) }
+            } else if Task.isCancelled || (error as? URLError)?.code == .cancelled {
+                log.append(ticket, "已取消")
+            } else {
+                log.append(ticket, "请求未完成")
+            }
+            throw error
+        }
+        let data = p["zlibMode"] as? Bool == true && result.data.starts(with: [0x1f, 0x8b])
+            ? try SDKCrypto.gunzip(result.data, limit: limit) : result.data
         let value: Any
-        if p["base64Data"] as? Bool == true { value = result.data.base64EncodedString() }
-        else if p["decodable"] as? Bool != false, let json = try? JSONSerialization.jsonObject(with: result.data) { value = json }
-        else { value = String(data: result.data, encoding: .utf8) ?? String(data: result.data, encoding: .isoLatin1) ?? "" }
+        if p["base64Data"] as? Bool == true { value = data.base64EncodedString() }
+        else if p["decodable"] as? Bool != false, let json = try? JSONSerialization.jsonObject(with: data) { value = json }
+        else { value = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) ?? "" }
         var headers: [String:String] = [:]; for (key,value) in result.response.allHeaderFields { headers[String(describing: key).lowercased()] = String(describing: value) }
         return ["statusCode":result.response.statusCode,"headers":headers,"data":value,"url":result.response.url?.absoluteString ?? raw]
     }
 
-    private func fetchSource(_ request: URLRequest, limit: Int, httpsOnly: Bool) async throws -> HTTPResult {
-        if let proxyClient, request.url?.scheme == "https" {
+    private static func queryEncode(_ text: String) -> String {
+        let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
+        return text.addingPercentEncoding(withAllowedCharacters: allowed) ?? ""
+    }
+
+    private static func queryString(_ value: Any) -> String {
+        if let string = value as? String { return string }
+        if value is NSNull { return "" }
+        if let json = try? Self.json(value) { return json }
+        return ""
+    }
+
+    private func fetchSource(_ request: URLRequest, limit: Int, httpsOnly: Bool,
+                             redirects: Bool, ticket: String) async throws -> HTTPResult {
+        let log = SourceRequestLog.shared
+        if let proxyClient, let sourceProxy, let url = request.url, url.scheme == "https" {
+            log.append(ticket, sourceProxy.routeName)
             do {
-                return try await proxyClient.fetch(request, limit: limit, httpsOnly: true)
+                return try await proxyClient.fetch(request, limit: limit, httpsOnly: true, followRedirects: redirects)
             } catch var error as HTTPNetworkError {
-                error.recoveryResult = "当前线路为手动源代理。请检查代理是否可用。"
+                if [.badURL, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost, .timedOut, .userAuthenticationRequired].contains(error.code) {
+                    error.recoveryResult = await sourceProxy.diagnose(target: url)
+                    try Task.checkCancellation()
+                } else {
+                    error.recoveryResult = "当前线路为" + sourceProxy.routeName + "。"
+                }
                 throw error
             }
         }
+        if useSurgeVIF, request.url?.scheme == "https", let host = request.url?.host {
+            log.append(ticket, "Surge VPN 接管 · 查询虚拟地址")
+            let addresses: [NWEndpoint.Host]
+            do {
+                addresses = try await SurgeVIFDNS.resolve(host)
+            } catch {
+                try Task.checkCancellation()
+                throw HTTPNetworkError(code: .dnsLookupFailed, host: host, cellularDenied: false,
+                                       recoveryResult: "Surge 未返回虚拟地址。请确认 Surge VPN 正在运行。")
+            }
+            log.append(ticket, "Surge DNS 返回 \(addresses.count) 个虚拟地址")
+            return try await connectResolved(request, limit: limit, addresses: addresses, host: host)
+        }
+
+        log.append(ticket, "系统线路")
         do {
-            return try await client.fetch(request, limit: limit, httpsOnly: httpsOnly)
+            return try await client.fetch(request, limit: limit, httpsOnly: httpsOnly, followRedirects: redirects)
         } catch var failure as HTTPNetworkError {
             guard failure.isResolutionFailure, failure.canUseAlternateDNS,
                   UserDefaults.standard.bool(forKey: AlternateDNS.preferenceKey),
                   request.url?.scheme == "https", let host = request.url?.host else { throw failure }
+            log.append(ticket, "系统解析失败（\(failure.code.rawValue)），查询备用 DNS")
             let addresses: [NWEndpoint.Host]
             do {
                 addresses = try await AlternateDNS.resolve(host)
@@ -252,13 +335,18 @@ final class SourceRuntime: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNav
                 failure.recoveryResult = "备用 DNS 查询失败。"
                 throw failure
             }
-            do {
-                return try await AlternateDNS.fetch(request, limit: limit, addresses: addresses)
-            } catch {
-                try Task.checkCancellation()
-                failure.recoveryResult = error.localizedDescription
-                throw failure
-            }
+            log.append(ticket, "备用 DNS 返回 \(addresses.count) 个地址")
+            return try await connectResolved(request, limit: limit, addresses: addresses, host: host)
+        }
+    }
+
+    private func connectResolved(_ request: URLRequest, limit: Int, addresses: [NWEndpoint.Host],
+                                 host: String) async throws -> HTTPResult {
+        do {
+            return try await AlternateDNS.fetch(request, limit: limit, addresses: addresses)
+        } catch let error as ResolvedConnectionError {
+            throw HTTPNetworkError(code: error.code, host: host, cellularDenied: error.cellularDenied,
+                                   recoveryResult: error.phase, trace: error.trace)
         }
     }
 

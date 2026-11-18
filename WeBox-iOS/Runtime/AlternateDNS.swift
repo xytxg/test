@@ -1,6 +1,14 @@
 import Foundation
 import Network
 
+struct ResolvedConnectionError: LocalizedError {
+    let code: URLError.Code
+    let phase: String
+    let trace: HTTPTrace?
+    var cellularDenied = false
+    var errorDescription: String? { phase + "（iOS \(code.rawValue)）" }
+}
+
 enum AlternateDNS {
     // Retain the setting for users who enabled encrypted DNS in 0.2.1.
     static let preferenceKey = "webox.encryptedDNS"
@@ -107,8 +115,10 @@ enum AlternateDNS {
         } catch {
             try Task.checkCancellation()
             let detail = await tunnel.failureDescription()
-            let code = (error as? HTTPNetworkError).map { "（iOS \($0.code.rawValue)）" } ?? ""
-            throw WeBoxError("备用连接：" + detail + code)
+            let network = error as? HTTPNetworkError
+            throw ResolvedConnectionError(code: network?.code ?? .cannotConnectToHost,
+                                          phase: "备用连接：" + detail, trace: network?.trace,
+                                          cellularDenied: network?.cellularDenied ?? false)
         }
     }
 }

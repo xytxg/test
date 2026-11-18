@@ -100,6 +100,7 @@ final class AppModel: ObservableObject {
     @Published var importOwner: UUID?
     @Published var sourceRevision = 0
     @Published private(set) var encryptedDNS = false
+    @Published private(set) var useSurgeVIF = false
     @Published private(set) var sourceHTTPSProxy: SourceHTTPSProxy?
     @Published var preferences: PlayerPreferences { didSet { UserDefaults.standard.set(try? JSONEncoder().encode(preferences), forKey: "webox.player.preferences") } }
     let playback = PlaybackController()
@@ -126,6 +127,7 @@ final class AppModel: ObservableObject {
         playback.onProgress = { [weak self] context, seconds, duration in self?.record(context, seconds: seconds, duration: duration) }
         encryptedDNS = defaults.bool(forKey: AlternateDNS.preferenceKey)
         sourceHTTPSProxy = defaults.string(forKey: SourceHTTPSProxy.preferenceKey).flatMap { try? SourceHTTPSProxy($0) }
+        useSurgeVIF = defaults.bool(forKey: "webox.useSurgeVIF") && sourceHTTPSProxy == nil
         persist()
     }
     func setEncryptedDNS(_ enabled: Bool) {
@@ -133,10 +135,24 @@ final class AppModel: ObservableObject {
         defaults.set(enabled, forKey: AlternateDNS.preferenceKey)
         encryptedDNS = enabled
     }
+    func setSurgeVIF(_ enabled: Bool) {
+        guard enabled != useSurgeVIF || (enabled && sourceHTTPSProxy != nil) else { return }
+        if enabled {
+            defaults.removeObject(forKey: SourceHTTPSProxy.preferenceKey)
+            sourceHTTPSProxy = nil
+        }
+        defaults.set(enabled, forKey: "webox.useSurgeVIF")
+        useSurgeVIF = enabled
+        sourceRevision += 1
+    }
     func setSourceProxy(_ input: String) throws {
         let proxy = input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? nil : try SourceHTTPSProxy(input)
         guard proxy != sourceHTTPSProxy else { return }
+        if proxy != nil {
+            defaults.set(false, forKey: "webox.useSurgeVIF")
+            useSurgeVIF = false
+        }
         defaults.set(proxy?.address, forKey: SourceHTTPSProxy.preferenceKey)
         sourceHTTPSProxy = proxy
         sourceRevision += 1
@@ -204,7 +220,7 @@ final class AppModel: ObservableObject {
         }
     }
     func makeRuntime(_ source: SourceEntry) async throws -> SourceRuntime {
-        let runtime = SourceRuntime(namespace: source.id, sourceProxy: sourceHTTPSProxy)
+        let runtime = SourceRuntime(namespace: source.id, sourceProxy: sourceHTTPSProxy, useSurgeVIF: useSurgeVIF)
         do {
             let script = try String(contentsOf: root.appendingPathComponent(source.filename), encoding: .utf8)
             _ = try await runtime.load(script: script, settings: configuration(source).mapValues(\.any), hint: source.fingerprint ?? source.id)
@@ -238,7 +254,7 @@ final class AppModel: ObservableObject {
     }
     @discardableResult func install(_ data: Data, origin: String?) async throws -> (SourceEntry, Bool) {
         let document = try ScriptDocument(data: data)
-        let candidate = SourceRuntime(namespace: "validation-" + UUID().uuidString, sourceProxy: sourceHTTPSProxy)
+        let candidate = SourceRuntime(namespace: "validation-" + UUID().uuidString, sourceProxy: sourceHTTPSProxy, useSurgeVIF: useSurgeVIF)
         defer { candidate.close() }
         let raw = try await candidate.load(script: document.text, hint: document.fingerprint)
         let manifest = try JSONDecoder().decode(SourceManifest.self, from: JSONSerialization.data(withJSONObject: raw))
