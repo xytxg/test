@@ -81,6 +81,7 @@ final class WeBoxTests:XCTestCase{
         } catch let error as HTTPNetworkError {
             XCTAssertEqual(error.code, .cannotFindHost)
             XCTAssertEqual(error.host, "source.test")
+            XCTAssertTrue(error.canUseAlternateDNS, "An unsent DNS failure should qualify for alternate resolution")
             XCTAssertTrue(error.localizedDescription.contains("域名解析失败"))
             XCTAssertFalse(error.localizedDescription.contains("redact-me"))
         }

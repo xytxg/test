@@ -1,6 +1,20 @@
 import Foundation
 
 enum ScreenshotSupport {
+    @MainActor
+    static func makeAppModel() -> AppModel {
+        #if DEBUG
+        if importTestDirectory != nil {
+            let run = UUID().uuidString
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent("import-ui-" + run, isDirectory: true)
+            if let defaults = UserDefaults(suiteName: "webox.import-ui." + run) {
+                return AppModel(root: root, defaults: defaults)
+            }
+        }
+        #endif
+        return AppModel()
+    }
+
     static var importTestDirectory: URL? {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--import-test-document") {

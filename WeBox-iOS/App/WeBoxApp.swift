@@ -3,7 +3,7 @@ import AVFoundation
 
 @main
 struct WeBoxApp: App {
-    @StateObject private var app=AppModel()
+    @StateObject private var app = ScreenshotSupport.makeAppModel()
     @Environment(\.scenePhase) private var scenePhase
     init(){try? AVAudioSession.sharedInstance().setCategory(.playback,mode:.moviePlayback);ScreenshotSupport.prepareImportTestFiles()}
     var body:some Scene{

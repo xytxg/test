@@ -12,6 +12,14 @@ final class LocalImportUITests: XCTestCase {
         app.buttons["添加内容源"].tap()
         XCTAssertTrue(app.buttons["import-local-js"].waitForExistence(timeout: 10))
         app.buttons["import-local-js"].tap()
+        let cancel = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 25), app.debugDescription)
+        cancel.tap()
+        let importButton = app.buttons["import-local-js"]
+        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: importButton)
+        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 20), .completed)
+        XCTAssertFalse(app.buttons["清除导入结果"].exists)
+        importButton.tap()
         try choose("Local-UTF16.webox.js", app: app)
         XCTAssertTrue(app.staticTexts["已添加到内容源"].waitForExistence(timeout: 35), app.debugDescription)
         app.buttons["清除导入结果"].tap()
@@ -23,12 +31,6 @@ final class LocalImportUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "下载到的是网页")).firstMatch.waitForExistence(timeout: 20), app.debugDescription)
         let screenshot = XCTAttachment(screenshot: app.screenshot()); screenshot.name = "local-import-visible-error"; screenshot.lifetime = .keepAlways; add(screenshot)
         app.buttons["清除导入结果"].tap()
-        app.buttons["import-local-js"].tap()
-        let cancel = app.buttons["Cancel"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 10), app.debugDescription)
-        cancel.tap()
-        XCTAssertTrue(app.buttons["import-local-js"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.buttons["清除导入结果"].exists)
     }
 
     @MainActor private func choose(_ filename: String, app: XCUIApplication) throws {
@@ -51,8 +53,8 @@ final class LocalImportUITests: XCTestCase {
         }
         XCTAssertTrue(file.waitForExistence(timeout: 15), app.debugDescription)
         tapThumbnail(file, in: files)
-        let open = app.buttons["Open"].firstMatch
-        if open.exists { open.tap() }
+        // The import actions open the single-selection picker, which dismisses
+        // when a file is selected. Avoid querying a disappearing Open button.
     }
 
     @MainActor private func tapThumbnail(_ cell: XCUIElement, in files: XCUIElement) {
