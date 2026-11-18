@@ -1,0 +1,1086 @@
+diff --git a/.github/workflows/publish-existing.yml b/.github/workflows/publish-existing.yml
+index 92492f0..6325fee 100644
+--- a/.github/workflows/publish-existing.yml
++++ b/.github/workflows/publish-existing.yml
+@@ -87,7 +87,7 @@ jobs:
+           with zipfile.ZipFile(ipa) as archive:
+               assert archive.testzip() is None
+               info = plistlib.loads(archive.read('Payload/STV.app/Info.plist'))
+-              assert info['CFBundleIdentifier'] == 'com.local.STV'
++              assert info['CFBundleIdentifier'] == 'com.xylyra.iduanju'
+               assert 'iPhoneOS' in info['CFBundleSupportedPlatforms']
+               assert archive.getinfo('Payload/STV.app/STV').file_size > 0
+           version, build = info['CFBundleShortVersionString'], info['CFBundleVersion']
+diff --git a/.github/workflows/publish-ios.yml b/.github/workflows/publish-ios.yml
+index b9ffe6a..61c4ece 100644
+--- a/.github/workflows/publish-ios.yml
++++ b/.github/workflows/publish-ios.yml
+@@ -55,7 +55,7 @@ jobs:
+           with zipfile.ZipFile(ipa) as archive:
+               assert archive.testzip() is None, 'Corrupt IPA'
+               info = plistlib.loads(archive.read('Payload/STV.app/Info.plist'))
+-              assert info['CFBundleIdentifier'] == 'com.local.STV'
++              assert info['CFBundleIdentifier'] == 'com.xylyra.iduanju'
+               assert info['CFBundleShortVersionString'] == version
+               assert info['CFBundleVersion'] == build
+               assert 'iPhoneOS' in info['CFBundleSupportedPlatforms']
+diff --git a/FORK-NOTICE.md b/FORK-NOTICE.md
+new file mode 100644
+index 0000000..ad3a90a
+--- /dev/null
++++ b/FORK-NOTICE.md
+@@ -0,0 +1,13 @@
++# i短剧 XY
++
++这是 iDuanJu 的修改版本。上游为 [my-name-is-alan/iDuanJu](https://github.com/my-name-is-alan/iDuanJu)，基于提交 [a13daac58a53](https://github.com/my-name-is-alan/iDuanJu/commit/a13daac58a53bf750befd7d0b25c4b1fa9e8bc63)。
++
++2026-11-18，xytxg 版本 1.5.1（15）修改了 iOS 导航、搜索、频道和详情控件、播放器及读者面板，启用原生 Liquid Glass，加入应用外观选项，并修正分页任务取消和重复游标处理。iOS 显示名、版本和应用标识已更新。
++
++本项目按 [GNU GPL v3](LICENSE) 提供完整修改后的源码，保留上游及其贡献者的版权与署名。第三方依赖与素材的许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 和各组件的许可文件。此版本免费分发。
++
++## iOS 构建
++
++使用 Xcode 27 与 XcodeGen。在本目录运行 `xcodegen generate`，打开 `STV.xcodeproj`，选择 STV scheme。SwiftPM 依赖在 [project.yml](project.yml) 声明。按 [scripts/package.sh](scripts/package.sh) 可在 Mac 上构建未签名包。
++
++`com.xylyra.iduanju` 使用自己的本机数据容器，可与上游应用分别安装。
+diff --git a/README.md b/README.md
+index 63ebb79..43ad4ef 100644
+--- a/README.md
++++ b/README.md
+@@ -26,3 +26,7 @@
+ [GPL-3.0](LICENSE)。第三方组件及其许可见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+ 
+ **禁止付费分发**：本项目是免费软件，作者不授权任何人以收费方式出售、分发本 App 或其代码。任何衍生作品都必须以 GPL-3.0 公开源代码。
++
++## i短剧 XY 二改
++
++此目录是 xytxg 的免费修改版。“关于”和本文的版本号适用于本目录。上游提交、修改日期、构建步骤与许可见 [FORK-NOTICE.md](FORK-NOTICE.md)。
+diff --git a/STV/Manga/MangaViews.swift b/STV/Manga/MangaViews.swift
+index 6ff4618..8fd3d73 100644
+--- a/STV/Manga/MangaViews.swift
++++ b/STV/Manga/MangaViews.swift
+@@ -360,7 +360,7 @@ struct MangaReaderView: View {
+     private var overlay: some View {
+         VStack {
+             HStack(spacing: 12) {
+-                Button { dismiss() } label: { Image(systemName: "chevron.down").font(.headline).padding(10).background(.ultraThinMaterial, in: Circle()) }
++                Button { dismiss() } label: { Image(systemName: "chevron.down").font(.headline).padding(10).stvGlass(in: Circle(), tint: .black.opacity(0.34), backing: Color(white: 0.14), interactive: true) }
+                     .accessibilityIdentifier("manga.close").accessibilityLabel("关闭")
+                 VStack(alignment: .leading, spacing: 2) {
+                     Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+@@ -368,7 +368,7 @@ struct MangaReaderView: View {
+                 }
+                 Spacer()
+                 Button { vertical.toggle() } label: {
+-                    Image(systemName: vertical ? "rectangle.split.1x2" : "rectangle.split.2x1").font(.headline).padding(10).background(.ultraThinMaterial, in: Circle())
++                    Image(systemName: vertical ? "rectangle.split.1x2" : "rectangle.split.2x1").font(.headline).padding(10).stvGlass(in: Circle(), tint: .black.opacity(0.34), backing: Color(white: 0.14), interactive: true)
+                 }.accessibilityIdentifier("manga.mode").accessibilityLabel(vertical ? "切换为左右翻页" : "切换为上下滚动")
+             }.foregroundStyle(.white).padding(.horizontal, 14)
+             Spacer()
+@@ -381,7 +381,7 @@ struct MangaReaderView: View {
+                 Button { if index + 1 < chapters.count { index += 1 } } label: { Image(systemName: "forward.end.fill") }.disabled(index + 1 >= chapters.count)
+             }
+             .foregroundStyle(.white).padding(.horizontal, 24).padding(.vertical, 12)
+-            .background(.ultraThinMaterial, in: Capsule()).padding(.horizontal, 30).padding(.bottom, 10)
++            .stvGlass(in: Capsule(), tint: .black.opacity(0.30), backing: Color(white: 0.14)).padding(.horizontal, 30).padding(.bottom, 10)
+         }
+     }
+ 
+diff --git a/STV/Novel/NovelReader.swift b/STV/Novel/NovelReader.swift
+index c8c0597..3b06a7d 100644
+--- a/STV/Novel/NovelReader.swift
++++ b/STV/Novel/NovelReader.swift
+@@ -369,15 +369,21 @@ struct NovelReaderView: View {
+             }
+             .foregroundStyle(pal.ink)
+             .padding(.horizontal, 6)
+-            .background(pal.bg.ignoresSafeArea(edges: .top))
++            .background {
++                Rectangle().fill(.clear).stvGlass(in: Rectangle(), tint: pal.bg.opacity(0.72), backing: pal.bg)
++                    .ignoresSafeArea(edges: .top).allowsHitTesting(false)
++            }
+             Color.clear.contentShape(Rectangle()).onTapGesture { hideMenu() }
+                 .overlay(alignment: .bottomTrailing) { if tab != .listen { listenButton.padding(.trailing, 16).padding(.bottom, 12) } }
+             VStack(spacing: 0) {
+                 if let tab { panel(tab).padding(.horizontal, 18).padding(.top, 18).padding(.bottom, 6) }
+                 toolbar
+             }
+-            .background(pal.panel.ignoresSafeArea(edges: .bottom))
+-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: tab == nil ? 0 : 16, topTrailingRadius: tab == nil ? 0 : 16))
++            .background {
++                let corners = UnevenRoundedRectangle(topLeadingRadius: tab == nil ? 0 : 16, topTrailingRadius: tab == nil ? 0 : 16)
++                corners.fill(.clear).stvGlass(in: corners, tint: pal.panel.opacity(0.80), backing: pal.panel)
++                    .ignoresSafeArea(edges: .bottom).allowsHitTesting(false)
++            }
+             .shadow(color: .black.opacity(tab == nil ? 0.04 : 0.10), radius: 8, y: -2)
+         }
+     }
+diff --git a/STV/STVApp.swift b/STV/STVApp.swift
+index 0a7c051..eceaa72 100644
+--- a/STV/STVApp.swift
++++ b/STV/STVApp.swift
+@@ -3,6 +3,7 @@ import SwiftUI
+ @main
+ struct STVApp: App {
+     @UIApplicationDelegateAdaptor(OrientationGate.self) private var orientation
++    @AppStorage("appearance") private var appearance = STVAppearance.system
+     init() {
+         CFSolver.install()
+         // Load plugin / 采集站 indexes before anything reads `Sites.all` or `SourceGate`.
+@@ -46,6 +47,7 @@ struct STVApp: App {
+                 }
+             }
+             .tint(STVTheme.accent)
++            .preferredColorScheme(appearance.colorScheme)
+             .task {
+                 await CFCookies.restoreFromWebKit()
+                 #if DEBUG
+diff --git a/STV/Views/Components.swift b/STV/Views/Components.swift
+index c98bf34..40eeb99 100644
+--- a/STV/Views/Components.swift
++++ b/STV/Views/Components.swift
+@@ -28,19 +28,28 @@ struct SearchField: View {
+             HStack(spacing: 8) {
+                 Image(systemName: "magnifyingglass").foregroundStyle(STVTheme.secondary)
+                 TextField(placeholder, text: $text)
+-                    .focused($focused).submitLabel(.search).onSubmit(onSubmit)
++                    .focused($focused).submitLabel(.search).onSubmit { focused = false; onSubmit() }
+                     .foregroundStyle(STVTheme.text)
+                 if !text.isEmpty {
+-                    Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(STVTheme.secondary) }
++                    Button { text = ""; focused = true } label: {
++                        Image(systemName: "xmark.circle.fill").foregroundStyle(STVTheme.secondary).frame(width: 44, height: 44)
++                    }
++                    .buttonStyle(.plain)
++                    .accessibilityLabel("清空搜索框")
+                 }
+             }
+             .font(.subheadline)
+-            .padding(.horizontal, 14).frame(height: 38)
+-            .background(STVTheme.elevated, in: Capsule())
++            .padding(.leading, 14).padding(.trailing, text.isEmpty ? 14 : 3).frame(minHeight: 46)
++            .stvGlass(in: Capsule(), tint: STVTheme.glass)
+             if let onCancel {
+                 Button("取消", action: onCancel).foregroundStyle(STVTheme.text).font(.subheadline)
+             } else {
+-                Button("搜索", action: onSubmit).foregroundStyle(STVTheme.text).font(.subheadline.weight(.semibold))
++                Button {
++                    focused = false
++                    onSubmit()
++                } label: { CapsuleLabel(title: "搜索") }
++                .buttonStyle(PressScale())
++                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+             }
+         }
+     }
+diff --git a/STV/Views/DesignKit.swift b/STV/Views/DesignKit.swift
+index f9470e2..750cd1d 100644
+--- a/STV/Views/DesignKit.swift
++++ b/STV/Views/DesignKit.swift
+@@ -58,17 +58,16 @@ extension View {
+     }
+     /// Floating glass bar (tab bar, sticky filter strip, play bar).
+     func dsBar(_ radius: CGFloat) -> some View {
+-        background(STVTheme.bar, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+-            .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(STVTheme.glassBorder, lineWidth: 1))
+-            .shadow(color: STVTheme.barShadow, radius: 15, y: 10)
++        stvGlass(in: RoundedRectangle(cornerRadius: radius, style: .continuous),
++                 tint: STVTheme.bar.opacity(0.30))
++            .shadow(color: STVTheme.barShadow.opacity(0.55), radius: 10, y: 5)
+     }
+     /// Pinned header: 80 % page colour over a blur, hairline under it.
+     func dsPinned(_ on: Bool) -> some View {
+         background {
+             ZStack(alignment: .bottom) {
+-                Rectangle().fill(.ultraThinMaterial)
+-                STVTheme.pin
++                Rectangle().fill(.clear)
++                    .stvGlass(in: Rectangle(), tint: STVTheme.pin.opacity(0.72), backing: STVTheme.bg)
+                 STVTheme.hairline.frame(height: 1)
+             }
+             .ignoresSafeArea(edges: .top)
+@@ -190,8 +189,7 @@ struct SegmentedTabs<T: Hashable>: View {
+         }
+         .padding(3)
+         .frame(height: 40)
+-        .background(STVTheme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(STVTheme.hairline, lineWidth: 1))
++        .stvGlass(in: RoundedRectangle(cornerRadius: 14, style: .continuous), tint: STVTheme.glass)
+     }
+ }
+ 
+@@ -215,17 +213,15 @@ private struct ToneChipBody<L: View>: View {
+     let pressed: Bool
+     @Environment(\.isEnabled) private var enabled
+     var body: some View {
+-        let fill: Color = on ? (neutral ? STVTheme.thumb : STVTheme.accentSoft) : (pressed ? STVTheme.glassBorder : STVTheme.glass)
++        let tint: Color = on ? (neutral ? STVTheme.thumb.opacity(0.50) : STVTheme.accent.opacity(0.22)) : STVTheme.glass
+         label
+             .font(.system(size: small ? 13 : 14, weight: on ? .semibold : .regular))
+             .foregroundStyle(on ? (neutral ? STVTheme.text : STVTheme.accent) : (pressed ? STVTheme.text : STVTheme.secondary))
+             .lineLimit(1)
+             .padding(.horizontal, small ? 12 : 14)
+             .frame(height: small ? 28 : 32)
+-            .background {
+-                Capsule().fill(fill).shadow(color: on && neutral ? STVTheme.shadowThumb : .clear, radius: 3, y: 1.5)
+-            }
+-            .overlay { Capsule().strokeBorder(on && !neutral ? STVTheme.accentLine : .clear, lineWidth: 1) }
++            .stvGlass(in: Capsule(), tint: tint, backing: on && !neutral ? STVTheme.elevated : STVTheme.surface,
++                      interactive: enabled)
+             .contentShape(Capsule())
+             .scaleEffect(pressed ? 0.97 : 1)
+             .opacity(enabled ? 1 : 0.38)
+@@ -260,16 +256,18 @@ struct ChipRow<T: Hashable>: View {
+     var body: some View {
+         ScrollViewReader { proxy in
+             ScrollView(.horizontal, showsIndicators: false) {
+-                HStack(spacing: 8) {
+-                    ForEach(items, id: \.self) { it in
+-                        Button { withAnimation(DS.select) { selection = it } } label: { Text(label(it)) }
+-                            .buttonStyle(ToneChipStyle(on: it == selection, neutral: neutral(it), small: small))
+-                            .id(it)
+-                            .accessibilityIdentifier("\(idPrefix).\(label(it))")
+-                            .accessibilityAddTraits(it == selection ? .isSelected : [])
++                STVGlassGroup(spacing: 7) {
++                    LazyHStack(spacing: 8) {
++                        ForEach(items, id: \.self) { it in
++                            Button { withAnimation(DS.select) { selection = it } } label: { Text(label(it)) }
++                                .buttonStyle(ToneChipStyle(on: it == selection, neutral: neutral(it), small: small))
++                                .id(it)
++                                .accessibilityIdentifier("\(idPrefix).\(label(it))")
++                                .accessibilityAddTraits(it == selection ? .isSelected : [])
++                        }
+                     }
++                    .padding(.leading, leading).padding(.trailing, 24)
+                 }
+-                .padding(.leading, leading).padding(.trailing, 24)
+             }
+             .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+             .mask { if fade { FadeMask() } else { Color.black } }
+@@ -300,9 +298,10 @@ struct RoundIconButton: View {
+             Image(systemName: systemName).font(.system(size: 16, weight: .semibold))
+                 .foregroundStyle(tone == .accent ? STVTheme.accent : tone == .overlay ? .white : STVTheme.text)
+                 .frame(width: size, height: size)
+-                .background(Circle().fill(tone == .accent ? STVTheme.accentSoft : tone == .overlay ? Color.black.opacity(0.30) : STVTheme.glass))
+-                .overlay(Circle().strokeBorder(tone == .accent ? .clear : tone == .overlay ? Color.white.opacity(0.16) : STVTheme.hairline, lineWidth: 1))
+-                .contentShape(Circle())
++                .stvGlass(in: Circle(), tint: tone == .accent ? STVTheme.accent.opacity(0.22) : tone == .overlay ? .black.opacity(0.45) : nil,
++                          backing: tone == .overlay ? Color(white: 0.10) : STVTheme.surface, interactive: true)
++                .frame(minWidth: 44, minHeight: 44)
++                .contentShape(Rectangle())
+         }
+         .buttonStyle(PressScale())
+     }
+@@ -320,8 +319,7 @@ struct CapsuleLabel: View {
+             if let trailingIcon { Image(systemName: trailingIcon).font(.system(size: 11, weight: .semibold)).foregroundStyle(STVTheme.secondary) }
+         }
+         .padding(.horizontal, 14).frame(height: 36)
+-        .background(Capsule().fill(STVTheme.glass))
+-        .overlay(Capsule().strokeBorder(STVTheme.hairline, lineWidth: 1))
++        .stvGlass(in: Capsule(), tint: STVTheme.glass, interactive: true)
+         .contentShape(Capsule())
+     }
+ }
+@@ -345,7 +343,10 @@ struct PillButtonLabel: View {
+         .padding(.horizontal, small ? 14 : 22)
+         .frame(maxWidth: expand ? .infinity : nil)
+         .frame(height: h)
+-        .background(Capsule().fill(tone == .accent ? STVTheme.accent : tone == .ink ? STVTheme.text : Color.white))
++        .stvGlass(in: Capsule(),
++                  tint: tone == .accent ? STVTheme.accent.opacity(0.88) : tone == .ink ? STVTheme.text.opacity(0.88) : .white.opacity(0.88),
++                  backing: tone == .accent ? STVTheme.accent : tone == .ink ? STVTheme.text : .white,
++                  interactive: true)
+         .contentShape(Capsule())
+     }
+ }
+@@ -353,11 +354,12 @@ struct PillButtonLabel: View {
+ /// Scales to 0.97 while pressed (spec "按下").
+ struct PressScale: ButtonStyle {
+     var scale: CGFloat = 0.96
++    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+     func makeBody(configuration: Configuration) -> some View {
+         configuration.label
+-            .scaleEffect(configuration.isPressed ? scale : 1)
++            .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
+             .opacity(configuration.isPressed ? 0.85 : 1)
+-            .animation(DS.press, value: configuration.isPressed)
++            .animation(reduceMotion ? nil : DS.press, value: configuration.isPressed)
+     }
+ }
+ 
+diff --git a/STV/Views/DramaDetailView.swift b/STV/Views/DramaDetailView.swift
+index 912bfd8..bbdc92a 100644
+--- a/STV/Views/DramaDetailView.swift
++++ b/STV/Views/DramaDetailView.swift
+@@ -148,13 +148,13 @@ struct DramaDetailView: View {
+                 .foregroundStyle(on ? STVTheme.accent : STVTheme.text)
+                 .contentTransition(.symbolEffect(.replace))
+                 .frame(width: size, height: size)
+-                .background(Circle().fill(STVTheme.glass))
+-                .overlay(Circle().strokeBorder(STVTheme.hairline, lineWidth: 1))
++                .stvGlass(in: Circle(), tint: on ? STVTheme.accent.opacity(0.24) : STVTheme.glass, interactive: true)
+                 .contentShape(Circle())
+         }
+         .buttonStyle(PressScale())
+         .accessibilityLabel(on ? "取消收藏" : "收藏")
+         .accessibilityIdentifier("detail.favorite")
++        .accessibilityAddTraits(on ? .isSelected : [])
+     }
+ 
+     // MARK: hero
+diff --git a/STV/Views/HomeView.swift b/STV/Views/HomeView.swift
+index 9bbe03b..b099764 100644
+--- a/STV/Views/HomeView.swift
++++ b/STV/Views/HomeView.swift
+@@ -90,7 +90,6 @@ final class BoardCache {
+ struct HomeView: View {
+     @State private var source: HomeSource
+     @State private var subs: [HomeSource: HomeTab]
+-    @State private var heroCovers: [HomeSource: String] = [:]
+     /// ui-redesign 10/11: the header always sits on the page colour (ambient glow on top); once the current page
+     /// scrolls it pins with a blurred 80 % page-colour ground and a hairline.
+     private var headerInk: Color { STVTheme.text }
+@@ -128,7 +127,6 @@ struct HomeView: View {
+                     } else {
+                         HomeFeedPage(source: s,
+                                      tab: Binding(get: { subs[s] ?? s.subs[0] }, set: { subs[s] = $0 }),
+-                                     onHero: { heroCovers[s] = $0 },
+                                      onScrolled: { v in if scrolled[s] != v { scrolled[s] = v } })
+                             .tag(s)
+                     }
+@@ -160,8 +158,7 @@ struct HomeView: View {
+                     .padding(.horizontal, 16).frame(height: 46).contentShape(Rectangle())
+                 }.buttonStyle(PressScale()).accessibilityLabel("筛选与全部频道").accessibilityIdentifier("home.filter")
+             }
+-            .background(STVTheme.glass, in: Capsule())
+-            .overlay { Capsule().strokeBorder(STVTheme.glassBorder, lineWidth: 1) }
++            .stvGlass(in: Capsule(), tint: STVTheme.glass, interactive: true)
+             .padding(.horizontal, 16)
+             HomeChannelBar(items: HomeSource.all, selection: $source, label: \.label, ink: headerInk) { showChannels = true }
+                 .padding(.leading, 20)
+@@ -174,26 +171,6 @@ struct HomeView: View {
+         .zIndex(1)
+     }
+ 
+-    /// 当前来源页 hero 海报模糊铺在页面顶部，向页面底色淡出。
+-    @ViewBuilder private var atmosphere: some View {
+-        let url = heroCovers[source]
+-        ZStack {
+-            // Dark ground under the blurred poster keeps the white header legible; without a poster (漫画 / 频道)
+-            // it would be a dark band in light mode, so use a soft tint of the page colour instead.
+-            if url != nil { Color(red: 0.08, green: 0.10, blue: 0.15) } else { STVTheme.elevated }
+-            if let url {
+-                CoverView(url: url, corner: 0).blur(radius: 48).opacity(0.75).id(url)
+-                    .transition(.opacity)
+-            }
+-        }
+-        .frame(height: 420)
+-        .clipped()
+-        .mask(LinearGradient(colors: [.black, .black.opacity(0.85), .clear], startPoint: .top, endPoint: .bottom))
+-        .animation(.easeInOut(duration: 0.45), value: url)
+-        .ignoresSafeArea()
+-        .allowsHitTesting(false)
+-    }
+-
+     private var channelPanel: some View {
+         NavigationStack {
+             ScrollView {
+@@ -208,16 +185,17 @@ struct HomeView: View {
+                                         Text(t.subLabel).font(.subheadline.weight(on ? .semibold : .regular))
+                                             .foregroundStyle(on ? STVTheme.accent : STVTheme.text)
+                                             .frame(maxWidth: .infinity).frame(height: 40)
+-                                            .background(on ? STVTheme.accent.opacity(0.14) : STVTheme.glass,
+-                                                        in: RoundedRectangle(cornerRadius: 10, style: .continuous))
++                                            .stvGlass(in: RoundedRectangle(cornerRadius: 13),
++                                                      tint: on ? STVTheme.accent.opacity(0.22) : STVTheme.glass,
++                                                      interactive: true)
+                                     }.buttonStyle(.plain).accessibilityIdentifier("panel.\(s.label).\(t.subLabel)")
++                                        .accessibilityAddTraits(on ? .isSelected : [])
+                                 }
+                             }
+                         }
+                     }
+                 }.padding(20)
+             }
+-            .background(STVTheme.surface.ignoresSafeArea())
+             .navigationTitle("频道").navigationBarTitleDisplayMode(.inline)
+             .accessibilityIdentifier("home.channelPanel")
+             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { showChannels = false } } }
+@@ -231,7 +209,6 @@ struct HomeView: View {
+ private struct HomeFeedPage: View {
+     let source: HomeSource
+     @Binding var tab: HomeTab
+-    var onHero: (String) -> Void
+     var onScrolled: (Bool) -> Void = { _ in }
+     @State private var legacyChannels: [HuangguoChannel] = []
+     @State private var legacyError: Error?
+@@ -249,7 +226,7 @@ private struct HomeFeedPage: View {
+ 
+     var body: some View {
+         if case .site(let source) = tab, source.cmsKey != nil || source.pluginID != nil {
+-            DynamicSiteFeed(source: source, onHero: onHero)
++            DynamicSiteFeed(source: source)
+         } else {
+             rankFeed
+         }
+@@ -285,13 +262,10 @@ private struct HomeFeedPage: View {
+             heroIndex = 0
+             if case .huangguo(.legacy) = tab, legacyChannels.isEmpty { await loadLegacy() }
+         }
+-        .onAppear { boards.prefix(1).forEach { cache.load($0) }; reportHero() }
++        .onAppear { boards.prefix(1).forEach { cache.load($0) } }
+         .onChange(of: tab) { _, _ in boards.prefix(1).forEach { cache.load($0) } }
+-        .onChange(of: heroKey) { _, _ in reportHero() }
+     }
+ 
+-    private var heroKey: String { (heroPicks.indices.contains(heroIndex) ? heroPicks[heroIndex].cover : "") + "\(heroIndex)" }
+-    private func reportHero() { if heroPicks.indices.contains(heroIndex) { onHero(heroPicks[heroIndex].cover) } }
+ 
+     /// ui-redesign 10: secondary boards are the same glass segmented control as 找剧.
+     private var subChips: some View {
+@@ -384,11 +358,9 @@ private struct HomeFeedPage: View {
+ /// CMS / JS plugin home: every returned category is a selectable module, and the selected one pages its own list.
+ private struct DynamicSiteFeed: View {
+     let source: DramaSource
+-    var onHero: (String) -> Void
+     @State private var categories: [SiteCategory] = []
+     @State private var selected = ""
+     @State private var pager = Pager()
+-    @State private var heroCover: String?
+ 
+     var body: some View {
+         ScrollView {
+@@ -410,7 +382,6 @@ private struct DynamicSiteFeed: View {
+         .accessibilityIdentifier("home.page.\(source.label)")
+         .refreshable { await refresh() }
+         .task { await refresh() }
+-        .onChange(of: heroCover) { _, cover in if let cover { onHero(cover) } }
+     }
+ 
+     private var chips: some View {
+@@ -459,11 +430,7 @@ private struct DynamicSiteFeed: View {
+         pager.reset { prev, _ in
+             guard let provider = Sites.provider(source) else { throw ProviderError.unsupported(source.label) }
+             let category = SiteCategory(id: id, title: "", path: id)
+-            let page = try await provider.list(category, page: max(1, prev.nextOffset ?? 1))
+-            if (prev.nextOffset ?? 1) <= 1, let cover = page.items.first?.cover, !cover.isEmpty {
+-                await MainActor.run { heroCover = cover }
+-            }
+-            return page
++            return try await provider.list(category, page: max(1, prev.nextOffset ?? 1))
+         }
+     }
+ 
+diff --git a/STV/Views/Pager.swift b/STV/Views/Pager.swift
+index a84bdba..ec589d3 100644
+--- a/STV/Views/Pager.swift
++++ b/STV/Views/Pager.swift
+@@ -7,33 +7,63 @@ final class Pager {
+     var isLoading = false
+     var error: Error?
+     private(set) var page = HGPage(items: [], hasMore: true, nextOffset: 0)
+-    private var fetch: ((HGPage, [HGSeries]) async throws -> HGPage)?
+-    private var token = UUID()
++    @ObservationIgnored private var fetch: ((HGPage, [HGSeries]) async throws -> HGPage)?
++    @ObservationIgnored private var task: Task<Void, Never>?
++    @ObservationIgnored private var token = UUID()
+ 
+-    func reset(_ f: @escaping (HGPage, [HGSeries]) async throws -> HGPage) {
+-        fetch = f; items = []; hasMore = true; error = nil; isLoading = false
+-        page = HGPage(items: [], hasMore: true, nextOffset: 0); token = UUID()
++    deinit { task?.cancel() }
++
++    func reset(_ fetch: @escaping (HGPage, [HGSeries]) async throws -> HGPage) {
++        cancel()
++        self.fetch = fetch
++        items = []
++        hasMore = true
++        error = nil
++        page = HGPage(items: [], hasMore: true, nextOffset: 0)
+         loadMore()
+     }
+ 
++    func cancel() {
++        token = UUID()
++        task?.cancel()
++        task = nil
++        isLoading = false
++    }
++
+     func loadMore() {
+         guard let fetch, hasMore, !isLoading else { return }
+         isLoading = true
+-        let t = token, prev = page, seen = items
+-        Task {
++        error = nil
++        let currentToken = token
++        let previous = page
++        let seen = items
++        task = Task { [weak self] in
++            defer {
++                if let self, self.token == currentToken {
++                    self.task = nil
++                    self.isLoading = false
++                }
++            }
+             do {
+-                let p = try await fetch(prev, seen)
+-                guard t == token else { return }
+-                var ids = Set(items.map(\.id))
+-                items += p.items.filter { ids.insert($0.id).inserted }
+-                page = p
+-                hasMore = p.hasMore && !p.items.isEmpty
+-                error = nil
++                let response = try await fetch(previous, seen)
++                try Task.checkCancellation()
++                guard let self, self.token == currentToken else { return }
++
++                var ids = Set(self.items.map(\.id))
++                self.items.append(contentsOf: response.items.filter { ids.insert($0.id).inserted })
++                self.page = response
++                self.hasMore = response.hasMore && !response.items.isEmpty && !Self.repeatedPosition(response, after: previous)
+             } catch {
+-                guard t == token else { return }
++                guard let self, self.token == currentToken, !Task.isCancelled else { return }
+                 self.error = error
+             }
+-            if t == token { isLoading = false }
+         }
+     }
++
++    private static func repeatedPosition(_ response: HGPage, after previous: HGPage) -> Bool {
++        guard response.sessionId == previous.sessionId else { return false }
++        if let cursor = response.nextCursor { return cursor == previous.nextCursor }
++        if let offset = response.nextOffset { return offset == previous.nextOffset }
++        return false
++    }
+ }
+diff --git a/STV/Views/PlayerChrome.swift b/STV/Views/PlayerChrome.swift
+index 8592d6d..9ea2232 100644
+--- a/STV/Views/PlayerChrome.swift
++++ b/STV/Views/PlayerChrome.swift
+@@ -13,8 +13,7 @@ struct PlayerIconButton: View {
+                 .font(.system(size: 17, weight: .medium))
+                 .foregroundStyle(tint)
+                 .frame(width: 40, height: 40)
+-                .background { Circle().fill(.ultraThinMaterial).overlay(Circle().fill(.black.opacity(0.42))) }
+-                .overlay { Circle().strokeBorder(.white.opacity(0.14), lineWidth: 0.5) }
++                .stvGlass(in: Circle(), tint: .black.opacity(0.44), backing: Color(white: 0.13), interactive: true)
+                 .environment(\.colorScheme, .dark)
+                 .frame(width: 44, height: 44)
+                 .contentShape(Circle())
+@@ -293,7 +292,7 @@ struct PlayerSpeedHUD: View {
+         }
+         .padding(.horizontal, 22)
+         .padding(.vertical, 16)
+-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
++        .playerGlass(18)
+         .overlay(
+             RoundedRectangle(cornerRadius: 18, style: .continuous)
+                 .strokeBorder(
+diff --git a/STV/Views/PlayerV3.swift b/STV/Views/PlayerV3.swift
+index d622e72..71d77bc 100644
+--- a/STV/Views/PlayerV3.swift
++++ b/STV/Views/PlayerV3.swift
+@@ -11,12 +11,9 @@ struct PlayerGlass: ViewModifier {
+     var strong = false
+     func body(content: Content) -> some View {
+         content
+-            .background {
+-                RoundedRectangle(cornerRadius: corner, style: .continuous).fill(.ultraThinMaterial)
+-                    .overlay(RoundedRectangle(cornerRadius: corner, style: .continuous).fill(strong ? Color(red: 28/255, green: 30/255, blue: 36/255).opacity(0.84) : Color(white: 0.09).opacity(0.45)))
+-            }
+-            .overlay { RoundedRectangle(cornerRadius: corner, style: .continuous).strokeBorder(.white.opacity(strong ? 0.12 : 0.14), lineWidth: strong ? 1 : 0.5) }
+-            .shadow(color: .black.opacity(strong ? 0.5 : 0), radius: 25, y: 20)
++            .stvGlass(in: RoundedRectangle(cornerRadius: corner, style: .continuous),
++                      tint: .black.opacity(strong ? 0.72 : 0.38),
++                      backing: Color(white: strong ? 0.10 : 0.16))
+             .environment(\.colorScheme, .dark)
+     }
+ }
+@@ -53,6 +50,7 @@ struct PlayerCenterControls: View {
+     let onInteract: () -> Void
+     var spacing: CGFloat = 44
+     @State private var spin = false
++    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+ 
+     var body: some View {
+         let loading = co.readyIndex == nil || (co.waitingForMedia && !co.paused)
+@@ -63,13 +61,11 @@ struct PlayerCenterControls: View {
+             }.accessibilityLabel("快退10秒").accessibilityIdentifier("player.back10")
+             Button { co.togglePause(); onInteract() } label: {
+                 ZStack {
+-                    Circle().fill(.ultraThinMaterial).environment(\.colorScheme, .dark)
+-                    Circle().fill(Color(red: 20/255, green: 20/255, blue: 24/255).opacity(0.46))
+-                    Circle().strokeBorder(.white.opacity(0.18), lineWidth: 1)
++                    Color.clear
+                     if loading {
+                         Circle().trim(from: 0, to: 0.28).stroke(.white, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+-                            .rotationEffect(.degrees(spin ? 360 : 0))
+-                            .animation(.linear(duration: 0.9).repeatForever(autoreverses: false), value: spin)
++                            .rotationEffect(.degrees(spin && !reduceMotion ? 360 : 0))
++                            .animation(reduceMotion ? nil : .linear(duration: 0.9).repeatForever(autoreverses: false), value: spin)
+                             .onAppear { spin = true }.onDisappear { spin = false }
+                     } else {
+                         Circle().trim(from: 0, to: buffered).stroke(.white.opacity(0.75), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+@@ -80,6 +76,8 @@ struct PlayerCenterControls: View {
+                         .contentTransition(.symbolEffect(.replace))
+                 }
+                 .frame(width: 68, height: 68)
++                .stvGlass(in: Circle(), tint: .black.opacity(0.36), backing: Color(white: 0.14), interactive: true)
++                .environment(\.colorScheme, .dark)
+             }
+             .accessibilityLabel(co.paused ? "播放" : "暂停").accessibilityIdentifier("player.playPause")
+             Button { co.seek(by: 10); onInteract() } label: {
+@@ -258,11 +256,8 @@ struct PlayerChip: View {
+                     .font(.system(size: 13)).lineLimit(1).fixedSize()
+             }
+             .padding(.horizontal, 13).frame(height: 34)
+-            .background {
+-                Capsule().fill(.ultraThinMaterial)
+-                    .overlay(Capsule().fill(on ? STVTheme.accent.opacity(0.16) : Color(red: 20/255, green: 20/255, blue: 24/255).opacity(0.46)))
+-            }
+-            .overlay { Capsule().strokeBorder(on ? STVTheme.accentLine : .white.opacity(0.14), lineWidth: 1) }
++            .stvGlass(in: Capsule(), tint: on ? STVTheme.accent.opacity(0.23) : .black.opacity(0.42),
++                      backing: Color(white: 0.14), interactive: true)
+             .environment(\.colorScheme, .dark)
+             .opacity(dimmed ? 0.45 : 1)
+             .contentShape(Capsule())
+diff --git a/STV/Views/PluginViews.swift b/STV/Views/PluginViews.swift
+index 24b7595..396024e 100644
+--- a/STV/Views/PluginViews.swift
++++ b/STV/Views/PluginViews.swift
+@@ -89,7 +89,7 @@ struct PluginsView: View {
+         .background(STVTheme.bg.ignoresSafeArea())
+         .navigationTitle("插件")
+         .navigationBarTitleDisplayMode(.inline)
+-        .overlay { if busy == "prepare" { ProgressView("正在校验插件…").padding(20).background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14)) } }
++        .overlay { if busy == "prepare" { ProgressView("正在校验插件…").padding(20).stvGlass(in: RoundedRectangle(cornerRadius: 14), tint: STVTheme.glass) } }
+         .sheet(item: $pending) { p in
+             PluginConsentSheet(pending: p) { ok in
+                 pending = nil
+diff --git a/STV/Views/ProfileView.swift b/STV/Views/ProfileView.swift
+index ea248ce..c9b6b07 100644
+--- a/STV/Views/ProfileView.swift
++++ b/STV/Views/ProfileView.swift
+@@ -2,6 +2,7 @@ import SwiftUI
+ 
+ struct ProfileView: View {
+     @State private var message: String?
++    @AppStorage("appearance") private var appearance = STVAppearance.system
+     private let library = LibraryStore.shared
+     private let gate = SourceGate.shared
+ 
+@@ -34,6 +35,14 @@ struct ProfileView: View {
+                 }
+                 .background(STVTheme.surface, in: RoundedRectangle(cornerRadius: 14))
+                 .padding(.horizontal, 16)
++                VStack(alignment: .leading, spacing: 10) {
++                    Label("外观", systemImage: "circle.lefthalf.filled").font(.subheadline.weight(.semibold))
++                    SegmentedTabs(items: STVAppearance.allCases, selection: $appearance, label: \.label, idPrefix: "appearance")
++                }
++                .foregroundStyle(STVTheme.text)
++                .padding(14)
++                .dsCard(18)
++                .padding(.horizontal, 16)
+                 VStack(spacing: 0) {
+                     link("片源管理", "square.stack.3d.down.right", .sources,
+                          trailing: gate.enabledCount > 0 ? "已启用 \(gate.enabledCount) 个" : "红果 · 黄果")
+@@ -50,8 +59,12 @@ struct ProfileView: View {
+                 }
+                 .background(STVTheme.surface, in: RoundedRectangle(cornerRadius: 14))
+                 .padding(.horizontal, 16)
+-                Text(message ?? "所有数据由本机直连上游，观看记录和收藏只保存在本机。\n\(Self.versionText)")
+-                    .font(.caption).foregroundStyle(STVTheme.secondary).padding(.horizontal, 16)
++                VStack(alignment: .leading, spacing: 6) {
++                    if let message { Text(message).foregroundStyle(STVTheme.text) }
++                    Text(Self.versionText).fontWeight(.semibold)
++                    Link("查看二改源码与上游署名", destination: URL(string: "https://github.com/xytxg/test/tree/main/iDuanJu")!)
++                }
++                .font(.caption).foregroundStyle(STVTheme.secondary).padding(.horizontal, 16)
+             }.padding(.vertical, 12)
+         }
+         .background(STVTheme.bg.ignoresSafeArea())
+@@ -65,7 +78,7 @@ struct ProfileView: View {
+ 
+     static var versionText: String {
+         let i = Bundle.main.infoDictionary
+-        return "i短剧 \(i?["CFBundleShortVersionString"] as? String ?? "") (\(i?["CFBundleVersion"] as? String ?? ""))"
++        return "i短剧 XY \(i?["CFBundleShortVersionString"] as? String ?? "") (\(i?["CFBundleVersion"] as? String ?? ""))"
+     }
+ 
+     private func link(_ t: String, _ icon: String, _ r: Route, trailing: String? = nil) -> some View {
+diff --git a/STV/Views/RootTabView.swift b/STV/Views/RootTabView.swift
+index 920d03c..09324c4 100644
+--- a/STV/Views/RootTabView.swift
++++ b/STV/Views/RootTabView.swift
+@@ -3,7 +3,8 @@ import SwiftUI
+ /// 四个根页面 + PlutoFish 式底部悬浮玻璃胶囊导航（系统 TabBar 隐藏）。
+ /// 胶囊只在根页面显示；进入详情 / 播放器等二级页面时隐藏。
+ struct RootTabView: View {
+-    @State private var tab = Int(ProcessInfo.processInfo.environment["STV_TAB"] ?? "") ?? 0
++    @State private var tab = min(3, max(0, Int(ProcessInfo.processInfo.environment["STV_TAB"] ?? "") ?? 0))
++    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+     @State private var paths = [NavigationPath(), NavigationPath(), NavigationPath(), NavigationPath()]
+     static let items: [(String, String)] = [("首页", "house.fill"), ("搜索", "magnifyingglass"),
+                                             ("找剧", "square.grid.2x2.fill"), ("我的", "person.crop.circle.fill")]
+@@ -23,7 +24,7 @@ struct RootTabView: View {
+                 .transition(.move(edge: .bottom).combined(with: .opacity))
+             }
+         }
+-        .animation(.spring(response: 0.32, dampingFraction: 0.86), value: paths[tab].isEmpty)
++        .animation(reduceMotion ? nil : DS.select, value: paths[tab].isEmpty)
+         .onAppear {
+             Router.handler = { r in paths[tab].append(r) }
+             #if DEBUG
+@@ -55,21 +56,22 @@ struct GlassTabBar: View {
+     let items: [(String, String)]
+     var onReselect: (Int) -> Void = { _ in }
+     @Namespace private var ns
++    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+     var body: some View {
+         HStack(spacing: 4) {
+             ForEach(items.indices, id: \.self) { i in
+                 let on = i == selection
+                 Button {
+-                    if on { onReselect(i) } else { withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) { selection = i } }
++                    if on { onReselect(i) } else { withAnimation(reduceMotion ? nil : DS.select) { selection = i } }
+                 } label: {
+                     VStack(spacing: 2) {
+-                        Image(systemName: items[i].1).font(.system(size: 17, weight: on ? .semibold : .regular)).frame(height: 20)
+-                        Text(items[i].0).font(.system(size: 11, weight: on ? .semibold : .medium))
++                        Image(systemName: items[i].1).font(.system(size: 19, weight: on ? .semibold : .regular)).frame(height: 21)
++                        Text(items[i].0).font(.caption2.weight(on ? .semibold : .medium)).lineLimit(1)
+                     }
+-                    .foregroundStyle(on ? STVTheme.text : STVTheme.secondary)
++                    .foregroundStyle(on ? STVTheme.accent : STVTheme.secondary)
+                     .frame(maxWidth: .infinity).frame(height: 48)
+                     .background {
+-                        if on { Capsule().fill(STVTheme.glassBorder).matchedGeometryEffect(id: "pill", in: ns) }
++                        if on { Capsule().fill(STVTheme.accentSoft).matchedGeometryEffect(id: "pill", in: ns) }
+                     }
+                     .contentShape(Capsule())
+                 }
+diff --git a/STV/Views/SearchView.swift b/STV/Views/SearchView.swift
+index 4d775fa..7210c23 100644
+--- a/STV/Views/SearchView.swift
++++ b/STV/Views/SearchView.swift
+@@ -22,7 +22,7 @@ struct SearchView: View {
+ 
+     var body: some View {
+         VStack(spacing: 10) {
+-            SearchField(text: $query, onSubmit: submit, onCancel: pushed ? { dismiss() } : (submitted.isEmpty ? nil : { query = ""; submitted = "" }))
++            SearchField(text: $query, onSubmit: submit, onCancel: pushed ? { dismiss() } : (submitted.isEmpty ? nil : { query = ""; submitted = ""; pager.cancel() }))
+                 .padding(.horizontal, 16).padding(.top, 6)
+             ScrollView {
+                 if submitted.isEmpty { landing } else { results }
+@@ -33,9 +33,11 @@ struct SearchView: View {
+         .task {
+             if startEditingHistory { editingHistory = true }
+             if let q = initialQuery, submitted.isEmpty, !q.isEmpty { query = q; submit() }
+-            if hot.isEmpty { await loadHot() }
+         }
+         .onChange(of: source) { run() }
++        .task(id: submitted.isEmpty) {
++            if submitted.isEmpty, hot.isEmpty { await loadHot() }
++        }
+     }
+ 
+     // MARK: landing
+@@ -99,14 +101,21 @@ struct SearchView: View {
+             else if !pager.isLoading && pager.items.isEmpty {
+                 ContentUnavailableView.search(text: submitted)
+             } else {
+-                NumberedGrid(items: pager.items, numbered: false, hasMore: pager.hasMore, loading: pager.isLoading) { pager.loadMore() }
++                NumberedGrid(items: pager.items, numbered: false, hasMore: pager.hasMore && pager.error == nil, loading: pager.isLoading) { pager.loadMore() }
++                if pager.error != nil {
++                    Button { pager.loadMore() } label: {
++                        CapsuleLabel(title: "重试加载更多", icon: "arrow.clockwise")
++                    }
++                    .buttonStyle(PressScale())
++                    .frame(maxWidth: .infinity)
++                }
+             }
+         }.padding(.vertical, 8)
+     }
+ 
+     private func pick(_ t: String) { query = t; submit() }
+     private func submit() {
+-        let q = query.trimmingCharacters(in: .whitespaces); guard !q.isEmpty else { return }
++        let q = query.trimmingCharacters(in: .whitespacesAndNewlines); guard !q.isEmpty else { return }
+         library.addSearch(q); submitted = q; run()
+     }
+     private func run() {
+@@ -119,8 +128,11 @@ struct SearchView: View {
+         do {
+             var p = try await HongguoClient.shared.rank(sub: .hotSearch, genre: .all)
+             if p.hasMore, let more = try? await HongguoClient.shared.rank(sub: .hotSearch, genre: .all, offset: p.nextOffset ?? 0, seenIds: p.items.map(\.seriesId)) { p.items += more.items }
++            try Task.checkCancellation()
+             hot = Array(p.items.prefix(23)); hotError = nil
+-        } catch { hotError = error }
++        } catch {
++            if !Task.isCancelled { hotError = error }
++        }
+     }
+ }
+ 
+diff --git a/STV/Views/SourcesView.swift b/STV/Views/SourcesView.swift
+index 017a888..68fa1ba 100644
+--- a/STV/Views/SourcesView.swift
++++ b/STV/Views/SourcesView.swift
+@@ -224,6 +224,7 @@ struct PlayerCoreLicenses: View {
+ /// 开源许可 — third-party code this app ports.
+ struct LicensesView: View {
+     @State private var expanded = false
++    @State private var gplExpanded = false
+     @State private var qjsExpanded = false
+     private var licenseText: String {
+         Bundle.main.url(forResource: "UAV-Downloader-LICENSE", withExtension: "txt")
+@@ -232,6 +233,19 @@ struct LicensesView: View {
+     var body: some View {
+         ScrollView {
+             VStack(alignment: .leading, spacing: 14) {
++                VStack(alignment: .leading, spacing: 8) {
++                    Text("i短剧 XY · GPL-3.0").font(.headline)
++                    Text("基于 my-name-is-alan/iDuanJu 及其贡献者的作品。").font(.subheadline)
++                    Link("修改说明与完整源码", destination: URL(string: "https://github.com/xytxg/test/tree/main/iDuanJu")!)
++                    Button(gplExpanded ? "收起 GPL v3" : "查看 GPL v3") { gplExpanded.toggle() }
++                    if gplExpanded, let url = Bundle.main.url(forResource: "iDuanJu-GPL-3.0", withExtension: "txt"),
++                       let text = try? String(contentsOf: url, encoding: .utf8) {
++                        Text(text).font(.system(.caption2, design: .monospaced)).textSelection(.enabled)
++                    }
++                }
++                .padding(14)
++                .frame(maxWidth: .infinity, alignment: .leading)
++                .dsCard(16)
+                 VStack(alignment: .leading, spacing: 8) {
+                     Text("UAV-Downloader").font(.headline).foregroundStyle(STVTheme.text)
+                     Text("Copyright © ALOS (github.com/Alos21750)\nLicensed under the Apache License, Version 2.0")
+diff --git a/STV/Views/Theme.swift b/STV/Views/Theme.swift
+index 870af5b..955b9a3 100644
+--- a/STV/Views/Theme.swift
++++ b/STV/Views/Theme.swift
+@@ -11,7 +11,7 @@ enum STVTheme {
+     static let elevated = adaptive(light: (0.910, 0.918, 0.933), dark: (0.224, 0.239, 0.259))
+     static let text = adaptive(light: (0.071, 0.078, 0.094), dark: (0.933, 0.941, 0.953))
+     static let secondary = adaptive(light: (0.373, 0.400, 0.447), dark: (0.68, 0.71, 0.75))
+-    static let accent = adaptive(light: (0.157, 0.427, 0.937), dark: (0.541, 0.706, 1))
++    static let accent = adaptive(light: (0.12, 0.36, 0.73), dark: (0.56, 0.77, 1))
+     static let accentWarm = adaptive(light: (0.835, 0.522, 0.078), dark: (0.949, 0.710, 0.361))
+ 
+     // MARK: Redesign tokens (ui-redesign/styles.css — every value has a light and a dark variant)
+@@ -69,25 +69,79 @@ enum STVTheme {
+     }
+ }
+ 
+-struct GlassBackground: ViewModifier {
+-    var radius: CGFloat = 20
++enum STVAppearance: String, CaseIterable {
++    case system, light, dark
++
++    var label: String {
++        switch self {
++        case .system: "跟随系统"
++        case .light: "浅色"
++        case .dark: "深色"
++        }
++    }
++
++    var colorScheme: ColorScheme? {
++        switch self {
++        case .system: nil
++        case .light: .light
++        case .dark: .dark
++        }
++    }
++}
++
++struct STVGlassGroup<Content: View>: View {
++    let spacing: CGFloat
++    @ViewBuilder let content: () -> Content
++
++    var body: some View {
++        if #available(iOS 26.0, *) {
++            GlassEffectContainer(spacing: spacing, content: content)
++        } else {
++            content()
++        }
++    }
++}
++
++private struct STVGlassSurface<S: Shape>: ViewModifier {
++    let shape: S
++    let tint: Color?
++    let backing: Color
++    let interactive: Bool
++
++    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
++
+     func body(content: Content) -> some View {
+-        content
+-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+-            .overlay(
+-                RoundedRectangle(cornerRadius: radius, style: .continuous)
+-                    .strokeBorder(
+-                        LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.05)],
+-                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+-                        lineWidth: 0.8)
+-            )
++        if reduceTransparency {
++            content.background(backing, in: shape)
++                .overlay { shape.strokeBorderFallback(.white.opacity(0.16)) }
++        } else if #available(iOS 26.0, *) {
++            content.glassEffect(.regular.tint(tint).interactive(interactive), in: shape)
++        } else {
++            content.background {
++                shape.fill(.ultraThinMaterial)
++                    .overlay { shape.fill(tint ?? .clear) }
++            }
++            .overlay { shape.strokeBorderFallback(STVTheme.glassBorder) }
++        }
+     }
+ }
+ 
+-extension View {
+-    func stvGlass(_ radius: CGFloat = 20) -> some View { modifier(GlassBackground(radius: radius)) }
++private extension Shape {
++    func strokeBorderFallback(_ color: Color) -> some View {
++        stroke(color, lineWidth: 0.8).allowsHitTesting(false)
++    }
+ }
+ 
++extension View {
++    func stvGlass<S: Shape>(
++        in shape: S,
++        tint: Color? = nil,
++        backing: Color = STVTheme.surface,
++        interactive: Bool = false
++    ) -> some View {
++        modifier(STVGlassSurface(shape: shape, tint: tint, backing: backing, interactive: interactive))
++    }
++}
+ struct GlassChip: View {
+     let title: String
+     let selected: Bool
+diff --git a/STV/Views/VerticalPlayerView.swift b/STV/Views/VerticalPlayerView.swift
+index 7c6f970..c577d67 100644
+--- a/STV/Views/VerticalPlayerView.swift
++++ b/STV/Views/VerticalPlayerView.swift
+@@ -592,8 +592,7 @@ struct PlayerScreen: View {
+             Image(systemName: "ellipsis")
+                 .font(.system(size: 17, weight: .semibold)).foregroundStyle(.white)
+                 .frame(width: 44, height: 44)
+-                .background { Circle().fill(.ultraThinMaterial).overlay(Circle().fill(.black.opacity(0.42))) }
+-                .overlay { Circle().strokeBorder(.white.opacity(0.14), lineWidth: 0.5) }
++                .stvGlass(in: Circle(), tint: .black.opacity(0.44), backing: Color(white: 0.13), interactive: true)
+                 .environment(\.colorScheme, .dark)
+         }
+         .accessibilityLabel("更多").accessibilityIdentifier("player.more")
+diff --git a/STVTests/PagerTests.swift b/STVTests/PagerTests.swift
+new file mode 100644
+index 0000000..e1c76ee
+--- /dev/null
++++ b/STVTests/PagerTests.swift
+@@ -0,0 +1,47 @@
++import XCTest
++@testable import STV
++
++final class PagerTests: XCTestCase {
++    @MainActor func testRepeatedCursorStopsPagingAndDeduplicatesItems() async throws {
++        let pager = Pager()
++        let first = HGSeries(seriesId: "1", title: "First", cover: "")
++        let second = HGSeries(seriesId: "2", title: "Second", cover: "")
++        pager.reset { previous, _ in
++            let items = previous.nextCursor == nil ? [first] : [first, second, second]
++            return HGPage(items: items, hasMore: true, nextCursor: "page-2")
++        }
++        try await waitForPage(pager)
++        XCTAssertTrue(pager.hasMore)
++        pager.loadMore()
++        try await waitForPage(pager)
++        XCTAssertEqual(pager.items.map(\.seriesId), ["1", "2"])
++        XCTAssertFalse(pager.hasMore)
++    }
++
++    @MainActor func testResetCancelsOldPageAndKeepsNewResults() async throws {
++        let pager = Pager()
++        let first = HGSeries(seriesId: "old", title: "Old", cover: "")
++        let second = HGSeries(seriesId: "new", title: "New", cover: "")
++        var oldStarted = false
++        pager.reset { _, _ in
++            oldStarted = true
++            try await Task.sleep(for: .seconds(2))
++            return HGPage(items: [first], hasMore: false)
++        }
++        let clock = ContinuousClock()
++        let deadline = clock.now.advanced(by: .seconds(3))
++        while !oldStarted && clock.now < deadline { try await Task.sleep(for: .milliseconds(10)) }
++        XCTAssertTrue(oldStarted)
++        pager.reset { _, _ in HGPage(items: [second], hasMore: false) }
++        try await waitForPage(pager)
++        XCTAssertEqual(pager.items.map(\.seriesId), ["new"])
++        XCTAssertNil(pager.error)
++    }
++
++    @MainActor private func waitForPage(_ pager: Pager) async throws {
++        let clock = ContinuousClock()
++        let deadline = clock.now.advanced(by: .seconds(3))
++        while pager.isLoading && clock.now < deadline { try await Task.sleep(for: .milliseconds(10)) }
++        XCTAssertFalse(pager.isLoading)
++    }
++}
+diff --git a/project.yml b/project.yml
+index 8a41d6a..c8999ab 100644
+--- a/project.yml
++++ b/project.yml
+@@ -29,14 +29,19 @@ targets:
+       - package: AetherEngine
+         product: AetherEngine
+     settings:
+-      PRODUCT_BUNDLE_IDENTIFIER: com.local.STV
++      PRODUCT_BUNDLE_IDENTIFIER: com.xylyra.iduanju
+       GENERATE_INFOPLIST_FILE: YES
+-      MARKETING_VERSION: "1.5"
+-      CURRENT_PROJECT_VERSION: "14"
++      MARKETING_VERSION: "1.5.1"
++      CURRENT_PROJECT_VERSION: "15"
+       SWIFT_EMIT_LOC_STRINGS: YES
+       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+       ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+     postBuildScripts:
++      - name: Bundle GPL license and fork attribution
++        basedOnDependencyAnalysis: false
++        script: |
++          cp "$SRCROOT/LICENSE" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/iDuanJu-GPL-3.0.txt"
++          cp "$SRCROOT/FORK-NOTICE.md" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/iDuanJu-FORK-NOTICE.md"
+       - name: Debug-only local color-bar fixture
+         basedOnDependencyAnalysis: false
+         script: |
+@@ -51,7 +56,7 @@ targets:
+     info:
+       path: STV/Info.plist
+       properties:
+-        CFBundleDisplayName: i短剧
++        CFBundleDisplayName: i短剧 XY
+         CFBundleShortVersionString: $(MARKETING_VERSION)
+         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+         NSFaceIDUsageDescription: 用于解锁「片源管理」里隐藏的长视频片源
+@@ -89,7 +94,7 @@ targets:
+       - target: STV
+     settings:
+       GENERATE_INFOPLIST_FILE: YES
+-      PRODUCT_BUNDLE_IDENTIFIER: com.local.STVTests
++      PRODUCT_BUNDLE_IDENTIFIER: com.xylyra.iduanjuTests
+   STVUITests:
+     type: bundle.ui-testing
+     platform: iOS
+@@ -99,7 +104,7 @@ targets:
+       - target: STV
+     settings:
+       GENERATE_INFOPLIST_FILE: YES
+-      PRODUCT_BUNDLE_IDENTIFIER: com.local.STVUITests
++      PRODUCT_BUNDLE_IDENTIFIER: com.xylyra.iduanjuUITests
+       TEST_TARGET_NAME: STV
+ schemes:
+   STV:

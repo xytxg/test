@@ -1,0 +1,121 @@
+name: Import iDuanJu and verify on iOS 27
+
+on:
+  push:
+    branches: [codex/import-iduanju-ios27]
+    paths:
+      - '.github/workflows/iduanju-import.yml'
+      - '.github/iduanju-import/ios27.patch'
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      revision: ${{ steps.import.outputs.revision }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import pinned source and push the GPL fork
+        id: import
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = xytxg/test
+          upstream="$RUNNER_TEMP/iduanju-upstream"
+          target="$RUNNER_TEMP/iduanju-destination"
+          patch="$GITHUB_WORKSPACE/.github/iduanju-import/ios27.patch"
+          revision=a13daac58a53bf750befd7d0b25c4b1fa9e8bc63
+          git init -q "$upstream"
+          git -C "$upstream" fetch --depth=1 https://github.com/my-name-is-alan/iDuanJu.git "$revision"
+          test "$(git -C "$upstream" rev-parse FETCH_HEAD)" = "$revision"
+          git fetch origin main
+          git worktree add --detach "$target" FETCH_HEAD
+          test ! -e "$target/iDuanJu"
+          git -C "$upstream" archive --prefix=iDuanJu/ "$revision" | tar -xf - -C "$target" \
+            --exclude='iDuanJu/docs/screenshots' --exclude='iDuanJu/android/docs/screenshots'
+          git -C "$target" apply --check --directory=iDuanJu "$patch"
+          git -C "$target" apply --directory=iDuanJu "$patch"
+          cmp <(git -C "$upstream" show "$revision:LICENSE") "$target/iDuanJu/LICENSE"
+          cmp <(git -C "$upstream" show "$revision:THIRD_PARTY_NOTICES.md") "$target/iDuanJu/THIRD_PARTY_NOTICES.md"
+          git -C "$target" add --all -- iDuanJu
+          git -C "$target" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'feat(iduanju): publish GPL v3 fork with native iOS 27 Liquid Glass'
+          for attempt in 1 2 3; do
+            if git -C "$target" push origin HEAD:refs/heads/main; then
+              printf 'revision=%s\n' "$(git -C "$target" rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            git -C "$target" fetch origin main
+            if git -C "$target" cat-file -e FETCH_HEAD:iDuanJu 2>/dev/null; then
+              echo 'iDuanJu was added on main concurrently'
+              exit 1
+            fi
+            git -C "$target" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' rebase FETCH_HEAD
+          done
+          exit 1
+
+  verify:
+    needs: import
+    runs-on: xcode-27
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: iDuanJu
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.import.outputs.revision }}
+          persist-credentials: false
+      - name: Generate project with Xcode 27
+        run: |
+          set -o pipefail
+          xcodebuild -version
+          xcodebuild -showsdks | tee "$RUNNER_TEMP/iduanju-sdks.log"
+          grep -q iphoneos27 "$RUNNER_TEMP/iduanju-sdks.log"
+          brew install xcodegen
+          xcodegen generate
+      - name: Select iOS 27 iPhone simulator
+        id: sim
+        run: |
+          sim="$(xcrun simctl list devices available -j | python3 -c 'import sys,json; d=json.load(sys.stdin)["devices"]; rows=[x for k,v in d.items() if "iOS-27" in k for x in v if "iPhone" in x["name"]]; rows.sort(key=lambda x: ("Pro Max" not in x["name"],x["name"])); print(rows[0]["udid"])')"
+          echo "id=$sim" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$sim" || true
+      - name: Compile and exercise pagination and portrait and landscape playback
+        run: |
+          set -o pipefail
+          xcodebuild test -project STV.xcodeproj -scheme STV \
+            -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.id }}' \
+            -derivedDataPath "$RUNNER_TEMP/iduanju-build" -resultBundlePath "$RUNNER_TEMP/iduanju-tests.xcresult" \
+            -parallel-testing-enabled NO -only-testing:STVTests/PagerTests \
+            -only-testing:STVUITests/CompactChromeUITests CODE_SIGNING_ALLOWED=NO \
+            | tee "$RUNNER_TEMP/iduanju-tests.log"
+      - name: Capture profile and player in the iOS 27 simulator
+        run: |
+          sim='${{ steps.sim.outputs.id }}'
+          xcrun simctl bootstatus "$sim" -b
+          xcrun simctl install "$sim" "$RUNNER_TEMP/iduanju-build/Build/Products/Debug-iphonesimulator/STV.app"
+          xcrun simctl status_bar "$sim" override --time '9:41' --dataNetwork wifi --wifiBars 3 --batteryState charged --batteryLevel 100
+          mkdir -p "$RUNNER_TEMP/iduanju-screenshots"
+          SIMCTL_CHILD_STV_TAB=3 xcrun simctl launch --terminate-running-process "$sim" com.xylyra.iduanju
+          sleep 4
+          xcrun simctl io "$sim" screenshot "$RUNNER_TEMP/iduanju-screenshots/profile.png"
+          SIMCTL_CHILD_STV_ROUTE='fxplay:/player_landscape.mp4' SIMCTL_CHILD_STV_KEEP_CHROME=1 \
+            xcrun simctl launch --terminate-running-process "$sim" com.xylyra.iduanju
+          sleep 5
+          xcrun simctl io "$sim" screenshot "$RUNNER_TEMP/iduanju-screenshots/player.png"
+      - name: Save simulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iDuanJu-iOS27-validation
+          path: |
+            ${{ runner.temp }}/iduanju-tests.log
+            ${{ runner.temp }}/iduanju-tests.xcresult
+            ${{ runner.temp }}/iduanju-screenshots/*.png
+          if-no-files-found: warn
+          retention-days: 14
