@@ -8,6 +8,11 @@ xcrun simctl boot "$SIMULATOR_ID" || true
 xcrun simctl bootstatus "$SIMULATOR_ID" -b
 xcrun simctl status_bar "$SIMULATOR_ID" override --time '9:41' --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState charged --batteryLevel 100
 xcrun simctl ui "$SIMULATOR_ID" appearance light
+# UI tests use this same simulator and import a source. Start the capture
+# with a fresh app container so the empty-state screenshot has no sources.
+if xcrun simctl get_app_container "$SIMULATOR_ID" com.xylyra.webox data >/dev/null 2>&1; then
+  xcrun simctl uninstall "$SIMULATOR_ID" com.xylyra.webox
+fi
 xcrun simctl install "$SIMULATOR_ID" "$APP_PATH"
 CONTAINER_PATH=$(xcrun simctl get_app_container "$SIMULATOR_ID" com.xylyra.webox data)
 mkdir -p "$CONTAINER_PATH/Documents/UIFixtures"
