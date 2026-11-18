@@ -18,6 +18,10 @@ async function engine(filename){
  context.webkit={messageHandlers:{result:{postMessage(r){const w=waiting.get(r.id);waiting.delete(r.id);r.ok?w.resolve(r.value):w.reject(Error(r.error));}},rpc:{postMessage(r){
   assert.equal(r.method,'request');let data;
   if(r.args.url.includes('search/result'))data='{"searchList":[{"video_data":{"series_id":7470092475068071998,"series_name":"测试短剧","episode_cnt":24}}],"hasMore":true}';
+  else if(r.args.url.startsWith('https://webox-transport.test:8766/')){
+   assert.equal(r.args.url,'https://webox-transport.test:8766/register?signature=a%2Bb');
+   assert.equal(r.args.method,'POST');assert.equal(r.args.bodyBase64,'AP94Kz0=');assert.equal(r.args.base64Data,true);data=r.args.bodyBase64;
+  }
   else data='<script>window._ROUTER_DATA={"loaderData":{"player_(series_id)/page":{"seriesDetail":{"series_id":"7470092475068071998","series_name":"测试短剧","vid_list":["11","22"]}}}}</script>';
   queueMicrotask(()=>context.__reply(r.id,{ok:true,value:{statusCode:200,data,headers:{},url:r.args.url}}));
  }}}};
@@ -40,6 +44,12 @@ const search=await original('search',{query:'test',filters:{}});assert.equal(sea
 const detail=await original('detail',{id:search.items[0].id});assert.equal(detail.groups[0].episodes.length,2);
 console.log('PASS attachment compatibility and 64-bit identities');
 const paging=await engine('paging.webox.js');await paging('metadata');await paging('filters');const first=await paging('list',{filters:{}});const second=await paging('list',{filters:{},cursor:first.nextCursor});assert.equal(second.items[0].id,'second');assert.equal(second.nextCursor,null);console.log('PASS opaque cursor survives adapter calls');
+const transport=await engine('network-proxy.webox.js');
+await transport('metadata');await transport('filters');
+const transportPage=await transport('list',{filters:{}});
+assert.equal(transportPage.items[0].title,'AP94Kz0=');
+assert.equal(transportPage.nextCursor,null);
+console.log('PASS binary POST and source proxy fixture contract');
 for(const filename of ['bridge','source-adapter','compute-worker'])new vm.Script(fs.readFileSync(new URL(`Resources/${filename}.js`,root),'utf8'));
 const bundleFiles=fs.readdirSync(new URL('Resources',root));assert.ok(!bundleFiles.some(n=>n.endsWith('.webox.js')));
 console.log('PASS no bundled content source');
