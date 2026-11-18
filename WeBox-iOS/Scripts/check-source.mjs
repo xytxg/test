@@ -44,6 +44,13 @@ const search=await original('search',{query:'test',filters:{}});assert.equal(sea
 const detail=await original('detail',{id:search.items[0].id});assert.equal(detail.groups[0].episodes.length,2);
 console.log('PASS attachment compatibility and 64-bit identities');
 const paging=await engine('paging.webox.js');await paging('metadata');await paging('filters');const first=await paging('list',{filters:{}});const second=await paging('list',{filters:{},cursor:first.nextCursor});assert.equal(second.items[0].id,'second');assert.equal(second.nextCursor,null);console.log('PASS opaque cursor survives adapter calls');
+const partial=await engine('home-partial.webox.js');
+await partial('metadata');await partial('filters');
+await assert.rejects(partial('list',{filters:{kind:'failed'},surface:'home'}),/分类不可用/);
+const partialPage=await partial('list',{filters:{kind:'works'},surface:'home'});
+assert.equal(partialPage.items.length,2);
+assert.equal(partialPage.items[0].id,partialPage.items[1].id);
+console.log('PASS partial home fixture exercises failed and duplicate catalog entries');
 const transport=await engine('network-proxy.webox.js');
 await transport('metadata');await transport('filters');
 const transportPage=await transport('list',{filters:{}});

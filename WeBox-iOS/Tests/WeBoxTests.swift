@@ -302,18 +302,7 @@ final class WeBoxTests:XCTestCase{
             defaults.removePersistentDomain(forName: suite)
             try? FileManager.default.removeItem(at: folder)
         }
-        let script = """
-        WeBox.define({
-          api:'1.5', id:'test.home.partial', name:'目录测试', version:'1',
-          filters:async()=>[{key:'kind',label:'分类',type:'select',options:[{value:'failed',label:'不可用'},{value:'works',label:'可读'}]}],
-          list:async(_, req)=>{
-            if(req.filters.kind==='failed') throw new Error('分类不可用');
-            return {items:[{id:'1',title:'可播放'},{id:'1',title:'重复'}]};
-          },
-          detail:async()=>({}), play:async()=>({sources:[]})
-        });
-        """
-        let (source, _) = try await app.install(Data(script.utf8), origin: "fixture.js")
+        let (source, _) = try await app.install(Data(contentsOf: fixture("home-partial.webox")), origin: "fixture.js")
         let home = HomeCatalogModel()
         await home.start(source, app: app)
         XCTAssertFalse(home.busy)
