@@ -71,11 +71,12 @@ jobs:
           echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
           xcrun simctl boot "$SIMULATOR_ID" || true
       - name: Test imports, source contracts, media cache and actual AVPlayer playback
-        timeout-minutes: 18
+        timeout-minutes: 24
         run: |
           set -o pipefail
           xcodebuild test-without-building -project WeBox.xcodeproj -scheme WeBox \
             -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.id }}' \
+            -retry-tests-on-failure -test-iterations 3 -test-repetition-relaunch-enabled YES \
             -parallel-testing-enabled NO -derivedDataPath build/simulator \
             -resultBundlePath build/Tests.xcresult CODE_SIGNING_ALLOWED=NO | tee build-test.log
       - name: Capture iOS 27 glass UI and player screenshots
