@@ -1,4 +1,4 @@
-# Surge-EN for Stash (2026-11-03)
+# Surge-EN for Stash (2026-11-20 / upstream v6.0.1)
 # Based on https://github.com/Rabbit-Spec/Surge/blob/Master/Conf/Spec/Surge-EN.conf
 # Stash native YAML. Public profile contains NO private subscription URLs.
 # To add nodes securely, install the locally edited subscription-override.example.stoverride.
@@ -162,6 +162,17 @@ proxy-groups:
       - "韩国节点"
       - "新加坡节点"
     icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/Windows.png"
+  - name: "PayPal"
+    type: select
+    proxies:
+      - "DIRECT"
+      - "Proxy"
+      - "香港节点"
+      - "美国节点"
+      - "日本节点"
+      - "韩国节点"
+      - "新加坡节点"
+    icon: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Conf/icon/PayPal.png"
   - name: "Game"
     type: select
     proxies:
@@ -254,6 +265,11 @@ rule-providers:
     format: text
     url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/Telegram.list"
     interval: 86400
+  PayPal:
+    behavior: classical
+    format: text
+    url: "https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Rules/PayPal.list"
+    interval: 86400
   Game:
     behavior: classical
     format: text
@@ -341,6 +357,7 @@ rules:
   - "RULE-SET,Microsoft,Microsoft"
   - "RULE-SET,Telegram,Telegram"
   - "RULE-SET,Game,Game"
+  - "RULE-SET,PayPal,PayPal"
   - "RULE-SET,YouTube,YouTube"
   - "RULE-SET,Netflix,Netflix"
   - "RULE-SET,Disney,Disney+"
@@ -356,3 +373,22 @@ rules:
   - "GEOIP,LAN,DIRECT"
   - "RULE-SET,ChinaCIDR,DIRECT"
   - "MATCH,Proxy"
+
+
+# Upstream [Host] is empty. Add private mappings locally to BOTH dictionaries
+# when the same mapping must apply to DIRECT and proxy requests.
+hosts: {}
+proxy-hosts: {}
+
+# Native Stash HTTP rewrite. HTTPS requires a locally generated/trusted CA.
+# Configure the CA in Stash UI; never publish certificate material here.
+# Stash handles TCP/HTTP2 natively. The 307 response is generated locally;
+# Surge's server-certificate bypass has no upstream TLS connection to affect.
+http:
+  url-rewrite:
+    - '^https?://(www\.)?(g|google)\.cn https://www.google.com 307'
+  mitm:
+    - google.cn
+    - g.cn
+    - www.google.cn
+    - www.g.cn

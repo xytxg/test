@@ -1,6 +1,6 @@
 # Surge-EN → Stash 兼容版
 
-基于 [Rabbit-Spec/Surge 的 Surge-EN.conf](https://github.com/Rabbit-Spec/Surge/blob/Master/Conf/Spec/Surge-EN.conf)（参考 2026-11-01 / v5.1.3）；转换为 **Stash 原生 YAML**，保留核心分流策略、6 地区自动测速组、服务组及原规则优先级。
+基于 [Rabbit-Spec/Surge 的 Surge-EN.conf](https://github.com/Rabbit-Spec/Surge/blob/Master/Conf/Spec/Surge-EN.conf)（当前参考 2026-11-20 / v6.0.1）；转换为 **Stash 原生 YAML**，保留核心分流策略、6 地区自动测速组、服务组及原规则优先级。
 
 ## 导入主配置
 Stash → 配置文件 → 从 URL 下载：
@@ -147,3 +147,22 @@ Apple 新增 6、移除 3907 条，共 2086 条；GlobalMedia 移除 3680 条，
 跟进上游 `722bc12f94b191d6b7a442e6e033a26f5e87ebdc`（09:43）：AIGC 新增精确域名 `bridge.claudeusercontent.com`、`claude.site`，共 107 条，已转换并更新 classical/text 快照。ChinaCIDR 新增 74、移除 49 条文本条目，共 9689 条（含 IPv4/IPv6 网段拆分与合并），已重新生成 ipcidr/text 快照。其余 23 个变更规则文件仅更新时间戳；10 个 PNG 图标变更无需转换配置，现有图标引用路径仍有效。
 
 已检查同一上游提交的 17 个完整规则文件，核对全部 6 个快照的源语义覆盖（包括全部 24488 条 Proxy 源规则），并通过 YAML 结构、策略引用与循环、RULE-SET、规则优先级、MATCH 兜底、域名/IP/classical 格式及 19 个公开资源 URL 访问检查。仅静态检查，未进行 Stash 实机测试。主配置、分流顺序、6 地区筛选、DNS、固定导入链接和本地私有订阅覆写方式保持不变。
+
+
+### 2026-11-20 主配置升级至 v6.0.1
+
+已应用上游 `08ce583991007b6a00585f287fb058ff595386f0` 的 Surge-EN 变更。新增 **PayPal** 策略组（默认 DIRECT），可选 Proxy 和香港、美国、日本、韩国、新加坡节点；新增 classical/text provider，包含完整 248 条 PayPal 规则，分流位置紧随 Game、早于媒体与 Proxy。原有策略组、6 地区筛选、DNS、分流相对顺序及私人订阅本地覆写方式保留。其余模板的变化不移植到本 EN 版本。
+
+| 上游新增或调整项 | Stash 处理 |
+| --- | --- |
+| PayPal 策略组和 RULE-SET | 转换为原生 select、classical/text provider；保留默认 DIRECT 和上游优先级。 |
+| Google 中国域名 307 重定向 | 转为 `http.url-rewrite`，保留上游原正则、目标与 307 状态码。 |
+| MITM hostname | `http.mitm` 仅列出 `google.cn`、`g.cn`、`www.google.cn`、`www.g.cn` 四个原域名。 |
+| MITM tcp-connection、h2 | 使用 Stash 原生 HTTP 引擎的 TCP 和 HTTP/2 协商能力，不写入 Surge 专有键。 |
+| MITM skip-server-cert-verify | 不错误映射成代理节点或 DNS 的全局证书跳过选项；上述规则直接返回本地 307 响应，不需要连接原站进行证书验证。 |
+| use-local-host-item-for-proxy、空 Host 段 | 用空的 `hosts: {}` 与 `proxy-hosts: {}` 保持上游当前空映射行为。需要机场 Host 映射时，在本地覆写为两者填写相同映射；Stash 的 hosts 用于本地 DNS / DIRECT，proxy-hosts 用于代理转发。 |
+| DoH 和订阅占位符说明 | 继续保留现有 DNS；不启用注释中的 DoH，不公开私人订阅。广告规则等默认禁用项继续禁用。 |
+
+**HTTPS 重定向前提：** 在设备上的 Stash 首页 → MitM → CA 证书，生成并安装你自己的 CA，并在系统中信任。主配置只包含匹配域名和重写规则，**不包含 CA、密码或私钥**。未完成本地 CA 信任前，不应认为 HTTPS 重定向已经生效；HTTP 引擎对流量的接管也遵循 Stash 自身设置，HTTP/3 不进入该 HTTP 重写引擎。证书操作仅在本地完成，不要上传证书或含秘密的覆写文件。
+
+按官方 [HTTP 重写](https://stash.wiki/http-engine/rewrite)、[MitM](https://stash.wiki/http-engine/mitm)、[HTTP 引擎](https://stash.wiki/http-engine/intro)、[主机名映射](https://stash.wiki/features/hosts) 文档适配。已检查同一上游提交的 18 个完整规则源、全部 6 个快照语义覆盖、YAML 结构、策略组引用及循环、所有 RULE-SET/provider/目标、上游规则顺序及 MATCH 兜底、重写正则和 20 个公开资源 URL。仅静态检查，未进行 Stash 实机测试。
