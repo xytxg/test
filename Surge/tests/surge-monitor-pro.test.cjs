@@ -1,14 +1,15 @@
-/* Surge Monitor Pro v3.7.0 simulated runtime tests (no dependencies).
+/* Surge Monitor Pro v3.8.0 simulated runtime tests (no dependencies).
  * node Surge/tests/surge-monitor-pro.test.cjs */
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const filename=path.resolve(__dirname,'../scripts/surge-monitor-pro-v3.7.0.js');
+const filename=path.resolve(__dirname,'../scripts/surge-monitor-pro-v3.8.0.js');
 const source=fs.readFileSync(filename,'utf8');
 const entry=new vm.Script(source,{filename});
 const STORE='xy_surge_monitor_pro_v3', storage=new Map(), logs=[];
 let now=1795592400000, boot=now-600000, mib=30, dns=140, active=18;
 let build='4500',ver='6.12.0',os='iOS',status=200,bad=false,failOnce=false;
+let bans=null;
 let requests=0,reloads=0,checks=0;
 class FakeDate extends Date{
  constructor(...a){super(...(a.length?a:[now]));}
@@ -21,7 +22,8 @@ function metrics(){
   'surge_uptime_seconds '+Math.max(0,Math.floor((now-boot)/1000)),
   'surge_active_requests '+active,'surge_dns_cache_entries '+dns,
   'surge_build_info{version="'+ver+'",build="'+build+'",system="'+os+'"} 1',
-  'surge_policy_in_bytes_total{policy="DIRECT"} 1234'].join('\n');
+  'surge_policy_in_bytes_total{policy="DIRECT"} 1234',
+  ...(bans===null?[]:['surge_active_bans '+bans])].join('\n');
 }
 function run(mode='panel',{button=false,view='glance',key='test-key',tap='refresh',
 eventName='profile-reloaded'}={}){
@@ -133,5 +135,31 @@ function tick(minutes=6,increase=0){now+=minutes*60000;mib+=increase;dns++;}
  ok(panel.content.includes('实时读取失败'),'Live API failure message');
  ok(storage.get(STORE)===intact,'Live failure preserves data');
  status=200;
- console.log('Surge Monitor Pro v3.7.0: '+checks+' assertions passed');
+ tick(6,0);mib=25;await run('sample');
+ tick(1,3);const original=storage.get(STORE);
+ panel=await run('panel',{button:true});
+ ok(panel.title==='实时内存 28.0 MiB','Live headline reflects fresh value');
+ ok(panel.content.includes('较上次  ↑ 3.0 MiB'),'Live trend uses fresh endpoint');
+ ok(storage.get(STORE)===original,'Live trend leaves history intact');
+ bans=2;panel=await run('panel',{button:true});
+ ok(panel.content.includes('未授权访问封禁 2 个'),'Official active-bans metric shown');
+ ok(panel['icon-color']==='#FF9500','Active bans highlight status');
+ ok(storage.get(STORE)===original,'Live bans read remains read-only');
+ bans=0;panel=await run('panel',{button:true});
+ ok(!panel.content.includes('未授权访问封禁'),'Zero bans do not clutter glance');
+ panel=await run('panel',{button:true,view:'detail'});
+ ok(panel.content.includes('未授权访问封禁 0 个'),'Detail shows zero');
+ bans=null;panel=await run('panel',{button:true,view:'detail'});
+ ok(!panel.content.includes('未授权访问封禁'),'Missing metric is not invented');
+ status=503;tick(6);await run('sample');
+ status=200;panel=await run('panel',{button:true});
+ ok(panel.content.includes('实时已读 · 后台连续失败'),'Live success distinguished from background recovery');
+ ok(saved().failures===1,'Live success does not erase background failures');
+ tick(6);await run('sample');
+ ok(saved().failures===0,'Actual background success clears failure');
+ bad=true;tick(6);await run('sample',{key:''});
+ ok(saved().lastError.includes('API 设置'),'Internal API error not mislabeled as missing key');
+ bad=false;tick(6);await run('sample',{key:''});
+ ok(saved().failures===0,'Legacy keyless successful sample remains supported');
+ console.log('Surge Monitor Pro v3.8.0: '+checks+' assertions passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
