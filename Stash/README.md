@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-20。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-24。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -166,3 +166,12 @@ Apple 新增 6、移除 3907 条，共 2086 条；GlobalMedia 移除 3680 条，
 **HTTPS 重定向前提：** 在设备上的 Stash 首页 → MitM → CA 证书，生成并安装你自己的 CA，并在系统中信任。主配置只包含匹配域名和重写规则，**不包含 CA、密码或私钥**。未完成本地 CA 信任前，不应认为 HTTPS 重定向已经生效；HTTP 引擎对流量的接管也遵循 Stash 自身设置，HTTP/3 不进入该 HTTP 重写引擎。证书操作仅在本地完成，不要上传证书或含秘密的覆写文件。
 
 按官方 [HTTP 重写](https://stash.wiki/http-engine/rewrite)、[MitM](https://stash.wiki/http-engine/mitm)、[HTTP 引擎](https://stash.wiki/http-engine/intro)、[主机名映射](https://stash.wiki/features/hosts) 文档适配。已检查同一上游提交的 18 个完整规则源、全部 6 个快照语义覆盖、YAML 结构、策略组引用及循环、所有 RULE-SET/provider/目标、上游规则顺序及 MATCH 兜底、重写正则和 20 个公开资源 URL。仅静态检查，未进行 Stash 实机测试。
+
+
+### 2026-11-24 规则同步
+
+跟进上游 `759d40144195b8d272d1b2db7c00b351cdec4ab7`：AIGC 新增 250 条规则，共 357 条，已更新 classical/text 快照。新增类型包括 DOMAIN、DOMAIN-SUFFIX、IP-ASN、IP-CIDR 和 IP-CIDR6，完整保留精确/后缀差异及 `no-resolve`；仍按现有 AIGC 优先级匹配，没有重分类或精简 ASN 网段。
+
+Proxy 域名新增精确域名 `assets.monetizationos.com`、后缀 `butterfly-effect-cdn.dev` 和 `elevenlabsusercontent.com`，移除后缀 `yandexwebcache.org`，已更新 domain/text 快照，共 24329 条。91 条 IP 和 70 条其他规则不变，全部 24490 条 Proxy 源规则均有对应输出。China 新增 18 条后缀，共 6423 条，现有远程 domain/text provider 可直接加载。其余 22 个规则文件仅更新时间戳，Family 模板和澳大利亚图标变化与本 EN 配置无关。
+
+已逐条检查同一上游提交的 18 个完整规则源、全部 6 个快照的源语义覆盖、域名/IP/classical 语法、YAML 结构、策略引用与循环、RULE-SET/provider/目标、规则优先级和 MATCH 兜底，并核对 20 个公开资源 URL 可访问且与固定提交内容一致。仅静态检查，未进行 Stash 实机测试。主配置、6 地区筛选、DNS、HTTP 重写及私有订阅本地覆写方式保持不变；在 Stash 更新规则资源即可获取本次规则变化。

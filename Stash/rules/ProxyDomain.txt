@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-18; re-generate after upstream updates.
+# Snapshot generated 2026-11-24; re-generate after upstream updates.
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -207,6 +207,7 @@ assets.maxon.net
 assets.mcp.corespeed.io
 assets.media-platform.com
 assets.monei.com
+assets.monetizationos.com
 assets.msn.com
 assets.nationbuilder.com
 assets.northflank.com
@@ -5845,6 +5846,7 @@ zod.dev
 +.busu.org
 +.busybox.net
 +.busytrade.com
++.butterfly-effect-cdn.dev
 +.buugaa.com
 +.buy-from-shanghai.com
 +.buyaapl.com
@@ -8602,6 +8604,7 @@ zod.dev
 +.elephanttubenew.com
 +.elevenlabs.com
 +.elevenlabs.io
++.elevenlabsusercontent.com
 +.elgaronline.com
 +.elgoog.im
 +.elifesciences.org
@@ -23913,7 +23916,6 @@ zod.dev
 +.yandexdataschool.com
 +.yandexgo.com
 +.yandexwebcache.net
-+.yandexwebcache.org
 +.yanghengjun.com
 +.yangjianli.com
 +.yango-b2b.com
