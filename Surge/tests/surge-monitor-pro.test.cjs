@@ -1,9 +1,9 @@
-/* Surge Monitor Pro v3.8.0 simulated runtime tests (no dependencies).
+/* Surge Monitor Pro v3.9.0 simulated runtime tests (no dependencies).
  * node Surge/tests/surge-monitor-pro.test.cjs */
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const filename=path.resolve(__dirname,'../scripts/surge-monitor-pro-v3.8.0.js');
+const filename=path.resolve(__dirname,'../scripts/surge-monitor-pro-v3.9.0.js');
 const source=fs.readFileSync(filename,'utf8');
 const entry=new vm.Script(source,{filename});
 const STORE='xy_surge_monitor_pro_v3', storage=new Map(), logs=[];
@@ -161,5 +161,38 @@ function tick(minutes=6,increase=0){now+=minutes*60000;mib+=increase;dns++;}
  ok(saved().lastError.includes('API 设置'),'Internal API error not mislabeled as missing key');
  bad=false;tick(6);await run('sample',{key:''});
  ok(saved().failures===0,'Legacy keyless successful sample remains supported');
- console.log('Surge Monitor Pro v3.8.0: '+checks+' assertions passed');
+
+ // Ordered cache fast path and repair fallback must yield the same display.
+ const stable=storage.get(STORE);
+ const normal=await run('panel',{view:'detail'});
+ const scrambled=saved();
+ scrambled.samples.reverse();
+ scrambled.samples.push({t:now+60000,v:9999});
+ scrambled.runs.reverse();
+ storage.set(STORE,JSON.stringify(scrambled));
+ const reordered=await run('panel',{view:'detail'});
+ ok(normal.title===reordered.title && normal.content===reordered.content,'Unsorted input repaired without changing statistics');
+ ok(storage.get(STORE)!==stable,'Panel does not rewrite repaired cache');
+ storage.set(STORE,stable);
+ // Build-only change cannot be presented as proof of a new VPN start.
+ const previousRestart=saved().lastRestart;
+ tick(6);build='4503';await run('sample');
+ ok(saved().lastTransition==='build','Build change recorded separately');
+ ok(saved().lastRestart===previousRestart,'Build-only change leaves last restart intact');
+ panel=await run('panel',{view:'detail'});
+ ok(panel.content.includes('停止原因以 Surge Logbook 为准'),'No invented VPN stop reason');
+ tick(6);boot=now;await run('start');
+ ok(saved().lastTransition==='epoch' && saved().lastRestart===boot,'Observed boot-time change recorded');
+ status=503;tick(6);await run('sample');
+ status=200;tick(6);await run('sample');
+ ok(saved().lastOutageSpan===360000,'Observed outage span recorded');
+ ok((await run('panel',{view:'detail'})).content.includes('上次采样故障观测跨度 6分'),'Outage span visible only as observation');
+ ok(!(await run()).content.includes('故障观测跨度'),'Glance remains concise');
+ tick(1441);
+ const callsBefore=requests;
+ panel=await run();
+ ok(panel.content.includes('采样已过期'),'Fully expired history stays distinguishable from first run');
+ ok(panel['icon-color']==='#FF9500','Expired history retains warning');
+ ok(requests===callsBefore,'Expired automatic view performs no extra API requests');
+ console.log('Surge Monitor Pro v3.9.0: '+checks+' assertions passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
