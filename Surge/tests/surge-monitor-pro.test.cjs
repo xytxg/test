@@ -1,9 +1,9 @@
-/* Surge Monitor Pro v3.9.0 simulated runtime tests (no dependencies).
+/* Surge Monitor Pro v4.0.0 simulated runtime tests (no dependencies).
  * node Surge/tests/surge-monitor-pro.test.cjs */
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const filename=path.resolve(__dirname,'../scripts/surge-monitor-pro-v3.9.0.js');
+const filename=path.resolve(__dirname,'../scripts/surge-monitor-pro-v4.0.0.js');
 const source=fs.readFileSync(filename,'utf8');
 const entry=new vm.Script(source,{filename});
 const STORE='xy_surge_monitor_pro_v3', storage=new Map(), logs=[];
@@ -26,7 +26,7 @@ function metrics(){
   ...(bans===null?[]:['surge_active_bans '+bans])].join('\n');
 }
 function run(mode='panel',{button=false,view='glance',key='test-key',tap='refresh',
-eventName='profile-reloaded'}={}){
+eventName='profile-reloaded',lang='zh'}={}){
  return new Promise((resolve,reject)=>{
   const timer=setTimeout(()=>reject(new Error('Missing $done '+mode)),3000);
   let finished=false;
@@ -34,7 +34,7 @@ eventName='profile-reloaded'}={}){
   const context={
    Date:FakeDate,Promise,setTimeout,clearTimeout,console:{log:x=>logs.push(String(x))},
    $trigger:button?'button':'auto-interval',
-   $argument:'mode='+mode+'&view='+view+'&api_key='+key+'&tap='+tap+
+   $argument:'mode='+mode+'&lang='+lang+'&view='+view+'&api_key='+key+'&tap='+tap+
      '&api_port=6171&warn_mib=45&growth_mib=10',
    $event:{name:eventName},
    $environment:{system:os,'surge-version':ver,'surge-build':build},
@@ -194,5 +194,33 @@ function tick(minutes=6,increase=0){now+=minutes*60000;mib+=increase;dns++;}
  ok(panel.content.includes('采样已过期'),'Fully expired history stays distinguishable from first run');
  ok(panel['icon-color']==='#FF9500','Expired history retains warning');
  ok(requests===callsBefore,'Expired automatic view performs no extra API requests');
- console.log('Surge Monitor Pro v3.9.0: '+checks+' assertions passed');
+
+ // Explicit language selection does not write state or depend on Surge log language.
+ tick(6);boot=now;os='iOS';build='4504';mib=26;await run('start');
+ const langState=storage.get(STORE), langRequests=requests;
+ const english=await run('panel',{lang:'en'});
+ ok(english.title==='Memory 26.0 MiB','English title');
+ ok(english.content.includes('Requests ') && english.content.includes('Up '),'English panel labels');
+ ok(!/[\u3400-\u9fff]/.test(english.title+english.content),'English default view fully localized');
+ ok(storage.get(STORE)===langState && requests===langRequests,'Language change no write or request');
+ const englishDetail=await run('panel',{lang:'en',view:'detail'});
+ ok(!/[\u3400-\u9fff]/.test(englishDetail.title+englishDetail.content),'English detail fully localized');
+ status=403;tick(6);await run('sample',{lang:'en'});
+ const englishFailure=await run('panel',{lang:'en'});
+ ok(englishFailure.content.includes('HTTP API key or permission error'),'English error translated');
+ ok(saved().lastError.includes('密钥'),'Legacy storage error format preserved');
+ ok((await run()).content.includes('密钥'),'Chinese panel same data');
+ status=200;tick(6);await run('sample');
+ for(let i=0;i<5;i++){tick(6,2.5);await run('sample');}
+ ok((await run()).content.includes('内存持续上涨'),'Historical growth still detected');
+ const beforeLive=storage.get(STORE);
+ mib=26;tick(1);
+ const lowLive=await run('panel',{button:true});
+ ok(!lowLive.content.includes('内存持续上涨'),'Live drop clears outdated growth warning');
+ ok(storage.get(STORE)===beforeLive,'Live warning correction not persisted');
+ const unknownLanguage=await run('panel',{lang:'invalid'});
+ ok(unknownLanguage.title.startsWith('内存 '),'Unknown language uses Chinese default');
+ const defaultView=await run('panel',{view:'invalid'});
+ ok(!defaultView.content.includes('Surge 6.'),'Unknown view falls back to glance');
+ console.log('Surge Monitor Pro v4.0.0: '+checks+' assertions passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
