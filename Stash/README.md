@@ -34,7 +34,7 @@ Stash 支持在覆写文件中合并 `proxy-providers` 字典，地区测速组�
 
 ## 注意事项
 
-本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-25。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
+本项目使用上游可在线更新的规则集；`rules/Proxy*.txt`、`ChinaCIDR.txt`、`AIGC.list`、`TikTok.list` 在上游有更新时需要重新生成；最近一次核对为 2026-11-27。此版本已经过配置结构与公开规则源检查，但**未能在你的 Stash 实机进行运行测试**。
 
 原作者：Rabbit-Spec；本转换版本仅作兼容性适配，规则来源与版权归原作者所有。
 
@@ -182,3 +182,12 @@ Proxy 域名新增精确域名 `assets.monetizationos.com`、后缀 `butterfly-e
 跟进上游 `ac196362fe300a226a15cdfdf74bde9454044ef1`（11:27）：AIGC 新增 `DOMAIN-SUFFIX,gemma.ai`，已更新 classical/text 兼容快照，共 358 条。其余 24 个变更规则文件仅更新时间戳；主配置及其余 5 个快照语义不变。保持现有分流优先级、策略组、6 地区筛选、DNS、HTTP 重写、固定导入链接及私人订阅本地覆写方式。
 
 已逐条检查同一上游提交的 18 个完整规则源及全部 6 个快照的语义覆盖（含全部 24490 条 Proxy 源规则），通过 YAML 结构、策略引用与循环、RULE-SET/provider/目标、规则优先级、MATCH 兜底、域名/IP/classical 语法及 20 个公开资源 URL 访问和内容一致性检查。仅静态检查，未进行 Stash 实机测试。
+
+
+### 2026-11-27 规则同步
+
+跟进上游 `e844dc80e3db9dac2c202dc9f04ccef2fdb0dcc8`（10:43）：Proxy 域名新增 83、移除 207 条，已更新 domain/text 快照，共 24205 条；新增 `anthropic`、`antigravity`、`claude`、`openai` 四条 DOMAIN-KEYWORD，完整保留在 classical/text 快照，共 74 条其他规则。91 条 IP 不变，全部 24370 条 Proxy 源规则均有对应输出。精确域名与后缀规则分别保留，不合并或重分类。
+
+ChinaCIDR 新增 144、移除 74 条文本网段，共 9759 条（含 IPv4/IPv6 网段拆分及合并），已重新生成 ipcidr/text 快照。China 新增 9、移除 1 条后缀，共 6431 条，现有远程 domain/text provider 可直接加载。其余 22 个规则文件仅更新时间戳；主配置、AIGC、TikTok 和 ProxyIP 快照语义不变。
+
+已逐条检查同一上游提交的 18 个完整规则源及全部 6 个快照的语义覆盖，通过 YAML 结构、策略引用与循环、RULE-SET/provider/目标、分流优先级、MATCH 兜底、域名/IP/classical 语法及 20 个公开资源 URL 访问和内容一致性检查。仅静态检查，未进行 Stash 实机测试。现有策略组、6 地区筛选、DNS、HTTP 重写、固定导入链接和私人订阅本地覆写方式保持不变。

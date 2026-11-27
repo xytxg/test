@@ -1,7 +1,7 @@
 # ProxyDomain.txt - Stash compatible rules
 # Extracted from original Proxy.list; domain/IP optimized; other rules preserved.
 # Upstream: https://github.com/Rabbit-Spec/Surge/tree/Master/Rules
-# Snapshot generated 2026-11-24; re-generate after upstream updates.
+# Snapshot generated 2026-11-27; re-generate after upstream updates.
 +.snbforums.com
 +.asuswrt-merlin.net
 +.caldigit.com
@@ -111,6 +111,7 @@ api.indexnow.org
 api.msn.com
 api.qrserver.com
 api.simplesvg.com
+api.together.xyz
 api.unisvg.com
 api.waqi.info
 api.weather.com
@@ -808,6 +809,7 @@ content.wepik.com
 conversiongorilla.com
 corp-backend.brevo.com
 cors-proxy.htmldriven.com
+courses.myecnu.org
 cover.comicbz.com
 cover.yymanhua.com
 cpp-content.bhn.cards
@@ -1381,8 +1383,6 @@ ocsp.microsoft.com
 oneocsp.microsoft.com
 ood.opsource.net
 open-vsx.org
-openaiassets.blob.core.windows.net
-openaicomproductionae4b.blob.core.windows.net
 openreplay-new.deel.tools
 openseauserdata.com
 opensignal.cdnbye.com
@@ -1685,7 +1685,6 @@ static.filehorse.com
 static.filestackapi.com
 static.frame.work
 static.fundraiseup.com
-static.gamma.app
 static.garmin.com
 static.getbutton.io
 static.getpostman.com
@@ -1983,7 +1982,6 @@ zod.dev
 +.000webhost.com
 +.01.org
 +.02weqj32.com
-+.030buy.com
 +.04647.club
 +.0cgdklr5sfwj.com
 +.0emm.com
@@ -2291,7 +2289,6 @@ zod.dev
 +.3xplanetimg.com
 +.3xxx.pro
 +.404museum.com
-+.40shopping.com
 +.40somethingmag.com
 +.41maonn.com
 +.43110.cf
@@ -2515,7 +2512,6 @@ zod.dev
 +.921bb.com
 +.922tp.com
 +.928.plus
-+.92ccav.com
 +.92hm.life
 +.92hm.top
 +.941tube.com
@@ -2570,7 +2566,6 @@ zod.dev
 +.aadrm.com
 +.aalah.me
 +.aamacau.com
-+.aanaan.com
 +.aaplimg.com
 +.aave.com
 +.aavs.xyz
@@ -2592,6 +2587,7 @@ zod.dev
 +.abellalist.com
 +.abgsp1.buzz
 +.abigass.com
++.abitno.linpie.com
 +.ablmm.com
 +.ablwang.com
 +.aboluowang.com
@@ -2610,7 +2606,6 @@ zod.dev
 +.acast.com
 +.accbusiness.com
 +.acces-vod.com
-+.accim.org
 +.accomable.com
 +.accountboy.com
 +.accountkit.com
@@ -2829,7 +2824,6 @@ zod.dev
 +.advertfan.com
 +.adx.promo
 +.ae.org
-+.aeasyshop.com
 +.aebn.com
 +.aecexcellence.com
 +.aei.org
@@ -2947,7 +2941,6 @@ zod.dev
 +.airbnb.tools
 +.airbnb.travel
 +.airconsole.com
-+.aircrack-ng.org
 +.airgonetworks.com
 +.airgunstudio.com
 +.airhorn.solutions
@@ -2956,7 +2949,6 @@ zod.dev
 +.airiti.com
 +.airitilibrary.com
 +.airmax360.com
-+.airmay.com
 +.airport-gov-cn.com
 +.airport.brussels
 +.airport.com
@@ -2996,7 +2988,6 @@ zod.dev
 +.ajplus.net
 +.ajsands.com
 +.ajsjx.com
-+.ajtalk.com
 +.ak1.net
 +.aka-ai.com
 +.aka-ai.net
@@ -3359,7 +3350,6 @@ zod.dev
 +.annamilk.com
 +.annas-archive.org
 +.annatam.com
-+.annstores.net
 +.annualpelvicexam.com
 +.annualreviews.org
 +.anobii.com
@@ -3383,8 +3373,6 @@ zod.dev
 +.anthemgame.com
 +.anthemthegame.com
 +.anthonycalzadilla.com
-+.anthropic.com
-+.anthropic.team
 +.anti1984.com
 +.antichristendom.com
 +.antiwave.net
@@ -3408,7 +3396,6 @@ zod.dev
 +.aodahl.com
 +.aofriend.com
 +.aojiao.org
-+.aokwholesale.net
 +.aol.com
 +.aolcdn.com
 +.aolnews.com
@@ -3433,10 +3420,8 @@ zod.dev
 +.api.instabug.com
 +.api.loganalytics.io
 +.api.mixpanel.com
-+.api.moomoobull.com
 +.api.news
 +.api.proxlet.com
-+.api.shuaiapi.com
 +.apiary.io
 +.apibay.org
 +.apigee.com
@@ -3833,7 +3818,6 @@ zod.dev
 +.assets-gap.com
 +.assets-servd.host
 +.assets-yammer.com
-+.assets.nxtrace.org
 +.assetsadobe.com
 +.assettype.com
 +.assimp.org
@@ -4338,7 +4322,6 @@ zod.dev
 +.badteenspunished.com
 +.badvirtue.com
 +.baeb.com
-+.bag-glasses1.com
 +.bai29.xyz
 +.baicaonetwork.com
 +.baijie.org
@@ -4360,7 +4343,6 @@ zod.dev
 +.bandag.cc
 +.bandag.com
 +.bandcamp.com
-+.bandgirlz.com
 +.bandisoft.com
 +.bandpage.com
 +.bandwagonhost.com
@@ -4424,7 +4406,6 @@ zod.dev
 +.battlelog.com
 +.battlenet.com
 +.battleye.com
-+.baxsound.com
 +.bayareabmw.com
 +.bayvoice.net
 +.baywords.com
@@ -4436,12 +4417,10 @@ zod.dev
 +.bbc.co
 +.bbc.com
 +.bbc.mp-pxcdn.com
-+.bbc.pdn.tritondigital.com
 +.bbcchinese.com
 +.bbchat.tv
 +.bbcpersian.com
 +.bbcverticals.com
-+.bbestmall.com
 +.bbgevent.com
 +.bbgwatch.com
 +.bbhub.io
@@ -4450,7 +4429,10 @@ zod.dev
 +.bbnradio.org
 +.bbqm1.xyz
 +.bbs-tw.com
++.bbs.huasing.org
 +.bbs.qmzdd.com
++.bbs.skykiwi.com
++.bbs.sou-tong.org
 +.bbs.tuitui.info
 +.bbsdigest.com
 +.bbsfeed.com
@@ -4782,7 +4764,6 @@ zod.dev
 +.beget.pro
 +.beget.tech
 +.begetcdn.cloud
-+.begin-trade.com
 +.behance.net
 +.behindkink.com
 +.behindthescreenz.com
@@ -4915,7 +4896,6 @@ zod.dev
 +.bhggn.xyz
 +.bhzyk.buzz
 +.bhzyw2.top
-+.bianlei.com
 +.biantailajiao.com
 +.biaoqs.xyz
 +.biaoqs1.xyz
@@ -4973,7 +4953,6 @@ zod.dev
 +.bigtitvenera.com
 +.bigtopsites.com
 +.biguz.net
-+.biitii.com
 +.bijukujo.club
 +.bikaa.xyz
 +.bikac.xyz
@@ -4994,7 +4973,6 @@ zod.dev
 +.billpoint.info
 +.billpoint.tv
 +.billpointnewzealand.com
-+.billypan.com
 +.bim-360.com
 +.bim360.com
 +.bim360.net
@@ -5159,7 +5137,11 @@ zod.dev
 +.blocktempo.com
 +.blog.com
 +.blog.descargasgay.com
++.blog.foolsmountain.com
 +.blog.kangye.org
++.blog.sogoo.org
++.blog.syx86.com
++.blog.taragana.com
 +.blogblog.com
 +.blogcatalog.com
 +.blogcdn.com
@@ -5217,7 +5199,6 @@ zod.dev
 +.bloombergvault.com
 +.bloombergview.com
 +.bloomfortune.com
-+.bloommicroventures.com
 +.bloomsburycollections.com
 +.bloomsburydesignlibrary.com
 +.blowjobit.com
@@ -5546,7 +5527,6 @@ zod.dev
 +.bookfi.net
 +.booking.com
 +.bookmybridgestonetyre.com
-+.bookonsky.net
 +.booksc.me
 +.booksc.org
 +.booksc.xyz
@@ -5580,7 +5560,6 @@ zod.dev
 +.bosharso.net
 +.boslife.biz
 +.boslife.net
-+.bossae.com
 +.boswp.com
 +.bot.nu
 +.botanwang.com
@@ -5633,11 +5612,7 @@ zod.dev
 +.brainyquote.com
 +.branchportal.com
 +.brand-protection-team.com
-+.brandeasygo.com
-+.brandelectronic.com
 +.brandonhutchinson.com
-+.brandproducts1688.com
-+.brands098.com
 +.brantect.com
 +.brasilincesto.com
 +.brasiltudoliberado.com
@@ -5649,6 +5624,7 @@ zod.dev
 +.bravoteens.com
 +.bravotube.net
 +.bravotube.tv
++.bravotv.com
 +.brawlstars.com
 +.brawlstarsgame.com
 +.braze.com
@@ -5826,7 +5802,6 @@ zod.dev
 +.businesscatalyst.com
 +.businessfocus.io
 +.businessinsider.com
-+.businesswebwise.com
 +.businessweek.com
 +.businessweekmag.com
 +.bustyangelique.com
@@ -5848,7 +5823,6 @@ zod.dev
 +.busytrade.com
 +.butterfly-effect-cdn.dev
 +.buugaa.com
-+.buy-from-shanghai.com
 +.buyaapl.com
 +.buyaapl.net
 +.buyaltera.com
@@ -5874,8 +5848,6 @@ zod.dev
 +.buypass-ssl.com
 +.buypass.com
 +.buyservices.com
-+.buyshoponly.com
-+.buzzardflapper.com
 +.buzzav.com
 +.buzzhand.com
 +.buzzhand.net
@@ -5941,6 +5913,7 @@ zod.dev
 +.cachefly.com
 +.cachefly.net
 +.cachinese.com
++.cachix.org
 +.cacnw.com
 +.cactusvpn.com
 +.cad-mep.com
@@ -6232,6 +6205,7 @@ zod.dev
 +.cdn-vk.net
 +.cdn-website.com
 +.cdn.angruo.com
++.cdn.assets.lfpcontent.com
 +.cdn.autoevolution.com
 +.cdn.cwinfo.net
 +.cdn.easyling.com
@@ -6250,6 +6224,7 @@ zod.dev
 +.cdn.turner.com
 +.cdn.usestoryteller.com
 +.cdn.workos.com
++.cdn1.lp.saboom.com
 +.cdn1122.com
 +.cdn2.hubspot.net
 +.cdn2020.com
@@ -6340,7 +6315,6 @@ zod.dev
 +.cfsh99.com
 +.cftfc.com
 +.cfwives.com
-+.cg.play-analytics.com
 +.cgdepot.org
 +.ch
 +.ch.shvoong.com
@@ -6366,7 +6340,6 @@ zod.dev
 +.chasecdn.com
 +.chat.com
 +.chatango.com
-+.chatbotclaude.com
 +.chatgpt.com
 +.chatgpt.livekit.cloud
 +.chatgpt.site
@@ -6421,8 +6394,6 @@ zod.dev
 +.cheapestbeatsdrdre.com
 +.cheapheadphonesland.com
 +.cheapheadphonessale.com
-+.cheapheadsetmall.com
-+.cheapheadsetshop.com
 +.cheapmonsterbeatsbydrdre.com
 +.cheapmonsterbeatsheadsets.com
 +.cheapmonsterbeatssale.com
@@ -6431,8 +6402,6 @@ zod.dev
 +.cheapnikedunks.com
 +.cheapnikeoutlet.com
 +.cheapsalemonster.com
-+.cheapshoesvip.com
-+.cheapwireless04.com
 +.cheapwirelessbeats.com
 +.checkgfw.com
 +.chef.io
@@ -6466,7 +6435,6 @@ zod.dev
 +.chickstagram.com
 +.chickteases.com
 +.chid.com.mm
-+.chihair-straightener.com
 +.chillingo.com
 +.chimeforchange.org
 +.china-autodesk.com
@@ -6484,7 +6452,6 @@ zod.dev
 +.chinaaid.net
 +.chinaaid.org
 +.chinachange.org
-+.chinaclothesstore.com
 +.chinacomments.org
 +.chinadecoding.com
 +.chinademocrats.org
@@ -6528,6 +6495,7 @@ zod.dev
 +.chinese-leaders.org
 +.chinese-memorial.org
 +.chinese-xnxx.com
++.chinese.soifind.com
 +.chinesedaily.com
 +.chinesedailynews.com
 +.chinesedemocracy.com
@@ -6585,7 +6553,6 @@ zod.dev
 +.chyoa.com
 +.ci-en.net
 +.cian.site
-+.ciattackers.com
 +.cici.com
 +.ciciai.com
 +.ciciaicdn.com
@@ -6681,16 +6648,6 @@ zod.dev
 +.classicalguitarblog.net
 +.classicnike.com
 +.classymomsex.com
-+.claude.app
-+.claude.com
-+.claude.dev
-+.claude.site
-+.claudeacademy.com
-+.claudemcpclient.com
-+.claudemcpcontent.com
-+.claudepages.dev
-+.claudestudio.com
-+.claudeusercontent.com
 +.clco.cc
 +.cldup.com
 +.cleansite.biz
@@ -6705,6 +6662,7 @@ zod.dev
 +.click-url.com
 +.clickserve.cc-dt.com
 +.clien.net
++.client-api.arkoselabs.com
 +.climate-server.com
 +.cline.bot
 +.clinical-videos.com
@@ -6810,7 +6768,6 @@ zod.dev
 +.cmail20.com
 +.cmcn.org
 +.cmegroup.com
-+.cmhalq.com
 +.cmoinc.org
 +.cmpaas.com
 +.cms-twdigitalassets.com
@@ -6818,8 +6775,11 @@ zod.dev
 +.cmule.org
 +.cmx.im
 +.cn-proxy.com
++.cn.streetvoice.com
++.cn2.streetvoice.com
 +.cnabc.com
 +.cnbc.com
++.cnbccouncils.com
 +.cnbcfm.com
 +.cncrivals.com
 +.cnd.org
@@ -6838,7 +6798,6 @@ zod.dev
 +.cnpmjs.org
 +.cnpolitics.org
 +.cnproxy.com
-+.cnshopin.com
 +.cnyes.com
 +.cnzjp.xyz
 +.cobatt.com
@@ -7009,6 +6968,7 @@ zod.dev
 +.coova.net
 +.coova.org
 +.copilot-stg.com
++.copilot.cloud.microsoft
 +.copilot.com
 +.copilot.microsoft.com
 +.copro.pw
@@ -7069,7 +7029,6 @@ zod.dev
 +.cpj.org
 +.cpu-monkey.com
 +.cpuid.com
-+.cqcorea.com
 +.cr
 +.crackle.com
 +.craftifyx.com
@@ -7189,7 +7148,6 @@ zod.dev
 +.cuckwatchingwife.com
 +.cuckwimp.com
 +.cuebic.biz
-+.cuffiesaldi.com
 +.cuhkacs.org
 +.cuihua.org
 +.cuiweiping.net
@@ -7248,6 +7206,7 @@ zod.dev
 +.cybercrimecon.com
 +.cyberctm.com
 +.cyberghost.app
++.cyberghost.natado.com
 +.cyberghostvpn.com
 +.cybermondaybeats4sale.com
 +.cyberpunk.net
@@ -7330,7 +7289,6 @@ zod.dev
 +.dandanplay.com
 +.dandanplay.net
 +.dandanzan.cc
-+.danemarket.com
 +.danke4china.net
 +.danmarkbeatsbydrdre.com
 +.dansmovies.com
@@ -7338,6 +7296,7 @@ zod.dev
 +.daoc.net
 +.daolan.net
 +.daozhongxing.org
++.dappcdn.com
 +.daretoku-eromanga.info
 +.darivoa.com
 +.darkageofcamelot.com
@@ -7379,7 +7338,6 @@ zod.dev
 +.datalabour.com
 +.dataliberation.org
 +.datalore.io
-+.dataplane.rudderstack.com
 +.datasheets360.com
 +.datawav.club
 +.date2night.xyz
@@ -7600,7 +7558,6 @@ zod.dev
 +.dengekionline.com
 +.dengiamerika.com
 +.deno.com
-+.deno.dev
 +.deno.land
 +.denopkg.com
 +.dentalhypotheses.com
@@ -7637,7 +7594,6 @@ zod.dev
 +.desmos.com
 +.dessci.com
 +.destinationbim.com
-+.detaliczny.com
 +.detentiongirls.com
 +.detnews.com
 +.detodosparatodos.org
@@ -8060,7 +8016,6 @@ zod.dev
 +.downdetector.com
 +.downdetectorapi.com
 +.download.com
-+.download.dappcdn.com
 +.downloadpass.com
 +.downloadsforipod.com
 +.dphk.org
@@ -8184,7 +8139,6 @@ zod.dev
 +.dtci.technology
 +.dtdns.net
 +.dtiblog.com
-+.dtsell.com
 +.dtv2009offers.com
 +.dtvce.com
 +.dtwang.org
@@ -8271,7 +8225,6 @@ zod.dev
 +.dwnews.com
 +.dwnews.net
 +.dx9527.cc
-+.dxiong.com
 +.dxk4h.com
 +.dxyav.co
 +.dydx.exchange
@@ -8329,7 +8282,6 @@ zod.dev
 +.eaplay.com
 +.earlytibet.com
 +.earngeek.com
-+.earphonescheapest.com
 +.earpod.net
 +.earthcam.com
 +.earthdell.com
@@ -8507,7 +8459,6 @@ zod.dev
 +.ebscohost.com
 +.ebtcbank.com
 +.ebuyer.com
-+.ebuyheadphones.com
 +.ec
 +.ecbsn.com
 +.ecgapp.net
@@ -8848,7 +8799,6 @@ zod.dev
 +.eset.systems
 +.esetsoftware.com
 +.esforce.com
-+.esim.redteago.com
 +.eskimotube.com
 +.eslite.com
 +.esm.run
@@ -8879,7 +8829,6 @@ zod.dev
 +.etadult.com
 +.etaiwannews.com
 +.eth.sucks
-+.etheadphones.com
 +.etherdelta.com
 +.ethereum.foundation
 +.ethereum.org
@@ -9183,7 +9132,6 @@ zod.dev
 +.familysimulator.io
 +.familystrokes.com
 +.famitsu.com
-+.famosascalvas.com
 +.famous-nudes.com
 +.famousinternetgirls.com
 +.famousinternetgirlsgalleries.com
@@ -9203,6 +9151,7 @@ zod.dev
 +.fangeqiang.com
 +.fanglizhi.info
 +.fangmincn.org
++.fangong.forums-free.com
 +.fangong.org
 +.fangongheike.com
 +.fangsung.com
@@ -9211,7 +9160,6 @@ zod.dev
 +.fanhaolou.com
 +.fanhowab.buzz
 +.fanleakstoday.com
-+.fanqiang.tk
 +.fanqiangdang.com
 +.fanqianghou.com
 +.fanqianglu.com
@@ -9279,11 +9227,13 @@ zod.dev
 +.fastlane.tools
 +.fastly-analytics.com
 +.fastly-edge.com
++.fastly-insights.com
 +.fastly-terrarium.com
 +.fastly.com
 +.fastly.io
 +.fastly.net
 +.fastlycdn.com
++.fastlydns.net
 +.fastlylabs.com
 +.fastlylb.net
 +.fastmail.com
@@ -9648,6 +9598,7 @@ zod.dev
 +.fo
 +.foampositeshoes.com
 +.fochk.org
++.focusfeatures.com
 +.focusvpn.com
 +.fofg-europe.net
 +.fofg.org
@@ -9667,7 +9618,6 @@ zod.dev
 +.fontsinuse.com
 +.fontsource.org
 +.foofle.com
-+.foolsmountain.com
 +.fooooo.com
 +.footseen.com
 +.footstockings.com
@@ -9692,8 +9642,8 @@ zod.dev
 +.forthethrone.com
 +.fortnite.com
 +.fortuneinsight.com
++.forum.mymaji.com
 +.forum4hk.com
-+.forums-free.com
 +.forza.net
 +.forzamotorsport.net
 +.forzaracingchampionship.com
@@ -9909,12 +9859,10 @@ zod.dev
 +.franklc.com
 +.frcasquesbeats.com
 +.freakshare.com
-+.free-aa.com
 +.free-abbywinters.com
 +.free-erobooks.com
 +.free-gate.org
 +.free-hada-now.org
-+.free-sns.com
 +.free-ss.site
 +.free-ssh.com
 +.free-strip-games.com
@@ -10046,7 +9994,6 @@ zod.dev
 +.friendsoftibet.org
 +.fring.com
 +.fringenetwork.com
-+.frishoes.com
 +.fritchy.com
 +.from-pr.com
 +.from-sd.com
@@ -10281,6 +10228,7 @@ zod.dev
 +.gameuxmasterguide.com
 +.gamewtb.com
 +.gaming-notebooks.com
++.gamma.app
 +.gammacdn.com
 +.gamousa.com
 +.gandi.net
@@ -10448,7 +10396,6 @@ zod.dev
 +.gerritcodereview.com
 +.gesoten.com
 +.get.app
-+.get.dappcdn.com
 +.get.dev
 +.get.how
 +.get.page
@@ -10670,7 +10617,6 @@ zod.dev
 +.gmiddle.com
 +.gmiddle.net
 +.gmll.org
-+.gmnetworks.net
 +.gmo-aozora.com
 +.gmo-clinic-map.com
 +.gmo-connect.com
@@ -10783,7 +10729,6 @@ zod.dev
 +.gonzo.com
 +.gooblox.com
 +.good-gay.com
-+.good.news
 +.gooday.xyz
 +.gooddaychicago.com
 +.gooddns.info
@@ -10791,7 +10736,6 @@ zod.dev
 +.goodnewsnetwork.org
 +.goodreaders.com
 +.goodreads.com
-+.goodsdunk.net
 +.goodtv.tv
 +.goofind.com
 +.goog
@@ -10891,6 +10835,7 @@ zod.dev
 +.greatroc.org
 +.greatzhonghua.org
 +.green-box-tv.com
++.greenbean.media
 +.greenbuildingstudio.com
 +.greenhouse.io
 +.greenlakeaas.com
@@ -11107,6 +11052,7 @@ zod.dev
 +.hayabusa.media
 +.hayday.com
 +.haydaygame.com
++.hayu.com
 +.hayya.ae
 +.hbabit.com
 +.hbfile.net
@@ -11173,20 +11119,12 @@ zod.dev
 +.hdzog.com
 +.hdzyk-cdn.com
 +.he.net
-+.headphonepubs.com
-+.headphones-cool.com
 +.headphones-dre.com
 +.headphones-outlet-online.com
 +.headphonesbeatsaudio.com
 +.headphonesbeatsbydre.com
 +.headphoneses.com
-+.headphoneshome.com
-+.headphoneshotsales.com
-+.headphonesol.com
 +.headphonesretailer.com
-+.headphonessupply.com
-+.headphonezip.com
-+.headset987.com
 +.health026.click
 +.healthcarecareeronline.com
 +.heartbreakers.gallery
@@ -11461,9 +11399,7 @@ zod.dev
 +.hindiweb.com
 +.hindustantimes.com
 +.hinet.net
-+.hipaa6020.com
 +.hippyhillscomix.com
-+.hipzoom.net
 +.historylines.net
 +.historyofdota.com
 +.historyofdota.net
@@ -11502,8 +11438,10 @@ zod.dev
 +.hkchurch.org
 +.hkcircleapp.com
 +.hkcitizenmedia.com
++.hkcitycreation.com
 +.hkcnews.com
 +.hkcoc.com
++.hkcourtnews.com
 +.hkcsl.com
 +.hkday.net
 +.hkdf.org
@@ -11516,6 +11454,7 @@ zod.dev
 +.hkf202311.site
 +.hkf202312.shop
 +.hkfaa.com
++.hkfeature.com
 +.hkfreezone.com
 +.hkfront.org
 +.hkgalden.com
@@ -11595,7 +11534,6 @@ zod.dev
 +.homestylernews.com
 +.hominis.media
 +.hommec.com
-+.honawalaan.com
 +.honeynet.org
 +.hongjie10.xyz
 +.hongjie11.xyz
@@ -11691,7 +11629,6 @@ zod.dev
 +.hotstunners.com
 +.hotteenfreecam.com
 +.hottestfilms.com
-+.hottestheadphonesonline.com
 +.hottg.com
 +.hottystop.com
 +.hotvpn.com
@@ -11850,7 +11787,6 @@ zod.dev
 +.hrea.org
 +.hrichina.org
 +.hrntt.org
-+.hrsaz.com
 +.hrw.org
 +.hrweb.org
 +.hs-scripts.com
@@ -11924,7 +11860,6 @@ zod.dev
 +.huarun.win
 +.huashangnews.com
 +.huashundg.com
-+.huasing.org
 +.huati.cc
 +.huaxia-news.com
 +.huaxiabao.org
@@ -12278,7 +12213,6 @@ zod.dev
 +.ignites.com
 +.ignitesasia.com
 +.igniteseurope.com
-+.igoshopping.net
 +.igpublish.com
 +.igsonar.com
 +.igtv.com
@@ -12338,8 +12272,8 @@ zod.dev
 +.ilhamtohtiinstitute.org
 +.ilife.gr
 +.ilife.wang
-+.illianacomputerrecycling.com
 +.illiweb.com
++.illumination.com
 +.illusion111.com
 +.illusionas.com
 +.illusionchn.com
@@ -12424,7 +12358,6 @@ zod.dev
 +.imgix.com
 +.imgix.net
 +.imglink.win
-+.imgmega.com
 +.imgmrplay.xyz
 +.imgpng.xyz
 +.imgproxy.org
@@ -12465,7 +12398,6 @@ zod.dev
 +.in99.org
 +.inasian.club
 +.incapdns.net
-+.incentivetravelgifts.com
 +.incestflix.com
 +.incesto.blog.br
 +.incestvidz.com
@@ -12853,7 +12785,6 @@ zod.dev
 +.iphone5casescovers.com
 +.iphone5s5case.com
 +.iphoneacessorios.com.br
-+.iphonecase2013.com
 +.iphonecase5.com
 +.iphonecases100.com
 +.iphonecases5.com
@@ -12935,7 +12866,6 @@ zod.dev
 +.islahhaber.net
 +.islamawareness.net
 +.islamhouse.com
-+.islamiccenterofnewlondon.com
 +.islamicity.com
 +.islamicpluralism.org
 +.islamtoday.net
@@ -13659,7 +13589,6 @@ zod.dev
 +.kichiku-doujinko.com
 +.kichikuou.com
 +.kick.com
-+.kickshatchannel.com
 +.kicksnike1.com
 +.kicu.tv
 +.kidgrid.tv
@@ -13772,7 +13701,6 @@ zod.dev
 +.kone.com
 +.koolsolutions.com
 +.koornk.com
-+.kopfhorergunstigshop.com
 +.koranmandarin.com
 +.korea.net
 +.korenan2.com
@@ -13949,7 +13877,6 @@ zod.dev
 +.lecoin.cc
 +.lede-project.org
 +.ledger.com
-+.leecountytimes.com
 +.leetcode.com
 +.lefora.com
 +.legaltech.law.com
@@ -13988,14 +13915,12 @@ zod.dev
 +.lewdweb.net
 +.lexica.art
 +.lexisnexis.com
-+.lexuemei.com
 +.lezpoo.com
 +.lfai.foundation
 +.lflink.com
 +.lflinkup.com
 +.lflinkup.net
 +.lflinkup.org
-+.lfpcontent.com
 +.lg.com
 +.lgappstv.com
 +.lgbtq.games
@@ -14037,6 +13962,7 @@ zod.dev
 +.life-global.org
 +.lifemiles.com
 +.lifeselector.com
++.lifesitenews.com
 +.lifewire.com
 +.lightboxcdn.com
 +.lightbridge.com
@@ -14102,7 +14028,6 @@ zod.dev
 +.linkuswell.com
 +.linode.com
 +.linotype.com
-+.linpie.com
 +.linseysworld.com
 +.linux.do
 +.linux.org
@@ -14332,7 +14257,6 @@ zod.dev
 +.lucasentertainment.com
 +.lucasfilm.com
 +.luckydesigner.space
-+.luckyissue.com
 +.ludepress.com
 +.luke54.com
 +.luke54.org
@@ -14370,7 +14294,6 @@ zod.dev
 +.lysol.cl
 +.lysol.com
 +.lysol.net
-+.lyzsxx.com
 +.lzjscript.com
 +.lzmtnews.org
 +.lzzyimg.com
@@ -14491,7 +14414,6 @@ zod.dev
 +.makearmanotwar.com
 +.makebettercode.com
 +.makecode.org
-+.makeeu.com
 +.makeitopen.com
 +.makeitrealcontest.com
 +.makemymood.com
@@ -14505,7 +14427,6 @@ zod.dev
 +.malayalamanorama.com
 +.malaysiakini.com
 +.mallandrinhas.net
-+.mallheadphone.com
 +.malvastudios.com
 +.malwarebytes.com
 +.mamacitaz.com
@@ -14615,6 +14536,7 @@ zod.dev
 +.massagerepublic.com
 +.masseffect.com
 +.masseffectarchives.com
++.master-insight.com
 +.mastercad.com
 +.mastercard-email.com
 +.mastercard.ae
@@ -14737,7 +14659,6 @@ zod.dev
 +.maying.co
 +.mayoclinic.org
 +.mbeats-tech.com
-+.mbheadphone.com
 +.mcadforums.com
 +.mcafee.com
 +.mcb.com.mm
@@ -14817,6 +14738,7 @@ zod.dev
 +.mega.io
 +.megacamz.com
 +.megaeth.com
++.megafon.cloud
 +.megafon.com
 +.megaproxy.com
 +.megarotic.com
@@ -15011,7 +14933,6 @@ zod.dev
 +.microsofttradein.com
 +.microsoftuwp.com
 +.microvpn.com
-+.micstl.com
 +.midatlanticbmwmotorcycles.com
 +.middle-way.net
 +.midentsolutions.com
@@ -15487,7 +15408,6 @@ zod.dev
 +.monsterdrebeats-usa.com
 +.monsterdrebeats-usa.net
 +.monsterheadphone.net
-+.monsterproduct.net
 +.monstersbeatbydres.com
 +.monstersdebea.com
 +.monstershopcheapbeats.net
@@ -15495,6 +15415,7 @@ zod.dev
 +.moodstocks.com
 +.moodyz.com
 +.moomoo.com
++.moomoobull.com
 +.moomooequity.com
 +.moomootrustee.com
 +.moonbbs.com
@@ -15504,7 +15425,6 @@ zod.dev
 +.morazzia.com
 +.morbell.com
 +.more.tv
-+.moreheadphones.com
 +.moresci.sale
 +.morewithautodesk.com
 +.morganclaypool.com
@@ -15642,7 +15562,6 @@ zod.dev
 +.msk.ilnk.info
 +.msk.kitazawa.me
 +.msn.net
-+.msnbc.com
 +.msnewskids.com
 +.msnewskids.net
 +.msnewskids.org
@@ -15865,7 +15784,6 @@ zod.dev
 +.mylittlenieces.com
 +.mylogiclab.com
 +.mylust.com
-+.mymaji.com
 +.mymapportal.com
 +.mymasturbators.com
 +.mymediarom.com
@@ -15976,7 +15894,6 @@ zod.dev
 +.nanopool.org
 +.nanyang.com
 +.nanyangpost.com
-+.nanzao.com
 +.naoconto.com
 +.naol.cc
 +.napiszex.com
@@ -15987,7 +15904,6 @@ zod.dev
 +.nasty.singles
 +.nastyvids.com
 +.nat.moe
-+.natado.com
 +.nataliefiore.com
 +.natgeomaps.com
 +.nationalawakening.org
@@ -16035,8 +15951,11 @@ zod.dev
 +.nbcolympics.com
 +.nbcsports.com
 +.nbcudigitaladops.com
++.nbcumv.com
 +.nbcuni.com
++.nbcunicareers.com
 +.nbcuniversal.com
++.nbcuniversalprivacy.com
 +.nbdh15.buzz
 +.nbtvpn.com
 +.nbys.tv
@@ -16052,7 +15971,6 @@ zod.dev
 +.ndtvimg.com
 +.near.by
 +.nebay.net
-+.neborder.com
 +.ned.org
 +.nee4you.com
 +.needforspeed.com
@@ -16085,6 +16003,7 @@ zod.dev
 +.nekoxxx.com
 +.nel.measure.office.net
 +.nelreports.net
++.nemesis2.qx.net
 +.nenastran.com
 +.nenitas.club
 +.nentindo.net
@@ -16103,13 +16022,11 @@ zod.dev
 +.netalert.me
 +.netarabic.com
 +.netbirds.com
-+.netcolony.com
 +.netcup.com
 +.netcup.net
 +.netdna-cdn.com
 +.netfapx.com
 +.netfilter.org
-+.netfirms.com
 +.netflav.com
 +.netflav1.com
 +.netflav5.com
@@ -16165,7 +16082,6 @@ zod.dev
 +.new2fea.com
 +.new3dcomics.com
 +.newbeatsblackfriday.com
-+.newbemany.com
 +.newbienudes.com
 +.newbrazz.com
 +.newcenturymc.com
@@ -16184,7 +16100,6 @@ zod.dev
 +.newindianexpress.com
 +.newipnow.com
 +.newisiknowledge.com
-+.newlysprung.net
 +.newmitbbs.com
 +.newmonst1erbeatsto1re.com
 +.newmonsterbeatsheadphones.com
@@ -16197,7 +16112,6 @@ zod.dev
 +.newsancai.com
 +.newsblur.com
 +.newschinacomment.org
-+.newschristmasshopping.com
 +.newscn.org
 +.newscorp.com
 +.newscorpaustralia.com
@@ -16253,7 +16167,6 @@ zod.dev
 +.nexus-cdn.com
 +.nexusmods.com
 +.nfjtyd.com
-+.nflhotsalejerseys.com
 +.nflxext.com
 +.nflximg.com
 +.nflximg.net
@@ -16296,7 +16209,6 @@ zod.dev
 +.nicegram.app
 +.nicegram.cloud
 +.nicehash.com
-+.nicesshop.net
 +.nickscipio.com
 +.nico.ms
 +.nicolepeters.com
@@ -16460,7 +16372,6 @@ zod.dev
 +.ninecommentaries.com
 +.nineteentube.com
 +.nineyu.com
-+.ning.com
 +.ninjacloak.com
 +.ninjaproxy.ninja
 +.ninpu.cyou
@@ -16725,6 +16636,7 @@ zod.dev
 +.nxcli.io
 +.nxedge.io
 +.nxta.org
++.nxtrace.org
 +.ny.stgloballink.com
 +.ny1.com
 +.nyaa.land
@@ -16754,6 +16666,7 @@ zod.dev
 +.o365weve-dev.com
 +.o365weve-ppe.com
 +.o365weve.com
++.o7.com
 +.oaistatic.com
 +.oaistatsig.com
 +.oaiusercontent.com
@@ -16811,7 +16724,6 @@ zod.dev
 +.oekakiskey.com
 +.oex.com
 +.offbeatchina.com
-+.offerairjordanlebron.com
 +.office365love.com
 +.office365tw.com
 +.officeoftibet.com
@@ -16825,13 +16737,11 @@ zod.dev
 +.offworldindustries.net
 +.ofiii.com
 +.ofile.org
-+.ogameblog.com
 +.ogaoga.org
 +.ogate.org
 +.oghost.com.br
 +.oglobo.com.br
 +.ogp.me
-+.ohchr.org
 +.ohentai.org
 +.ohgratisporrfilm.com
 +.ohmyrss.com
@@ -16972,7 +16882,6 @@ zod.dev
 +.onmypc.org
 +.onrender.com
 +.onsalekey.com
-+.onsaletrend.com
 +.onstream.cc
 +.onthehunt.com
 +.ontrac.com
@@ -16983,8 +16892,6 @@ zod.dev
 +.oopsforum.com
 +.ooyala.com
 +.op7979.com
-+.openai.com
-+.openai.org
 +.openallweb.com
 +.openamt.com
 +.openapiplatform.com
@@ -17039,6 +16946,7 @@ zod.dev
 +.opera.com
 +.operacdn.com
 +.opinionjournal.com
++.opml.radiotime.com
 +.oppai-doga.info
 +.oppainorakuen.com
 +.optanedifference.com
@@ -17123,7 +17031,6 @@ zod.dev
 +.outletbeatsshop.com
 +.outletnike.com
 +.outlookmobile.com
-+.over-blog.com
 +.over18arcade.com
 +.overapple.com
 +.overdaily.org
@@ -17131,11 +17038,9 @@ zod.dev
 +.overleaf.com
 +.overplay.net
 +.overthumbs.com
-+.ovi.com
 +.ovid.com
 +.ovpn.com
 +.ovpnleaktest.com
-+.owind.com
 +.owl.li
 +.owltail.com
 +.ownaj.com
@@ -17211,7 +17116,6 @@ zod.dev
 +.padmanet.com
 +.paerosnen.club
 +.page.link
-+.page.tl
 +.page2rss.com
 +.page3.com
 +.pagecdn.com
@@ -17313,7 +17217,6 @@ zod.dev
 +.patreon.com
 +.patreoncommunity.com
 +.patreonusercontent.com
-+.paulsimon-music.com
 +.pavpal.com
 +.pawchive.pw
 +.pawoo.net
@@ -17413,7 +17316,6 @@ zod.dev
 +.perfect-privacy.com
 +.perfectgirls.net
 +.perfectgonzo.com
-+.perfectkickz.net
 +.perfectnaked.com
 +.perfectsexnow.com
 +.perfectshemales.com
@@ -17430,7 +17332,6 @@ zod.dev
 +.persiankitty.com
 +.person.com
 +.personaltrainermath.com
-+.personeelsland.com
 +.pervclips.com
 +.perverttube.com
 +.petardas.com
@@ -17496,9 +17397,7 @@ zod.dev
 +.picidae.net
 +.picjs.xyz
 +.pickinguppussy.com
-+.picknicekicks.net
 +.pickpackapp.com
-+.pickshoesclothes.com
 +.picnik.com
 +.picpost.com
 +.pics.vc
@@ -17540,6 +17439,7 @@ zod.dev
 +.pinkworld.com
 +.pinoy-n.com
 +.pintool.com
++.pioneer-worker.forums-free.com
 +.pipedriveassets.com
 +.pipii.tv
 +.piposay.com
@@ -17599,6 +17499,7 @@ zod.dev
 +.plastics-cadcam.com
 +.platinumlinks.org
 +.platov.co
++.play-analytics.com
 +.play-asia.com
 +.play-bmm.shop
 +.play-bmmer.buzz
@@ -17669,7 +17570,6 @@ zod.dev
 +.pobieramy.top
 +.pobl-content.com
 +.pocket-image-cache.com
-+.pocketbiketrader.com
 +.pocketcasts.com
 +.podbean.com
 +.podcast.co
@@ -17994,13 +17894,13 @@ zod.dev
 +.pullfolio.com
 +.pullstring.net
 +.pulsebrowser.app
++.pulsehknews.com
 +.punishbang.com
 +.punishworld.com
 +.punyu.com
 +.pure18.com
 +.pureapk.com
 +.pureconcepts.net
-+.puredns.org
 +.pureinsight.org
 +.purelov5.com
 +.purelyceleb.com
@@ -18061,8 +17961,6 @@ zod.dev
 +.python.org
 +.pythonhackers.com
 +.pythonhosted.org
-+.pythonic.life
-+.pytorch.org
 +.pyup.io
 +.pzforever.skin
 +.pzforever01.homes
@@ -18178,7 +18076,6 @@ zod.dev
 +.qutebrowser.org
 +.qvodzy.org
 +.qwant.com
-+.qx.net
 +.qxbbs.org
 +.qysg.cc
 +.qysg7.buzz
@@ -18214,7 +18111,6 @@ zod.dev
 +.radiomarsho.com
 +.radiosvoboda.org
 +.radiotavisupleba.ge
-+.radiotime.com
 +.radiovaticana.org
 +.radiovncr.com
 +.radix-ui.com
@@ -18305,7 +18201,6 @@ zod.dev
 +.rbplc.com
 +.rbrandlibrary.com
 +.rbsgate.com
-+.rbsgr.com
 +.rbspeakup.com
 +.rbsuat.com
 +.rbth.com
@@ -18447,6 +18342,7 @@ zod.dev
 +.redlightcenter.com
 +.redotpay.com
 +.redsexhub.com
++.redteago.com
 +.redtub3xxx.com
 +.redtube.blog
 +.redtube.com
@@ -18461,7 +18357,6 @@ zod.dev
 +.redzonechannel.com
 +.ree007.xyz
 +.reflectivecode.com
-+.reform-apple.com
 +.reg.cloud
 +.reg.com
 +.regex101.com
@@ -18495,8 +18390,6 @@ zod.dev
 +.replit.com
 +.report-uri.com
 +.repotama.com
-+.repsneakermall.com
-+.repswing.com
 +.res.office365.com
 +.resao.com
 +.rescript-lang.org
@@ -18617,7 +18510,6 @@ zod.dev
 +.roc-taiwan.org
 +.rocket-inc.net
 +.rocket.chat
-+.rocketbbs.com
 +.rocketcdn.me
 +.rocketfishproducts.com
 +.rocketozon.by
@@ -18827,7 +18719,6 @@ zod.dev
 +.saasexch.com
 +.saasexch.info
 +.saasexch.io
-+.saboom.com
 +.sabuibo.net
 +.sacduc.com
 +.sacks.com
@@ -18856,7 +18747,6 @@ zod.dev
 +.sale-nikeshoes.com
 +.salebeatslasteststyle4you.com
 +.saleblackfridaydrebeats.com
-+.salecheaphandbags.com
 +.salesforce-setup.com
 +.salesforce-sites.com
 +.salesforce.com
@@ -18865,7 +18755,6 @@ zod.dev
 +.salesforceliveagent.com
 +.salesforcemarketingcloud.com
 +.sambhota.org
-+.samebags.com
 +.samsung.com
 +.samsungapps.com
 +.samsungcloud.com
@@ -18893,7 +18782,6 @@ zod.dev
 +.sankei.com
 +.sankie.net
 +.sanspo.com
-+.sanvaras.com
 +.saobjpg.com
 +.saoni91.xyz
 +.saonia.xyz
@@ -18936,7 +18824,6 @@ zod.dev
 +.sbitravelcard.com
 +.sbme.me
 +.sbnation.com
-+.sbti.unun.dev
 +.sbuxcard.com
 +.sc-cdn.com
 +.sc-cdn.net
@@ -18993,7 +18880,6 @@ zod.dev
 +.scival.com
 +.scmp.com
 +.scmpchinese.com
-+.scnshop.cc
 +.scnsrc.me
 +.scolle.net
 +.scopus.com
@@ -19342,8 +19228,10 @@ zod.dev
 +.shambhalasun.com
 +.shameless.com
 +.shangfang.org
++.shanghainationalparty.com
 +.shapelcounset.xyz
 +.shapeservices.com
++.share.ovi.com
 +.sharebee.com
 +.sharecool.org
 +.sharefile.com
@@ -19410,8 +19298,6 @@ zod.dev
 +.shockingmovies.com
 +.shodan.io
 +.shodanhq.com
-+.shoers.com
-+.shoestop2.com
 +.shooshtime.com
 +.shop-headphones.net
 +.shop-rt.com
@@ -19445,9 +19331,7 @@ zod.dev
 +.shopminiusa.com
 +.shopmonsterbeats.com
 +.shoppercentre.com
-+.shopping-days.net
 +.shopping.com
-+.shoppinguheadphones.com
 +.shoppulse88.store
 +.shops-disney.com
 +.shopspeedtv.com
@@ -19473,6 +19357,7 @@ zod.dev
 +.showybeauty.com
 +.shrkurl.com
 +.shsh201.com
++.shuaiapi.com
 +.shuangmawei.xyz
 +.shufflesex.com
 +.shuminavi.net
@@ -19620,7 +19505,6 @@ zod.dev
 +.skyassets.com
 +.skybet.com
 +.skyearth8.xyz
-+.skykiwi.com
 +.skylanders.com
 +.skymansion.net
 +.skymatter.com
@@ -19744,9 +19628,6 @@ zod.dev
 +.snapwebcams.com
 +.sndcdn.com
 +.sndimg.com
-+.sneaker666.com
-+.sneakerpage.net
-+.sneakerskick.com
 +.sneakme.net
 +.snjulebu.com
 +.snk-corp.info
@@ -19801,11 +19682,9 @@ zod.dev
 +.softsmirror.cf
 +.softwarebychuck.com
 +.sogclub.com
-+.sogoo.org
 +.sogrady.me
 +.sohcradio.com
 +.sohfrance.org
-+.soifind.com
 +.sojiy1124.top
 +.sokamonline.com
 +.sokmil.com
@@ -19886,15 +19765,14 @@ zod.dev
 +.sos.org
 +.sos44.com
 +.sosad.fun
-+.soso7778.com
 +.sosreader.com
 +.sostibet.org
 +.sotwe.com
-+.sou-tong.org
 +.soubory.com
 +.souka.xyz
 +.soul-plus.net
 +.soulcaliburhentai.net
++.soulogic.com
 +.soumo.info
 +.soundcloud.cloud
 +.soundcloud.com
@@ -19914,7 +19792,6 @@ zod.dev
 +.sovec.net
 +.soyinyj.top
 +.soylent.com
-+.soylentnews.org
 +.sp.cool
 +.spacebattles.com
 +.spaceexplored.com
@@ -19941,7 +19818,6 @@ zod.dev
 +.spcc-sp.com
 +.speakerdeck.com
 +.spec.org
-+.specialtyheadphones.com
 +.spectraltube.com
 +.speedcat.me
 +.speeddreamride.com
@@ -19968,7 +19844,6 @@ zod.dev
 +.spiedigitallibrary.org
 +.spigotmc.org
 +.spike.com
-+.spiritclubs.com
 +.spiritofecstasy.com
 +.spizoo.com
 +.splatoon2tournament.com
@@ -19994,7 +19869,6 @@ zod.dev
 +.springernature.com
 +.springwood.me
 +.sprinklesapp.com
-+.sprite.org
 +.sproutcore.com
 +.sproxy.info
 +.sprut.io
@@ -20024,6 +19898,7 @@ zod.dev
 +.sqyzh-dh.sbs
 +.sr.ht
 +.srcdn.com
++.srcf.ucam.org
 +.srebrenica360.com
 +.srtcdn.net
 +.ss-cdn.com
@@ -20031,6 +19906,7 @@ zod.dev
 +.ss-inf.net
 +.ss-link.com
 +.ss.levyhsu.com
++.ss.pythonic.life
 +.ss7.app
 +.ssdevrd.com
 +.ssglobal.co
@@ -20246,7 +20122,6 @@ zod.dev
 +.streamsex.com
 +.streema.com
 +.streetmeatasia.com
-+.streetvoice.com
 +.strepsils.com.ar
 +.strepsils.com.br
 +.strepsils.com.co
@@ -20323,7 +20198,6 @@ zod.dev
 +.suissl.com
 +.sukebelinks.com
 +.sulian.me
-+.sulwerphoto.com
 +.summify.com
 +.sumomo-ch.com
 +.sumrando.com
@@ -20332,7 +20206,6 @@ zod.dev
 +.sundanceignite2016.com
 +.sundayguardianlive.com
 +.sundayready.com
-+.sunglassessale2014.com
 +.suno.com
 +.sunskyforum.com
 +.sunvpn.net
@@ -20346,7 +20219,6 @@ zod.dev
 +.supercellgames.com
 +.supercellid.com
 +.supercellstore.com
-+.superearsenjoy.com
 +.superfiliate-cdn.com
 +.superfreevpn.com
 +.superhumanstatic.com
@@ -20364,7 +20236,6 @@ zod.dev
 +.superzooi.com
 +.supjav.com
 +.suppig.net
-+.supplybestjerseys.com
 +.support-uber.com
 +.supr.cl
 +.supremacy.com
@@ -20483,13 +20354,11 @@ zod.dev
 +.system76.com
 +.sysub.com
 +.sytes.net
-+.syx86.com
 +.syzbj36.xyz
 +.szabadeuropa.hu
 +.szbbs.net
 +.szcheapmonsterheadphones.com
 +.szexvideo.top
-+.szwinnertechnology.com
 +.t-assets.net
 +.t-bank.by
 +.t-finance.group
@@ -20547,8 +20416,8 @@ zod.dev
 +.taiwantp.net
 +.taiwanus.net
 +.taiwanyes.com
++.taiwanyes.ning.com
 +.take2games.com
-+.takegoto.com
 +.taknai.com
 +.talentlens.com
 +.taleofthenight.com
@@ -20584,7 +20453,6 @@ zod.dev
 +.taptotokyo.com
 +.taqunuhai.vip
 +.taradinhos.com
-+.taragana.com
 +.tarantool.io
 +.tardigrade.io
 +.target.com
@@ -20617,6 +20485,7 @@ zod.dev
 +.tbrc.org
 +.tbs-rainbow.org
 +.tbsec.org
++.tbskkinabalu.page.tl
 +.tbsmalaysia.org
 +.tbsn.org
 +.tbsseattle.org
@@ -20701,6 +20570,7 @@ zod.dev
 +.telega.info
 +.telega.me
 +.telekom.com
++.telemundo.com
 +.telerik.com
 +.telesell.com
 +.telex.cc
@@ -20795,10 +20665,10 @@ zod.dev
 +.thecandidbay.com
 +.thechinabeat.org
 +.thechinacollection.org
-+.thechinastory.org
 +.theclasshroom.com
 +.thecleversense.com
 +.theclubprive.com
++.thecollectivehk.com
 +.thecompaqstore.com
 +.thecontentserver.com
 +.theconversation.com
@@ -20856,6 +20726,7 @@ zod.dev
 +.thenewstack.io
 +.thenextweb.com
 +.thenipslip.com
++.theonlinecitizen.com
 +.theopportunityproject.org
 +.thepervs.com
 +.thepiratebay.org
@@ -20871,6 +20742,7 @@ zod.dev
 +.thesourcemediaassets.com
 +.thespeeder.com
 +.thestandnews.com
++.thestar.com
 +.thestationbymaker.com
 +.thetatoken.org
 +.thethothub.com
@@ -20885,7 +20757,6 @@ zod.dev
 +.thetrotskymovie.com
 +.thetvdb.com
 +.thetype.com
-+.theuab.net
 +.theverge.com
 +.thevirtualsexreview.com
 +.thevivekspot.com
@@ -20894,6 +20765,7 @@ zod.dev
 +.thewgo.org
 +.thewirechina.com
 +.thewitcher.com
++.thewitnesshk.com
 +.thewonderful101.com
 +.theync.com
 +.theyxxx.com
@@ -20952,7 +20824,6 @@ zod.dev
 +.tiananmenuniv.net
 +.tiandixing.org
 +.tianhuayuan.com
-+.tianlawoffice.com
 +.tiantang.today
 +.tianti.io
 +.tiantibooks.org
@@ -21216,6 +21087,7 @@ zod.dev
 +.toptoon.net
 +.toptoonsites.com
 +.topvids.net
++.tor.updatestar.com
 +.torcidadeouro.com
 +.torcn.com
 +.torguard.net
@@ -21228,6 +21100,7 @@ zod.dev
 +.torrentprivacy.com
 +.torrenty.org
 +.torrindex.net
++.tortoisegit.org
 +.tortoisesvn.net
 +.torvpn.com
 +.totalmateria.com
@@ -21261,7 +21134,6 @@ zod.dev
 +.trackerslist.com
 +.tracking-location.com
 +.tradeup.com
-+.tradevip1.com
 +.tradingview.com
 +.trafficdeposit.com
 +.traffichaus.com
@@ -21309,6 +21181,7 @@ zod.dev
 +.tristatebmw.com
 +.trithucvn.net
 +.trithucvn.org
++.tritondigital.com
 +.trixhentai.com
 +.trmini.com
 +.troisrivieresmini.com
@@ -21392,7 +21265,6 @@ zod.dev
 +.tt1069.com
 +.ttcache.com
 +.ttcdn-us.com
-+.tteshop.com
 +.ttlivecdn.com
 +.ttoverseaus.net
 +.tttan.com
@@ -21510,6 +21382,7 @@ zod.dev
 +.tvunetworks.com
 +.tw-blog.com
 +.tw-npo.org
++.tw.streetvoice.com
 +.tw01.org
 +.tw985.com
 +.twaitter.com
@@ -21678,7 +21551,6 @@ zod.dev
 +.ubuntu.net
 +.ubuntuforums.org
 +.uc-japan.org
-+.ucam.org
 +.ucanews.com
 +.ucarecdn.com
 +.ucdc1998.org
@@ -21707,6 +21579,7 @@ zod.dev
 +.udndata.com
 +.udnfunlife.com
 +.udtrucksmeena.com
++.udxfpp.com
 +.uflash.tv
 +.ufreevpn.com
 +.ugo.com
@@ -21771,9 +21644,14 @@ zod.dev
 +.uniswap.org
 +.unitedsocialpress.com
 +.unity.com
++.universalbeijingresort.com
++.universalhorrorunleashed.com
++.universalkidsresort.com
 +.universalorlando.com
 +.universalpictures.com
++.universalpicturesathome.com
 +.universalpicturesinternational.com
++.universalproductsexperiences.com
 +.universalscalablefirmware.org
 +.universalstudioshollywood.com
 +.universitypressscholarship.com
@@ -21794,6 +21672,7 @@ zod.dev
 +.unrealtournament.com
 +.unsplash.com
 +.unstable.icu
++.unun.dev
 +.uo.com
 +.uocn.org
 +.uoherald.com
@@ -21802,12 +21681,12 @@ zod.dev
 +.up01.cc
 +.upbit.com
 +.upcitemdb.com
-+.updatestar.com
 +.updatetube.com
 +.updownradar.com
 +.upfrontcfd.com
 +.upfrontfea.com
 +.upghsbc.com
++.uphe.com
 +.upholdjustice.org
 +.upjav.cc
 +.upjav.org
@@ -21857,6 +21736,7 @@ zod.dev
 +.usersdrive.com
 +.usertesting.com
 +.usertrust.com
++.usmgtcg.ning.com
 +.usocctn.com
 +.usocial.pro
 +.ustibetcommittee.org
@@ -21919,7 +21799,6 @@ zod.dev
 +.uymaarip.com
 +.v-av.com
 +.v-cdn.net
-+.v-has.com
 +.v.recipes
 +.v.roucdn
 +.v2.help
@@ -22186,9 +22065,7 @@ zod.dev
 +.vip-beats.com
 +.vip-enterprise.com
 +.vipbeatsbydre.com
-+.vipheadphones.com
 +.vipissy.com
-+.vipshoes2.com
 +.vipstudiocali.com
 +.viqeo.tv
 +.viqeotv.com
@@ -22300,6 +22177,7 @@ zod.dev
 +.vivaldi.com
 +.vivatube.com
 +.vivaxnxx.com
++.vivox.com
 +.vivthomas.com
 +.vixen.com
 +.vixengroup.com
@@ -22548,7 +22426,6 @@ zod.dev
 +.vpro.com
 +.vpro.net
 +.vps.hosting
-+.vpser.net
 +.vpsxb.net
 +.vraiesagesse.net
 +.vrbgay.com
@@ -22685,7 +22562,6 @@ zod.dev
 +.warp.plus
 +.warroom.org
 +.warthunder.com
-+.wasdj.com
 +.waselpro.com
 +.washa.tv
 +.washeng.net
@@ -22884,10 +22760,6 @@ zod.dev
 +.wholefoodsmarket.com
 +.wholekidsfoundation.org
 +.wholeplanetfoundation.org
-+.wholesale-exporter1.com
-+.wholesalediscountpurses.com
-+.wholesalefine.com
-+.wholesaleonlinemart.com
 +.wholevideos.com
 +.whonix.org
 +.whoreshub.com
@@ -23073,6 +22945,7 @@ zod.dev
 +.wolfsex-me.sbs
 +.wolongcdnm3u8.com
 +.wolongzywcdn3.com
++.womany.net
 +.womensnikeshox.com
 +.womenwill.com
 +.womenwill.com.br
@@ -23103,7 +22976,6 @@ zod.dev
 +.workstations.tv
 +.world3d.biz
 +.worldcat.org
-+.worldcoinpay.com
 +.worldcuprussia.com
 +.worldemojiawards.com
 +.worldemojiday.com
@@ -23169,7 +23041,6 @@ zod.dev
 +.wtfpeople.com
 +.wtmobile.com
 +.wto.org
-+.wuerkaixi.com
 +.wufafangwen.com
 +.wuguoguang.com
 +.wujie.net
@@ -23197,8 +23068,12 @@ zod.dev
 +.www.lamenhu.com
 +.www.msn.com
 +.www.orchidbbs.com
++.www.owind.com
 +.www.pxcc.com
++.www.thechinastory.org
 +.www1.biz
++.www2.ohchr.org
++.www2.rocketbbs.com
 +.www8-hp.com
 +.wwwapple.com
 +.wwwapple.net
@@ -23207,7 +23082,6 @@ zod.dev
 +.wwwebay.com
 +.wwwebay.net
 +.wwwfacebok.com
-+.wwwhost.biz
 +.wwwhuluplus.com
 +.wwwicloud.com
 +.wwwipodlounge.com
@@ -23373,6 +23247,7 @@ zod.dev
 +.xinjiangpolicefiles.org
 +.xinlan995.xyz
 +.xinmeitulu.com
++.xinqimeng.over-blog.com
 +.xinsheng.net
 +.xinshijue.com
 +.xinyubbs.net
@@ -23469,6 +23344,7 @@ zod.dev
 +.xn--d1abkf4ap.fun
 +.xn--d1acpjx3f.xn--p1ai
 +.xn--d4ty0ojsqzfd.com
++.xn--e1aapchhekkk.xn--p1ai
 +.xn--e1adjldbbpv.xn--90ais
 +.xn--e1aigb.xn--p1ai
 +.xn--fiq80y.xn--j6w193g
